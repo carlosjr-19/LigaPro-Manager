@@ -94,25 +94,52 @@
                         {% for match in matches %}
                         <div class="p-3 bg-white/5 rounded">
                             <p class="text-white/40 text-xs mb-2">
-                                {{ match.match_date.strftime('%d/%m/%Y %H:%M') }}
+                                {{ match.match_date.strftime('%d/%m/%Y %I:%M %p') }}
                                 {% if match.stage not in ['regular', None] %}
                                 <span class="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded text-xs">
                                     {{ match.stage }}
                                 </span>
                                 {% endif %}
                             </p>
-                            <div class="flex items-center gap-4">
-                                <span class="font-medium {% if match.home_team_id == team.id %}text-primary{% endif %}">
-                                    {{ teams_dict[match.home_team_id].name }}
-                                </span>
-                                {% if match.is_completed %}
-                                <span class="text-lg font-bold">{{ match.home_score }} - {{ match.away_score }}</span>
-                                {% else %}
-                                <span class="text-white/40">vs</span>
-                                {% endif %}
-                                <span class="font-medium {% if match.away_team_id == team.id %}text-primary{% endif %}">
-                                    {{ teams_dict[match.away_team_id].name }}
-                                </span>
+                            <div class="flex items-center justify-between gap-4">
+                                <div class="flex items-center gap-3 flex-1 justify-end">
+                                    <span
+                                        class="font-medium {% if match.home_team_id == team.id %}text-primary{% endif %} text-right">
+                                        {{ teams_dict[match.home_team_id].name }}
+                                    </span>
+                                    {% if teams_dict[match.home_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                        class="w-8 h-8 rounded object-cover bg-white/5">
+                                    {% else %}
+                                    <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
+                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex items-center gap-2 min-w-[60px] justify-center">
+                                    {% if match.is_completed %}
+                                    <span class="text-lg font-bold">{{ match.home_score }} - {{ match.away_score
+                                        }}</span>
+                                    {% else %}
+                                    <span class="text-white/40 text-sm">vs</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex items-center gap-3 flex-1">
+                                    {% if teams_dict[match.away_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                        class="w-8 h-8 rounded object-cover bg-white/5">
+                                    {% else %}
+                                    <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
+                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span
+                                        class="font-medium {% if match.away_team_id == team.id %}text-primary{% endif %}">
+                                        {{ teams_dict[match.away_team_id].name }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}

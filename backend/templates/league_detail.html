@@ -179,20 +179,43 @@
                 <div class="card">
                     <div class="flex flex-col md:flex-row md:items-center gap-4">
                         <div class="flex-1">
-                            <p class="text-white/40 text-xs mb-2">
-                                {{ match.match_date.strftime('%d/%m/%Y %H:%M') }}
+                            <p class="text-white/60 text-sm mb-4">
+                                {{ match.match_date.strftime('%d/%m/%Y %I:%M %p') }}
                             </p>
-                            <div class="flex items-center gap-4">
-                                <span class="font-bold flex-1">{{ teams_dict[match.home_team_id].name }}</span>
-                                {% if match.is_completed %}
-                                <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
-                                <span class="text-white/40">-</span>
-                                <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
-                                {% else %}
-                                <span class="text-white/40">vs</span>
-                                {% endif %}
-                                <span class="font-bold flex-1 text-right">{{ teams_dict[match.away_team_id].name
-                                    }}</span>
+                            <div class="flex items-center justify-between gap-4">
+                                <div class="flex items-center gap-3 flex-1 justify-end">
+                                    <span class="font-bold text-right">{{ teams_dict[match.home_team_id].name }}</span>
+                                    {% if teams_dict[match.home_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                        class="w-8 h-8 rounded object-cover bg-white/5">
+                                    {% else %}
+                                    <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
+                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex items-center gap-2 min-w-[80px] justify-center">
+                                    {% if match.is_completed %}
+                                    <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
+                                    <span class="text-white/40">-</span>
+                                    <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
+                                    {% else %}
+                                    <span class="text-white/40 text-sm">vs</span>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex items-center gap-3 flex-1">
+                                    {% if teams_dict[match.away_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                        class="w-8 h-8 rounded object-cover bg-white/5">
+                                    {% else %}
+                                    <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
+                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="font-bold">{{ teams_dict[match.away_team_id].name }}</span>
+                                </div>
                             </div>
                         </div>
                         <div>
@@ -232,24 +255,33 @@
                     </div>
 
                     {% if current_user.role == 'owner' %}
-                    <div class="card mb-6 bg-white/5 border-primary/20">
-                        <h4 class="font-bold mb-3 text-sm">Agregar Goleador</h4>
-                        <form method="POST" action="{{ url_for('add_stat', league_id=league.id) }}" class="space-y-3">
+                    <div class="mb-6 bg-white/5 p-4 rounded-lg border border-white/10">
+                        <h3 class="font-bold mb-4 text-sm uppercase text-primary">Agregar Goleador</h3>
+                        <form method="POST" action="{{ url_for('add_stat', league_id=league.id) }}"
+                            class="flex gap-4 items-end">
                             {{ stat_form.hidden_tag() }}
                             <input type="hidden" name="stat_type" value="goals">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    {{ stat_form.player_name(class="input-field w-full text-sm", placeholder="Nombre
-                                    Jugador") }}
-                                </div>
-                                <div>
-                                    {{ stat_form.team_id(class="input-field w-full text-sm") }}
-                                </div>
+                            <!-- Photo URL will be auto-filled from player selection in backend -->
+                            <div class="flex-1">
+                                <label class="block text-xs uppercase text-white/40 mb-1">Equipo</label>
+                                {{ stat_form.team_id(class="input-field text-sm team-select",
+                                data_target="player-select-goals") }}
                             </div>
-                            <div class="flex gap-3">
-                                {{ stat_form.value(class="input-field w-24 text-sm", placeholder="Goles") }}
-                                <button type="submit" class="btn-primary text-sm flex-1">Agregar</button>
+                            <div class="flex-1">
+                                <label class="block text-xs uppercase text-white/40 mb-1">Jugador</label>
+                                <!-- Use dynamic select for player, name matches form field to carry ID -->
+                                <select name="player_name" id="player-select-goals" class="input-field text-sm"
+                                    required>
+                                    <option value="">Selecciona un equipo primero</option>
+                                </select>
                             </div>
+                            <div class="w-24">
+                                <label class="block text-xs uppercase text-white/40 mb-1">Goles</label>
+                                {{ stat_form.value(class="input-field text-sm", placeholder="0") }}
+                            </div>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </form>
                     </div>
                     {% endif %}
@@ -307,24 +339,32 @@
                     </div>
 
                     {% if current_user.role == 'owner' %}
-                    <div class="card mb-6 bg-white/5 border-blue-400/20">
-                        <h4 class="font-bold mb-3 text-sm">Agregar Arquero</h4>
-                        <form method="POST" action="{{ url_for('add_stat', league_id=league.id) }}" class="space-y-3">
+                    <div class="mb-6 bg-white/5 p-4 rounded-lg border border-white/10">
+                        <h3 class="font-bold mb-4 text-sm uppercase text-primary">Agregar Arquero</h3>
+                        <form method="POST" action="{{ url_for('add_stat', league_id=league.id) }}"
+                            class="flex gap-4 items-end">
                             {{ stat_form.hidden_tag() }}
                             <input type="hidden" name="stat_type" value="conceded">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    {{ stat_form.player_name(class="input-field w-full text-sm", placeholder="Nombre
-                                    Arquero") }}
-                                </div>
-                                <div>
-                                    {{ stat_form.team_id(class="input-field w-full text-sm") }}
-                                </div>
+                            <!-- Photo URL will be auto-filled from player selection in backend -->
+                            <div class="flex-1">
+                                <label class="block text-xs uppercase text-white/40 mb-1">Equipo</label>
+                                {{ stat_form.team_id(class="input-field text-sm team-select",
+                                data_target="player-select-keeper") }}
                             </div>
-                            <div class="flex gap-3">
-                                {{ stat_form.value(class="input-field w-32 text-sm", placeholder="Goles Concedidos") }}
-                                <button type="submit" class="btn-primary text-sm flex-1">Agregar</button>
+                            <div class="flex-1">
+                                <label class="block text-xs uppercase text-white/40 mb-1">Portero</label>
+                                <select name="player_name" id="player-select-keeper" class="input-field text-sm"
+                                    required>
+                                    <option value="">Selecciona un equipo primero</option>
+                                </select>
                             </div>
+                            <div class="w-24">
+                                <label class="block text-xs uppercase text-white/40 mb-1">Recibidos</label>
+                                {{ stat_form.value(class="input-field text-sm", placeholder="0") }}
+                            </div>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </form>
                     </div>
                     {% endif %}
@@ -567,18 +607,63 @@
     </main>
 </div>
 
+<!-- Players Data for JS -->
 <script>
-    function showTab(tabName) {
-        // Hide all tabs
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    const playersByTeam = {{ players_by_team| tojson | safe }};
 
-        // Show selected tab
-        document.getElementById(tabName).classList.add('active');
-        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.addEventListener('DOMContentLoaded', function () {
+        const teamSelects = document.querySelectorAll('.team-select');
+
+        teamSelects.forEach(select => {
+            select.addEventListener('change', function () {
+                const teamId = this.value;
+                const targetId = this.dataset.target;
+                const playerSelect = document.getElementById(targetId);
+
+                playerSelect.innerHTML = '<option value="">Seleccionar Jugador</option>';
+
+                if (teamId && playersByTeam[teamId]) {
+                    playersByTeam[teamId].forEach(player => {
+                        const option = document.createElement('option');
+                        option.value = player.id; // Send ID to backend
+                        option.textContent = player.name;
+                        playerSelect.appendChild(option);
+                    });
+                }
+            });
+        });
+    });
+
+    function showTab(tabId) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // Show selected tab content
+        const selectedContent = document.getElementById(tabId);
+        if (selectedContent) {
+            selectedContent.classList.add('active');
+        }
+
+        // Reset all tab buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            // Remove inline styles if any (from my previous incorrect attempt) or specific classes if needed
+            // But looking at the CSS, the 'active' class handles the @apply styles.
+        });
+
+        // Activate selected tab button
+        const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+        if (activeBtn) {
+            activeBtn.classList.add('active');
+        }
+
+        // Update URL hash without jumping
+        history.pushState(null, null, `#${tabId}`);
     }
 
-    // Check URL hash for tab
+    // Initialize tab from URL hash on load
     if (window.location.hash) {
         const tab = window.location.hash.substring(1);
         if (document.getElementById(tab)) {

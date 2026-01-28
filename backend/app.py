@@ -465,6 +465,12 @@ def league_detail(league_id):
     
     teams_dict = {t.id: t for t in teams}
     
+    # Pass players by team for JS dropdown
+    players_by_team = {}
+    for team in teams:
+        players = Player.query.filter_by(team_id=team.id).order_by(Player.name).all()
+        players_by_team[team.id] = [{'id': p.id, 'name': p.name, 'photo_url': p.photo_url} for p in players]
+    
     # Get Season Stats
     top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).all()
     top_goalkeepers = SeasonStat.query.filter_by(league_id=league_id, stat_type='conceded').order_by(SeasonStat.value.asc()).all()
@@ -484,6 +490,7 @@ def league_detail(league_id):
                           teams_dict=teams_dict,
                           top_scorers=top_scorers,
                           top_goalkeepers=top_goalkeepers,
+                          players_by_team=players_by_team,
                           stat_form=stat_form)
 
 
@@ -570,6 +577,7 @@ def create_team(league_id):
         
         db.session.commit()
         flash('Equipo creado exitosamente.', 'success')
+        # Redirect to teams tab
         return redirect(url_for('team_detail', team_id=team.id))
     
     return render_template('team_form.html', form=form, league=league, title='Nuevo Equipo')
@@ -668,7 +676,8 @@ def delete_team(team_id):
     db.session.delete(team)
     db.session.commit()
     flash('Equipo eliminado.', 'success')
-    return redirect(url_for('league_detail', league_id=league_id))
+    # Redirect to teams tab
+    return redirect(url_for('league_detail', league_id=league_id, _anchor='teams'))
 
 
 @app.route('/teams/<team_id>/captain', methods=['POST'])
@@ -862,7 +871,7 @@ def create_match(league_id):
             db.session.add(match)
             db.session.commit()
             flash('Partido programado.', 'success')
-            return redirect(url_for('league_detail', league_id=league_id))
+            return redirect(url_for('league_detail', league_id=league_id, _anchor='matches'))
     
     return render_template('match_form.html', form=form, league=league, title='Nuevo Partido')
 
@@ -885,7 +894,8 @@ def update_match_result(match_id):
         match.is_completed = True
         db.session.commit()
         flash('Resultado registrado.', 'success')
-        return redirect(url_for('league_detail', league_id=league.id))
+        anchor = 'playoff' if match.stage != 'regular' and match.stage is not None else 'matches'
+        return redirect(url_for('league_detail', league_id=league.id, _anchor=anchor))
     
     home_team = Team.query.get(match.home_team_id)
     away_team = Team.query.get(match.away_team_id)
@@ -938,8 +948,9 @@ def reset_playoffs(league_id):
     league.playoff_bye_teams = None
     
     db.session.commit()
+    db.session.commit()
     flash(f'Liguilla reiniciada. Se eliminaron {deleted} partidos.', 'success')
-    return redirect(url_for('league_detail', league_id=league_id))
+    return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
 
 @app.route('/leagues/<league_id>/playoffs/generate', methods=['POST'])
 @login_required
@@ -953,7 +964,7 @@ def generate_playoffs(league_id):
     
     if total_teams < 5:
         flash('Se necesitan al menos 5 equipos para la liguilla.', 'danger')
-        return redirect(url_for('league_detail', league_id=league_id))
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
     
     # Delete existing playoff matches
     Match.query.filter(
@@ -1062,7 +1073,7 @@ def generate_playoffs(league_id):
     
     db.session.commit()
     flash(f'Liguilla generada ({mode}). {len(playoff_matches)} partidos creados.', 'success')
-    return redirect(url_for('league_detail', league_id=league_id))
+    return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
 
 
 @app.route('/leagues/<league_id>/playoffs/advance', methods=['POST'])
@@ -1079,7 +1090,7 @@ def advance_playoff_round(league_id):
     
     if not playoff_matches:
         flash('No hay partidos de liguilla.', 'danger')
-        return redirect(url_for('league_detail', league_id=league_id))
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
     
     stages_order = ['repechaje', 'quarterfinal', 'semifinal', 'final']
     active_stage = None
@@ -1095,18 +1106,18 @@ def advance_playoff_round(league_id):
             # Check if this stage is completed
             if not all(m.is_completed for m in matches_in_stage):
                 flash(f'Completa todos los partidos de {stage} antes de avanzar.', 'warning')
-                return redirect(url_for('league_detail', league_id=league_id))
+                return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
     
     if not active_stage:
         flash('No se encontró una fase activa.', 'danger')
-        return redirect(url_for('league_detail', league_id=league_id))
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
     
     # Check if tournament finished
     if active_stage == 'final':
         final = active_stage_matches[0]
         winner = Team.query.get(final.home_team_id if final.home_score > final.away_score else final.away_team_id)
         flash(f'¡El torneo ha terminado! Campeón: {winner.name} 🏆', 'success')
-        return redirect(url_for('league_detail', league_id=league_id))
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
     
     # Calculate qualified teams for next round
     winners = []
@@ -1137,7 +1148,7 @@ def advance_playoff_round(league_id):
     num_qualified = len(winners)
     if num_qualified < 2:
         flash('No hay suficientes equipos para la siguiente ronda.', 'danger')
-        return redirect(url_for('league_detail', league_id=league_id))
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
         
     # Determine Next Stage
     next_stage = 'quarterfinal'
@@ -1174,7 +1185,9 @@ def advance_playoff_round(league_id):
         
     db.session.commit()
     flash(f'Ronda generada: {next_stage} ({created_count} partidos).', 'success')
-    return redirect(url_for('league_detail', league_id=league_id))
+    db.session.commit()
+    flash(f'Ronda generada: {next_stage} ({created_count} partidos).', 'success')
+    return redirect(url_for('league_detail', league_id=league_id, _anchor='playoff'))
 
 
 # ==================== STATS ROUTES ====================
@@ -1200,13 +1213,28 @@ def add_stat(league_id):
             
             if current_count >= 5:
                 flash(f'Límite de 5 registros alcanzado. Actualiza a Premium para añadir ilimitados.', 'warning')
-                return redirect(url_for('league_detail', league_id=league_id))
+                flash(f'Límite de 5 registros alcanzado. Actualiza a Premium para añadir ilimitados.', 'warning')
+                return redirect(url_for('league_detail', league_id=league_id, _anchor='stats'))
+
+        # Check if player_name is actually an ID (from dropdown)
+        player_id = form.player_name.data
+        player = Player.query.get(player_id)
+        
+        if player:
+            final_player_name = player.name
+            final_photo_url = player.photo_url
+            final_team_id = player.team_id # Ensure team matches player
+        else:
+            # Fallback for legacy or manual (should not happen with new UI)
+            final_player_name = form.player_name.data
+            final_photo_url = form.photo_url.data
+            final_team_id = form.team_id.data
 
         stat = SeasonStat(
             league_id=league_id,
-            team_id=form.team_id.data,
-            player_name=form.player_name.data,
-            photo_url=form.photo_url.data,
+            team_id=final_team_id,
+            player_name=final_player_name,
+            photo_url=final_photo_url,
             stat_type=form.stat_type.data,
             value=form.value.data
         )
@@ -1216,7 +1244,7 @@ def add_stat(league_id):
     else:
         flash('Error al agregar estadística. Verifica los datos.', 'danger')
         
-    return redirect(url_for('league_detail', league_id=league_id))
+    return redirect(url_for('league_detail', league_id=league_id, _anchor='stats'))
 
 
 @app.route('/stats/<stat_id>/delete', methods=['POST'])
@@ -1233,7 +1261,7 @@ def delete_stat(stat_id):
     db.session.delete(stat)
     db.session.commit()
     flash('Estadística eliminada.', 'success')
-    return redirect(url_for('league_detail', league_id=league.id))
+    return redirect(url_for('league_detail', league_id=league.id, _anchor='stats'))
 
 
 @app.route('/stats/<stat_id>/edit', methods=['GET', 'POST'])
@@ -1263,7 +1291,7 @@ def edit_stat(stat_id):
         
         db.session.commit()
         flash('Estadística actualizada.', 'success')
-        return redirect(url_for('league_detail', league_id=league.id))
+        return redirect(url_for('league_detail', league_id=league.id, _anchor='stats'))
         
     return render_template('stat_form.html', form=form, stat=stat, league=league)
 
