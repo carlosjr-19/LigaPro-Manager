@@ -57,6 +57,10 @@ Sistema completo de gestión de ligas de fútbol desarrollado con Python y Flask
 
 El sistema incluye un simulador de suscripción Premium.
 *   Al activar Premium, obtienes acceso a herramientas avanzadas de configuración.
+*   Editar Jugadores de equipos
+*   Tener ligas ilimitadas
+*   Añadir más de 12 equipos a una liga
+*   Poder establecer cantidad de puntos por vicoria o empate
 *   **Zona de Peligro:** Permite borrar ligas o reiniciar temporadas completas manteniendo los equipos registrados.
 
 ---
