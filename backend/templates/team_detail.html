@@ -136,15 +136,14 @@
                                 <i class="fas fa-edit mr-2"></i>Editar Equipo
                             </a>
                             
-                            {% if not team.captain_user_id %}
-                                <form method="POST" action="{{ url_for('add_captain', team_id=team.id) }}" class="space-y-2">
-                                    <input type="text" name="captain_name" placeholder="Nombre del capitán" 
-                                           class="input-field text-sm" required>
-                                    <button type="submit" class="btn-secondary w-full text-sm">
-                                        <i class="fas fa-user-plus mr-2"></i>Asignar Capitán
-                                    </button>
-                                </form>
-                            {% endif %}
+                            <form method="POST" action="{{ url_for('add_captain', team_id=team.id) }}" class="space-y-2">
+                                <input type="text" name="captain_name" placeholder="Nombre del capitán" 
+                                       class="input-field text-sm" required>
+                                <button type="submit" class="btn-secondary w-full text-sm" {% if team.captain_user_id %}onclick="return confirm('¿Reemplazar al capitán actual? Se generarán nuevas credenciales.')"{% endif %}>
+                                    <i class="fas fa-user-plus mr-2"></i>
+                                    {% if team.captain_user_id %}Cambiar Capitán{% else %}Asignar Capitán{% endif %}
+                                </button>
+                            </form>
                             
                             <form method="POST" action="{{ url_for('delete_team', team_id=team.id) }}"
                                   onsubmit="return confirm('¿Eliminar equipo y todos sus datos?')">

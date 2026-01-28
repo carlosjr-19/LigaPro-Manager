@@ -74,7 +74,7 @@ class Team(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(100), nullable=False)
     league_id = db.Column(db.String(36), db.ForeignKey('leagues.id'), nullable=False)
-    shield_url = db.Column(db.String(500), nullable=True)
+    shield_url = db.Column(db.Text, nullable=True)
     captain_user_id = db.Column(db.String(36), nullable=True)
     captain_email = db.Column(db.String(120), nullable=True)
     captain_password_plain = db.Column(db.String(50), nullable=True)
@@ -635,34 +635,42 @@ def add_captain(team_id):
         flash('Nombre del capitán requerido.', 'danger')
         return redirect(url_for('team_detail', team_id=team_id))
     
-    # Delete old captain if exists
-    if team.captain_user_id:
-        old_captain = User.query.get(team.captain_user_id)
-        if old_captain:
-            db.session.delete(old_captain)
-    
-    # Create new captain
+    # Define captain email (deterministic based on team ID)
     captain_email = f"capitan.{team.id[:8]}@ligapro.com"
     captain_password = f"Cap{team.id[:8]}"
     hashed = bcrypt.generate_password_hash(captain_password).decode('utf-8')
     
-    captain = User(
-        email=captain_email,
-        password=hashed,
-        name=captain_name,
-        role='captain',
-        team_id=team.id
-    )
-    db.session.add(captain)
-    db.session.flush()
+    # Check if a user with this email already exists
+    captain = User.query.filter_by(email=captain_email).first()
     
+    if captain:
+        # Update existing captain user
+        captain.name = captain_name
+        captain.password = hashed
+        # Ensure role and team_id are correct
+        captain.role = 'captain'
+        captain.team_id = team.id
+        flash(f'Capitán actualizado. Contraseña restablecida: {captain_password}', 'success')
+    else:
+        # Create new captain user
+        captain = User(
+            email=captain_email,
+            password=hashed,
+            name=captain_name,
+            role='captain',
+            team_id=team.id
+        )
+        db.session.add(captain)
+        flash(f'Capitán asignado. Email: {captain_email}, Contraseña: {captain_password}', 'success')
+    
+    # Update team record
+    db.session.flush() # Ensure captain has ID if new
     team.captain_user_id = captain.id
     team.captain_email = captain_email
     team.captain_password_plain = captain_password
     team.captain_name = captain_name
     
     db.session.commit()
-    flash(f'Capitán asignado. Email: {captain_email}, Contraseña: {captain_password}', 'success')
     return redirect(url_for('team_detail', team_id=team_id))
 
 
