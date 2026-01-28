@@ -27,8 +27,30 @@ def init_database():
             print('Admin user created: delegado@ligapro.com / password123')
         else:
             print('Admin user already exists')
+            
+        # Run Migrations (Safe to run multiple times)
+        run_migrations()
         
         print('Database initialized!')
+
+def run_migrations():
+    """Run manual migrations for schema changes"""
+    from sqlalchemy import text
+    try:
+        with flask_app.app_context():
+            with db.engine.connect() as conn:
+                # Migration 1: Add show_stats to leagues
+                try:
+                    # Postgres/Standard SQL
+                    conn.execute(text("ALTER TABLE leagues ADD COLUMN show_stats BOOLEAN DEFAULT TRUE"))
+                    conn.commit()
+                    print("Migration applied: show_stats column added.")
+                except Exception as e:
+                    # Ignore error if column likely exists
+                    # print(f"Migration skipped (likely exists): {e}")
+                    pass
+    except Exception as e:
+        print(f"Migration Error: {e}")
 
 # Initialize database on startup
 init_database()

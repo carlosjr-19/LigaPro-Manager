@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SelectField, IntegerField, DateTimeField, TextAreaField
+from wtforms import StringField, PasswordField, SelectField, IntegerField, DateTimeField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired, Email, Length, Optional, NumberRange, InputRequired
 from datetime import datetime, timezone
 from functools import wraps
@@ -61,6 +61,7 @@ class League(db.Model):
     loss_points = db.Column(db.Integer, default=0)
     playoff_mode = db.Column(db.String(20), nullable=True)
     playoff_bye_teams = db.Column(db.Text, nullable=True)  # JSON string of team IDs
+    show_stats = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
@@ -124,6 +125,22 @@ class Match(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class SeasonStat(db.Model):
+    __tablename__ = 'season_stats'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    league_id = db.Column(db.String(36), db.ForeignKey('leagues.id'), nullable=False)
+    team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=False)
+    player_name = db.Column(db.String(100), nullable=False)
+    photo_url = db.Column(db.String(500), nullable=True)
+    stat_type = db.Column(db.String(20), nullable=False)  # 'goals' or 'conceded'
+    value = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    team = db.relationship('Team', backref='season_stats')
+
+
 # ==================== FORMS ====================
 
 class LoginForm(FlaskForm):
@@ -142,6 +159,8 @@ class LeagueForm(FlaskForm):
     max_teams = IntegerField('Máximo de Equipos', validators=[DataRequired(), NumberRange(min=4, max=32)], default=12)
     win_points = IntegerField('Puntos por Victoria', validators=[DataRequired()], default=3)
     draw_points = IntegerField('Puntos por Empate', validators=[DataRequired()], default=1)
+    # Field handles by template conditional, but need it in form
+    show_stats = BooleanField('Mostrar Estadísticas a Capitanes', default=True)
 
 
 class TeamForm(FlaskForm):
@@ -169,6 +188,14 @@ class MatchResultForm(FlaskForm):
 
 class TeamNoteForm(FlaskForm):
     text = TextAreaField('Nota', validators=[DataRequired()])
+
+
+class StatForm(FlaskForm):
+    player_name = StringField('Nombre del Jugador', validators=[DataRequired(), Length(max=100)])
+    team_id = SelectField('Equipo', validators=[DataRequired()])
+    photo_url = StringField('URL Foto (Opcional)', validators=[Optional()])
+    value = IntegerField('Cantidad', validators=[InputRequired(), NumberRange(min=0)])
+    stat_type = StringField('Tipo', validators=[DataRequired()])
 
 
 # ==================== HELPERS ====================
@@ -364,12 +391,24 @@ def captain_dashboard():
     # Get all teams for name lookup
     teams_dict = {t.id: t for t in Team.query.filter_by(league_id=league.id).all()}
     
+    # Get Top 5 Stats (if allowed)
+    top_scorers = []
+    top_goalkeepers = []
+    
+    if league.show_stats:
+        top_scorers = SeasonStat.query.filter_by(league_id=league.id, stat_type='goals')\
+            .order_by(SeasonStat.value.desc()).limit(5).all()
+        top_goalkeepers = SeasonStat.query.filter_by(league_id=league.id, stat_type='conceded')\
+            .order_by(SeasonStat.value.asc()).limit(5).all()
+    
     return render_template('captain_dashboard.html', 
                           team=team, 
                           league=league, 
                           standings=standings,
                           matches=matches,
-                          teams_dict=teams_dict)
+                          teams_dict=teams_dict,
+                          top_scorers=top_scorers,
+                          top_goalkeepers=top_goalkeepers)
 
 
 # ==================== LEAGUE ROUTES ====================
@@ -416,7 +455,6 @@ def league_detail(league_id):
     standings = calculate_standings(league_id)
     matches = Match.query.filter_by(league_id=league_id).order_by(Match.match_date).all()
     
-    # Get playoff matches grouped by stage
     playoff_matches = {
         'repechaje': Match.query.filter_by(league_id=league_id, stage='repechaje').all(),
         'quarterfinal': Match.query.filter_by(league_id=league_id, stage='quarterfinal').all(),
@@ -427,6 +465,15 @@ def league_detail(league_id):
     
     teams_dict = {t.id: t for t in teams}
     
+    # Get Season Stats
+    top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).all()
+    top_goalkeepers = SeasonStat.query.filter_by(league_id=league_id, stat_type='conceded').order_by(SeasonStat.value.asc()).all()
+    
+    # Form for adding stats (Owner Only)
+    stat_form = StatForm()
+    if current_user.role == 'owner':
+        stat_form.team_id.choices = [(t.id, t.name) for t in teams]
+    
     return render_template('league_detail.html', 
                           league=league, 
                           teams=teams,
@@ -434,7 +481,10 @@ def league_detail(league_id):
                           matches=matches,
                           playoff_matches=playoff_matches,
                           has_playoffs=has_playoffs,
-                          teams_dict=teams_dict)
+                          teams_dict=teams_dict,
+                          top_scorers=top_scorers,
+                          top_goalkeepers=top_goalkeepers,
+                          stat_form=stat_form)
 
 
 @app.route('/leagues/<league_id>/edit', methods=['GET', 'POST'])
@@ -450,6 +500,8 @@ def edit_league(league_id):
         league.max_teams = form.max_teams.data
         league.win_points = form.win_points.data
         league.draw_points = form.draw_points.data
+        if current_user.is_premium:
+            league.show_stats = form.show_stats.data
         db.session.commit()
         flash('Liga actualizada.', 'success')
         return redirect(url_for('league_detail', league_id=league_id))
@@ -858,6 +910,9 @@ def reset_season(league_id):
     league.playoff_mode = None
     league.playoff_bye_teams = None
     
+    # Delete Season Stats (Goleadores / Arqueros)
+    SeasonStat.query.filter_by(league_id=league_id).delete(synchronize_session=False)
+    
     db.session.commit()
     flash(f'Temporada reiniciada correctamente. Se eliminaron {deleted} partidos. Equipos y jugadores preservados.', 'success')
     return redirect(url_for('league_detail', league_id=league_id))
@@ -1120,6 +1175,97 @@ def advance_playoff_round(league_id):
     db.session.commit()
     flash(f'Ronda generada: {next_stage} ({created_count} partidos).', 'success')
     return redirect(url_for('league_detail', league_id=league_id))
+
+
+# ==================== STATS ROUTES ====================
+
+@app.route('/leagues/<league_id>/stats/add', methods=['POST'])
+@login_required
+@owner_required
+def add_stat(league_id):
+    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    form = StatForm()
+    # Populate choices dynamically for validation
+    teams = Team.query.filter_by(league_id=league_id).all()
+    form.team_id.choices = [(t.id, t.name) for t in teams]
+    
+    if form.validate_on_submit():
+        # Check limit for non-premium users
+        if not current_user.is_premium:
+            current_count = SeasonStat.query.filter_by(
+                league_id=league_id, 
+                stat_type=form.stat_type.data
+            ).count()
+            
+            if current_count >= 5:
+                flash(f'Límite de 5 registros alcanzado. Actualiza a Premium para añadir ilimitados.', 'warning')
+                return redirect(url_for('league_detail', league_id=league_id))
+
+        stat = SeasonStat(
+            league_id=league_id,
+            team_id=form.team_id.data,
+            player_name=form.player_name.data,
+            photo_url=form.photo_url.data,
+            stat_type=form.stat_type.data,
+            value=form.value.data
+        )
+        db.session.add(stat)
+        db.session.commit()
+        flash('Estadística agregada correctamente.', 'success')
+    else:
+        flash('Error al agregar estadística. Verifica los datos.', 'danger')
+        
+    return redirect(url_for('league_detail', league_id=league_id))
+
+
+@app.route('/stats/<stat_id>/delete', methods=['POST'])
+@login_required
+@owner_required
+def delete_stat(stat_id):
+    stat = SeasonStat.query.get_or_404(stat_id)
+    # Check ownership via league
+    league = League.query.get(stat.league_id)
+    if not league or league.user_id != current_user.id:
+        flash('No tienes permiso para realizar esta acción.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    db.session.delete(stat)
+    db.session.commit()
+    flash('Estadística eliminada.', 'success')
+    return redirect(url_for('league_detail', league_id=league.id))
+
+
+@app.route('/stats/<stat_id>/edit', methods=['GET', 'POST'])
+@login_required
+@owner_required
+def edit_stat(stat_id):
+    stat = SeasonStat.query.get_or_404(stat_id)
+    # Check ownership
+    league = League.query.get(stat.league_id)
+    if not league or league.user_id != current_user.id:
+        flash('No tienes permiso para editar esta estadística.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    # Pre-fill form
+    form = StatForm(obj=stat)
+    
+    # Populate choices dynamically for validation
+    teams = Team.query.filter_by(league_id=league.id).all()
+    form.team_id.choices = [(t.id, t.name) for t in teams]
+    
+    if form.validate_on_submit():
+        stat.player_name = form.player_name.data
+        stat.team_id = form.team_id.data
+        stat.photo_url = form.photo_url.data
+        stat.value = form.value.data
+        stat.stat_type = form.stat_type.data
+        
+        db.session.commit()
+        flash('Estadística actualizada.', 'success')
+        return redirect(url_for('league_detail', league_id=league.id))
+        
+    return render_template('stat_form.html', form=form, stat=stat, league=league)
 
 
 # ==================== PREMIUM ROUTES ====================

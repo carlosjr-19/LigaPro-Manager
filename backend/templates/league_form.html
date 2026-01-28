@@ -5,7 +5,8 @@
 <div class="min-h-screen">
     <header class="bg-card border-b border-white/10">
         <div class="max-w-2xl mx-auto px-6 py-4">
-            <a href="{{ url_for('dashboard') }}" class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+            <a href="{{ url_for('dashboard') }}"
+                class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
             <h1 class="text-2xl font-bold">{{ title }}</h1>
@@ -16,14 +17,14 @@
         <div class="card">
             <form method="POST" class="space-y-6">
                 {{ form.hidden_tag() }}
-                
+
                 <div>
                     <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
                         Nombre de la Liga *
                     </label>
                     {{ form.name(class="input-field", placeholder="Ej: Liga Premier 2025") }}
                     {% for error in form.name.errors %}
-                        <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
                     {% endfor %}
                 </div>
 
@@ -33,7 +34,7 @@
                     </label>
                     {{ form.max_teams(class="input-field", type="number", min="4", max="32") }}
                     {% if not current_user.is_premium %}
-                        <p class="text-white/40 text-sm mt-1">Máximo 12 equipos para usuarios gratuitos</p>
+                    <p class="text-white/40 text-sm mt-1">Máximo 12 equipos para usuarios gratuitos</p>
                     {% endif %}
                 </div>
 
@@ -51,6 +52,23 @@
                         {{ form.draw_points(class="input-field", type="number", min="0") }}
                     </div>
                 </div>
+
+                {% if current_user.is_premium %}
+                <div class="card bg-white/5 border-white/10 p-4">
+                    <div class="flex items-center gap-3">
+                        {{ form.show_stats(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary
+                        focus:ring-primary") }}
+                        <div>
+                            <label class="block text-sm font-bold text-white mb-1">
+                                {{ form.show_stats.label.text }}
+                            </label>
+                            <p class="text-xs text-white/50">
+                                Si está activo, los capitanes verán el Top 5 de goleadores y arqueros en su panel.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="flex gap-4">
                     <button type="submit" class="btn-primary flex-1">

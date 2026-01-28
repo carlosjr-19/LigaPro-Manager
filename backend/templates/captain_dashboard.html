@@ -9,11 +9,11 @@
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-4">
                     {% if team.shield_url %}
-                        <img src="{{ team.shield_url }}" class="w-12 h-12 rounded-lg object-cover">
+                    <img src="{{ team.shield_url }}" class="w-12 h-12 rounded-lg object-cover">
                     {% else %}
-                        <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-shield-alt text-xl text-primary"></i>
-                        </div>
+                    <div class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-xl text-primary"></i>
+                    </div>
                     {% endif %}
                     <div>
                         <h1 class="text-xl font-bold">{{ team.name }}</h1>
@@ -33,19 +33,19 @@
             <div class="lg:col-span-2 space-y-8">
                 <!-- Team Notes (from Admin) -->
                 {% if team.notes %}
-                    <div class="card border-warning/30 bg-warning/5">
-                        <h2 class="text-xl font-bold mb-4 text-warning">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>Notas del Administrador
-                        </h2>
-                        <div class="space-y-3">
-                            {% for note in team.notes|sort(attribute='created_at', reverse=true) %}
-                                <div class="p-3 bg-warning/10 rounded">
-                                    <p>{{ note.text }}</p>
-                                    <p class="text-white/40 text-xs mt-1">{{ note.created_at.strftime('%d/%m/%Y') }}</p>
-                                </div>
-                            {% endfor %}
+                <div class="card border-warning/30 bg-warning/5">
+                    <h2 class="text-xl font-bold mb-4 text-warning">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Notas del Administrador
+                    </h2>
+                    <div class="space-y-3">
+                        {% for note in team.notes|sort(attribute='created_at', reverse=true) %}
+                        <div class="p-3 bg-warning/10 rounded">
+                            <p>{{ note.text }}</p>
+                            <p class="text-white/40 text-xs mt-1">{{ note.created_at.strftime('%d/%m/%Y') }}</p>
                         </div>
+                        {% endfor %}
                     </div>
+                </div>
                 {% endif %}
 
                 <!-- Standings -->
@@ -66,17 +66,18 @@
                             </thead>
                             <tbody>
                                 {% for s in standings %}
-                                    <tr class="border-b border-white/5 {% if s.team.id == team.id %}bg-primary/10{% endif %}">
-                                        <td class="p-2 font-bold text-primary">{{ loop.index }}</td>
-                                        <td class="p-2">
-                                            <span class="{% if s.team.id == team.id %}text-primary font-bold{% endif %}">
-                                                {{ s.team.name }}
-                                            </span>
-                                        </td>
-                                        <td class="p-2 text-center">{{ s.played }}</td>
-                                        <td class="p-2 text-center">{{ s.goal_difference }}</td>
-                                        <td class="p-2 text-center font-bold text-primary">{{ s.points }}</td>
-                                    </tr>
+                                <tr
+                                    class="border-b border-white/5 {% if s.team.id == team.id %}bg-primary/10{% endif %}">
+                                    <td class="p-2 font-bold text-primary">{{ loop.index }}</td>
+                                    <td class="p-2">
+                                        <span class="{% if s.team.id == team.id %}text-primary font-bold{% endif %}">
+                                            {{ s.team.name }}
+                                        </span>
+                                    </td>
+                                    <td class="p-2 text-center">{{ s.played }}</td>
+                                    <td class="p-2 text-center">{{ s.goal_difference }}</td>
+                                    <td class="p-2 text-center font-bold text-primary">{{ s.points }}</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -89,38 +90,40 @@
                         <i class="fas fa-calendar mr-2 text-primary"></i>Mis Partidos
                     </h2>
                     {% if matches %}
-                        <div class="space-y-3">
-                            {% for match in matches %}
-                                <div class="p-3 bg-white/5 rounded">
-                                    <p class="text-white/40 text-xs mb-2">
-                                        {{ match.match_date.strftime('%d/%m/%Y %H:%M') }}
-                                        {% if match.stage not in ['regular', None] %}
-                                            <span class="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded text-xs">
-                                                {{ match.stage }}
-                                            </span>
-                                        {% endif %}
-                                    </p>
-                                    <div class="flex items-center gap-4">
-                                        <span class="font-medium {% if match.home_team_id == team.id %}text-primary{% endif %}">
-                                            {{ teams_dict[match.home_team_id].name }}
-                                        </span>
-                                        {% if match.is_completed %}
-                                            <span class="text-lg font-bold">{{ match.home_score }} - {{ match.away_score }}</span>
-                                        {% else %}
-                                            <span class="text-white/40">vs</span>
-                                        {% endif %}
-                                        <span class="font-medium {% if match.away_team_id == team.id %}text-primary{% endif %}">
-                                            {{ teams_dict[match.away_team_id].name }}
-                                        </span>
-                                    </div>
-                                </div>
-                            {% endfor %}
+                    <div class="space-y-3">
+                        {% for match in matches %}
+                        <div class="p-3 bg-white/5 rounded">
+                            <p class="text-white/40 text-xs mb-2">
+                                {{ match.match_date.strftime('%d/%m/%Y %H:%M') }}
+                                {% if match.stage not in ['regular', None] %}
+                                <span class="ml-2 bg-primary/20 text-primary px-2 py-0.5 rounded text-xs">
+                                    {{ match.stage }}
+                                </span>
+                                {% endif %}
+                            </p>
+                            <div class="flex items-center gap-4">
+                                <span class="font-medium {% if match.home_team_id == team.id %}text-primary{% endif %}">
+                                    {{ teams_dict[match.home_team_id].name }}
+                                </span>
+                                {% if match.is_completed %}
+                                <span class="text-lg font-bold">{{ match.home_score }} - {{ match.away_score }}</span>
+                                {% else %}
+                                <span class="text-white/40">vs</span>
+                                {% endif %}
+                                <span class="font-medium {% if match.away_team_id == team.id %}text-primary{% endif %}">
+                                    {{ teams_dict[match.away_team_id].name }}
+                                </span>
+                            </div>
                         </div>
+                        {% endfor %}
+                    </div>
                     {% else %}
-                        <p class="text-white/60 text-center py-8">No hay partidos programados</p>
+                    <p class="text-white/60 text-center py-8">No hay partidos programados</p>
                     {% endif %}
                 </div>
             </div>
+
+
 
             <!-- Sidebar -->
             <div class="space-y-6">
@@ -128,10 +131,12 @@
                 <div class="card">
                     <h3 class="font-bold mb-4">Acciones Rápidas</h3>
                     <div class="space-y-3">
-                        <a href="{{ url_for('team_detail', team_id=team.id) }}" class="btn-secondary w-full text-center block">
+                        <a href="{{ url_for('team_detail', team_id=team.id) }}"
+                            class="btn-secondary w-full text-center block">
                             <i class="fas fa-users mr-2"></i>Ver Mi Equipo
                         </a>
-                        <a href="{{ url_for('create_player', team_id=team.id) }}" class="btn-primary w-full text-center block">
+                        <a href="{{ url_for('create_player', team_id=team.id) }}"
+                            class="btn-primary w-full text-center block">
                             <i class="fas fa-user-plus mr-2"></i>Añadir Jugador
                         </a>
                     </div>
@@ -142,29 +147,29 @@
                     <h3 class="font-bold mb-4">Resumen</h3>
                     {% set my_stats = standings|selectattr('team.id', 'equalto', team.id)|first %}
                     {% if my_stats %}
-                        <div class="grid grid-cols-2 gap-4 text-center">
-                            <div class="p-4 bg-white/5 rounded">
-                                <p class="text-3xl font-bold text-primary">{{ my_stats.points }}</p>
-                                <p class="text-white/60 text-xs">Puntos</p>
-                            </div>
-                            <div class="p-4 bg-white/5 rounded">
-                                <p class="text-3xl font-bold text-success">{{ my_stats.won }}</p>
-                                <p class="text-white/60 text-xs">Victorias</p>
-                            </div>
-                            <div class="p-4 bg-white/5 rounded">
-                                <p class="text-3xl font-bold text-warning">{{ my_stats.drawn }}</p>
-                                <p class="text-white/60 text-xs">Empates</p>
-                            </div>
-                            <div class="p-4 bg-white/5 rounded">
-                                <p class="text-3xl font-bold text-red-400">{{ my_stats.lost }}</p>
-                                <p class="text-white/60 text-xs">Derrotas</p>
-                            </div>
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="p-4 bg-white/5 rounded">
+                            <p class="text-3xl font-bold text-primary">{{ my_stats.points }}</p>
+                            <p class="text-white/60 text-xs">Puntos</p>
                         </div>
-                        <div class="mt-4 p-4 bg-white/5 rounded text-center">
-                            <p class="text-white/60 text-xs mb-1">Goles</p>
-                            <p class="text-xl font-bold">{{ my_stats.goals_for }} - {{ my_stats.goals_against }}</p>
-                            <p class="text-white/40 text-xs">(DG: {{ my_stats.goal_difference }})</p>
+                        <div class="p-4 bg-white/5 rounded">
+                            <p class="text-3xl font-bold text-success">{{ my_stats.won }}</p>
+                            <p class="text-white/60 text-xs">Victorias</p>
                         </div>
+                        <div class="p-4 bg-white/5 rounded">
+                            <p class="text-3xl font-bold text-warning">{{ my_stats.drawn }}</p>
+                            <p class="text-white/60 text-xs">Empates</p>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded">
+                            <p class="text-3xl font-bold text-red-400">{{ my_stats.lost }}</p>
+                            <p class="text-white/60 text-xs">Derrotas</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 p-4 bg-white/5 rounded text-center">
+                        <p class="text-white/60 text-xs mb-1">Goles</p>
+                        <p class="text-xl font-bold">{{ my_stats.goals_for }} - {{ my_stats.goals_against }}</p>
+                        <p class="text-white/40 text-xs">(DG: {{ my_stats.goal_difference }})</p>
+                    </div>
                     {% endif %}
                 </div>
 
@@ -180,6 +185,59 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- League Stats (Sidebar Compact) -->
+                {% if league.show_stats and (top_scorers or top_goalkeepers) %}
+                <!-- Top Scorers -->
+                {% if top_scorers %}
+                <div class="card">
+                    <h3 class="font-bold mb-4 flex items-center gap-2 text-sm text-primary">
+                        <i class="fas fa-futbol"></i>Top 5 Goleadores
+                    </h3>
+                    <div class="space-y-3">
+                        {% for stat in top_scorers %}
+                        <div
+                            class="flex items-center justify-between text-sm border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-white/40 w-4 text-center">{{ loop.index }}</span>
+                                <div>
+                                    <p class="font-bold leading-tight">{{ stat.player_name }}</p>
+                                    <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ stat.team.name }}
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-lg text-primary">{{ stat.value }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Top Goalkeepers -->
+                {% if top_goalkeepers %}
+                <div class="card">
+                    <h3 class="font-bold mb-4 flex items-center gap-2 text-sm text-blue-400">
+                        <i class="fas fa-hand-paper"></i>Top 5 Arqueros
+                    </h3>
+                    <div class="space-y-3">
+                        {% for stat in top_goalkeepers %}
+                        <div
+                            class="flex items-center justify-between text-sm border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-white/40 w-4 text-center">{{ loop.index }}</span>
+                                <div>
+                                    <p class="font-bold leading-tight">{{ stat.player_name }}</p>
+                                    <p class="text-[10px] text-white/40 uppercase tracking-wider">{{ stat.team.name }}
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-lg text-blue-400">{{ stat.value }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
             </div>
         </div>
     </main>
