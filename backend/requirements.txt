@@ -135,3 +135,4 @@ Werkzeug==3.1.5
 WTForms==3.2.1
 yarl==1.22.0
 zipp==3.23.0
+gunicorn
