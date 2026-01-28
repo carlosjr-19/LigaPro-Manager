@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+.git
+.env
+backend/instance/*.db  # No subas la DB local
+backend/venv
+.venv
