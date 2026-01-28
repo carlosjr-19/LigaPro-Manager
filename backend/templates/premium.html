@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Premium - LigaPro Manager{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-4xl mx-auto px-6 py-4">
+            <a href="{{ url_for('dashboard') }}" class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+            <h1 class="text-3xl font-bold">Actualizar a Premium</h1>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Free Plan -->
+            <div class="card">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-user text-2xl text-white/40"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold">Plan Gratuito</h3>
+                    <p class="text-white/60">Actual</p>
+                </div>
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-center gap-3 text-white/60">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Hasta 3 ligas</span>
+                    </li>
+                    <li class="flex items-center gap-3 text-white/60">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Máximo 12 equipos por liga</span>
+                    </li>
+                    <li class="flex items-center gap-3 text-white/60">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Sistema de liguilla básico</span>
+                    </li>
+                    <li class="flex items-center gap-3 text-white/40">
+                        <i class="fas fa-times text-red-400"></i>
+                        <span>Editar configuración de liga</span>
+                    </li>
+                    <li class="flex items-center gap-3 text-white/40">
+                        <i class="fas fa-times text-red-400"></i>
+                        <span>Editar jugadores</span>
+                    </li>
+                </ul>
+                <div class="text-center">
+                    <p class="text-3xl font-bold mb-2">$0</p>
+                    <p class="text-white/40">Siempre gratis</p>
+                </div>
+            </div>
+
+            <!-- Premium Plan -->
+            <div class="card border-warning/50 bg-warning/5">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-warning/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-crown text-2xl text-warning"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-warning">Plan Premium</h3>
+                    <p class="text-white/60">Recomendado</p>
+                </div>
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Ligas ilimitadas</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Hasta 32 equipos por liga</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Sistema de liguilla completo</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Editar configuración de liga</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Editar jugadores</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Soporte prioritario</span>
+                    </li>
+                </ul>
+                <div class="text-center mb-6">
+                    <p class="text-3xl font-bold mb-2 text-warning">$9.99 USD</p>
+                    <p class="text-white/40">Pago único</p>
+                </div>
+                
+                {% if current_user.is_premium %}
+                    <button disabled class="btn-secondary w-full cursor-not-allowed opacity-50">
+                        <i class="fas fa-check mr-2"></i>Ya eres Premium
+                    </button>
+                {% else %}
+                    <form method="POST" action="{{ url_for('activate_premium') }}">
+                        <button type="submit" class="w-full bg-warning hover:bg-yellow-600 text-black font-bold py-3 px-4 rounded transition-colors">
+                            <i class="fas fa-crown mr-2"></i>Activar Premium
+                        </button>
+                    </form>
+                    <p class="text-white/40 text-xs text-center mt-3">
+                        * En esta demo, Premium se activa automáticamente
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

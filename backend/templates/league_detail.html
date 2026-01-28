@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+{% block title %}{{ league.name }} - LigaPro Manager{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <a href="{{ url_for('dashboard') }}"
+                class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold">{{ league.name }}</h1>
+                    <p class="text-white/60">{{ teams|length }} / {{ league.max_teams }} equipos</p>
+                </div>
+                <a href="{{ url_for('create_team', league_id=league.id) }}" class="btn-primary">
+                    <i class="fas fa-plus mr-2"></i>Añadir Equipo
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="bg-card border-b border-white/10 sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex gap-1 overflow-x-auto">
+                <button onclick="showTab('standings')" class="tab-btn active" data-tab="standings">
+                    <i class="fas fa-trophy mr-2"></i>Tabla
+                </button>
+                <button onclick="showTab('teams')" class="tab-btn" data-tab="teams">
+                    <i class="fas fa-users mr-2"></i>Equipos
+                </button>
+                <button onclick="showTab('matches')" class="tab-btn" data-tab="matches">
+                    <i class="fas fa-calendar mr-2"></i>Partidos
+                </button>
+                <button onclick="showTab('playoff')" class="tab-btn" data-tab="playoff">
+                    <i class="fas fa-bolt mr-2"></i>Liguilla
+                </button>
+                <button onclick="showTab('settings')" class="tab-btn" data-tab="settings">
+                    <i class="fas fa-cog mr-2"></i>Config
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style type="text/tailwindcss">
+        .tab-btn {
+            @apply px-4 py-3 text-white/60 hover:text-white border-b-2 border-transparent transition-colors whitespace-nowrap;
+        }
+
+        .tab-btn.active {
+            @apply text-primary border-primary;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+
+    <!-- Content -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Standings Tab -->
+        <div id="standings" class="tab-content active">
+            <h2 class="text-2xl font-bold mb-6">Tabla de Posiciones</h2>
+            {% if standings %}
+            <div class="card overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-white/10 text-white/60 text-xs uppercase">
+                            <th class="text-left p-3">#</th>
+                            <th class="text-left p-3">Equipo</th>
+                            <th class="text-center p-3">PJ</th>
+                            <th class="text-center p-3">G</th>
+                            <th class="text-center p-3">E</th>
+                            <th class="text-center p-3">P</th>
+                            <th class="text-center p-3">GF</th>
+                            <th class="text-center p-3">GC</th>
+                            <th class="text-center p-3">DG</th>
+                            <th class="text-center p-3 text-primary">PTS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in standings %}
+                        <tr class="border-b border-white/5 hover:bg-white/5">
+                            <td class="p-3 font-bold text-primary">{{ loop.index }}</td>
+                            <td class="p-3">
+                                <div class="flex items-center gap-3">
+                                    {% if s.team.shield_url %}
+                                    <img src="{{ s.team.shield_url }}" class="w-8 h-8 rounded object-cover">
+                                    {% else %}
+                                    <div class="w-8 h-8 bg-white/10 rounded flex items-center justify-center">
+                                        <i class="fas fa-shield-alt text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="font-medium">{{ s.team.name }}</span>
+                                </div>
+                            </td>
+                            <td class="p-3 text-center">{{ s.played }}</td>
+                            <td class="p-3 text-center">{{ s.won }}</td>
+                            <td class="p-3 text-center">{{ s.drawn }}</td>
+                            <td class="p-3 text-center">{{ s.lost }}</td>
+                            <td class="p-3 text-center">{{ s.goals_for }}</td>
+                            <td class="p-3 text-center">{{ s.goals_against }}</td>
+                            <td class="p-3 text-center">{{ s.goal_difference }}</td>
+                            <td class="p-3 text-center font-bold text-primary">{{ s.points }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="card text-center py-12">
+                <p class="text-white/60">No hay datos en la tabla de posiciones</p>
+                <p class="text-white/40 text-sm mt-2">Registra resultados de partidos para ver estadísticas</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Teams Tab -->
+        <div id="teams" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6">Equipos de la Liga</h2>
+            {% if teams %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for team in teams %}
+                <a href="{{ url_for('team_detail', team_id=team.id) }}"
+                    class="card hover:border-white/20 transition-colors">
+                    <div class="flex items-center gap-4 mb-4">
+                        {% if team.shield_url %}
+                        <img src="{{ team.shield_url }}" class="w-16 h-16 rounded object-cover">
+                        {% else %}
+                        <div class="w-16 h-16 bg-white/10 rounded flex items-center justify-center">
+                            <i class="fas fa-shield-alt text-2xl text-white/40"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="text-xl font-bold">{{ team.name }}</h3>
+                            {% if team.captain_name %}
+                            <p class="text-white/60 text-sm">Cap: {{ team.captain_name }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <p class="text-white/40 text-sm">{{ team.players|length }} jugadores</p>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card text-center py-12">
+                <i class="fas fa-users text-4xl text-white/20 mb-4"></i>
+                <p class="text-white/60 mb-4">No hay equipos registrados</p>
+                <a href="{{ url_for('create_team', league_id=league.id) }}" class="btn-primary">
+                    Añadir primer equipo
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Matches Tab -->
+        <div id="matches" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Partidos</h2>
+                <a href="{{ url_for('create_match', league_id=league.id) }}" class="btn-primary">
+                    <i class="fas fa-plus mr-2"></i>Programar Partido
+                </a>
+            </div>
+
+            {% set regular_matches = matches|selectattr('stage', 'in', ['regular', none])|list %}
+            {% if regular_matches %}
+            <div class="space-y-4">
+                {% for match in regular_matches|sort(attribute='match_date') %}
+                <div class="card">
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <div class="flex-1">
+                            <p class="text-white/40 text-xs mb-2">
+                                {{ match.match_date.strftime('%d/%m/%Y %H:%M') }}
+                            </p>
+                            <div class="flex items-center gap-4">
+                                <span class="font-bold flex-1">{{ teams_dict[match.home_team_id].name }}</span>
+                                {% if match.is_completed %}
+                                <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
+                                <span class="text-white/40">-</span>
+                                <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
+                                {% else %}
+                                <span class="text-white/40">vs</span>
+                                {% endif %}
+                                <span class="font-bold flex-1 text-right">{{ teams_dict[match.away_team_id].name
+                                    }}</span>
+                            </div>
+                        </div>
+                        <div>
+                            {% if match.is_completed %}
+                            <span class="bg-success/20 text-success px-3 py-1 rounded text-xs">Finalizado</span>
+                            {% else %}
+                            <a href="{{ url_for('update_match_result', match_id=match.id) }}"
+                                class="btn-secondary text-sm">
+                                Registrar Resultado
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card text-center py-12">
+                <i class="fas fa-calendar text-4xl text-white/20 mb-4"></i>
+                <p class="text-white/60 mb-4">No hay partidos programados</p>
+                <a href="{{ url_for('create_match', league_id=league.id) }}" class="btn-primary">
+                    Programar primer partido
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Playoff Tab -->
+        <div id="playoff" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Liguilla / Playoffs</h2>
+                <div class="flex gap-2">
+                    {% if has_playoffs %}
+                    <form method="POST" action="/leagues/{{ league.id }}/playoffs/reset" class="inline"
+                        onsubmit="return confirm('⚠️ ¿Estás seguro de BORRAR toda la liguilla? Se perderán todos los partidos de eliminatoria.')">
+                        <button type="submit"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Borrar Liguilla
+                        </button>
+                    </form>
+                    <form method="POST" action="/leagues/{{ league.id }}/playoffs/advance" class="inline">
+                        <button type="submit" class="btn-secondary">
+                            <i class="fas fa-forward mr-2"></i>Avanzar Ronda
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if not has_playoffs %}
+            <div class="card text-center py-12">
+                <i class="fas fa-bolt text-4xl text-white/20 mb-4"></i>
+                <p class="text-white/60 mb-2">La liguilla aún no ha sido generada</p>
+                <p class="text-white/40 text-sm mb-6">Tienes {{ teams|length }} equipos en la liga</p>
+
+                {% if teams|length >= 5 %}
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <form method="POST" action="{{ url_for('generate_playoffs', league_id=league.id) }}">
+                        <input type="hidden" name="mode" value="corte_directo">
+                        <button type="submit" class="btn-primary w-full sm:w-auto">
+                            <i class="fas fa-cut mr-2"></i>Corte Directo
+                        </button>
+                    </form>
+                    {% if teams|length >= 6 %}
+                    <form method="POST" action="{{ url_for('generate_playoffs', league_id=league.id) }}">
+                        <input type="hidden" name="mode" value="con_repechaje">
+                        <button type="submit" class="btn-secondary w-full sm:w-auto">
+                            <i class="fas fa-random mr-2"></i>Con Repechaje
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-warning">Se necesitan al menos 5 equipos para generar la liguilla</p>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="space-y-8">
+                {% for stage_name, stage_matches in [('repechaje', playoff_matches.repechaje), ('quarterfinal',
+                playoff_matches.quarterfinal), ('semifinal', playoff_matches.semifinal), ('final',
+                playoff_matches.final)] %}
+                {% if stage_matches %}
+                <div>
+                    <h3 class="text-xl mb-4 
+                                    {% if stage_name == 'repechaje' %}text-warning{% endif %}
+                                    {% if stage_name == 'quarterfinal' %}text-blue-400{% endif %}
+                                    {% if stage_name == 'semifinal' %}text-primary{% endif %}
+                                    {% if stage_name == 'final' %}text-yellow-400{% endif %}">
+                        {% if stage_name == 'repechaje' %}⚡ Repechaje{% endif %}
+                        {% if stage_name == 'quarterfinal' %}🏆 Cuartos de Final{% endif %}
+                        {% if stage_name == 'semifinal' %}🔥 Semifinales{% endif %}
+                        {% if stage_name == 'final' %}👑 Final{% endif %}
+                    </h3>
+                    <div class="space-y-3">
+                        {% for match in stage_matches %}
+                        <div class="card {% if stage_name == 'final' %}border-yellow-400/50{% endif %}">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 flex items-center gap-4">
+                                    <span class="font-bold">{{ teams_dict[match.home_team_id].name }}</span>
+                                    {% if match.is_completed %}
+                                    <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
+                                    <span class="text-white/40">-</span>
+                                    <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
+                                    {% else %}
+                                    <span class="text-white/40">vs</span>
+                                    {% endif %}
+                                    <span class="font-bold">{{ teams_dict[match.away_team_id].name }}</span>
+                                </div>
+                                {% if match.is_completed %}
+                                <span class="bg-success/20 text-success px-3 py-1 rounded text-xs">Finalizado</span>
+                                {% else %}
+                                <a href="{{ url_for('update_match_result', match_id=match.id) }}"
+                                    class="btn-secondary text-sm">Resultado</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Regenerate Option -->
+            <div class="mt-8 pt-8 border-t border-white/10">
+                <form method="POST" action="{{ url_for('generate_playoffs', league_id=league.id) }}"
+                    onsubmit="return confirm('¿Estás seguro? Esto eliminará la liguilla actual.')">
+                    <input type="hidden" name="mode" value="{{ league.playoff_mode or 'corte_directo' }}">
+                    <button type="submit" class="btn-secondary text-sm">
+                        <i class="fas fa-redo mr-2"></i>Regenerar Liguilla
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <h2 class="text-2xl font-bold mb-6">Configuración de la Liga</h2>
+
+            {% if current_user.is_premium %}
+            <div class="card">
+                <h3 class="text-xl mb-4">Sistema de Puntuación</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm text-white/60 mb-2">Puntos por Victoria</label>
+                        <div class="input-field bg-white/5">{{ league.win_points }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-white/60 mb-2">Puntos por Empate</label>
+                        <div class="input-field bg-white/5">{{ league.draw_points }}</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-white/60 mb-2">Puntos por Derrota</label>
+                        <div class="input-field bg-white/5">{{ league.loss_points }}</div>
+                    </div>
+                </div>
+                <a href="{{ url_for('edit_league', league_id=league.id) }}" class="btn-primary">
+                    <i class="fas fa-edit mr-2"></i>Editar Configuración
+                </a>
+            </div>
+            {% else %}
+            <div class="card text-center py-12 bg-warning/5 border-warning/30">
+                <i class="fas fa-crown text-4xl text-warning mb-4"></i>
+                <h3 class="text-xl mb-2">Función Premium</h3>
+                <p class="text-white/60 mb-6">Actualiza a Premium para editar la configuración de tus ligas</p>
+                <a href="{{ url_for('premium') }}" class="btn-primary">
+                    <i class="fas fa-crown mr-2"></i>Actualizar a Premium
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Danger Zone -->
+            <div class="card mt-6 border-red-500/30">
+                <h3 class="text-xl text-red-400 mb-4">Zona de Peligro</h3>
+
+                <!-- Reset Season (Premium) -->
+                <div class="mb-6 pb-6 border-b border-white/10">
+                    <h4 class="font-bold mb-2">Restablecer Temporada</h4>
+                    <p class="text-white/60 mb-4 text-sm">Reinicia todos los partidos y puntos. Mantiene equipos y
+                        jugadores.</p>
+
+                    {% if current_user.is_premium %}
+                    <form method="POST" action="{{ url_for('reset_season', league_id=league.id) }}"
+                        onsubmit="return confirm('¡ADVERTENCIA!\n\nEsta acción borrará TODOS los partidos, resultados y puntos de la temporada actual.\n\nNO se borrarán los equipos ni jugadores.\n\n¿Estás absolutamente seguro de continuar?')">
+                        <button type="submit"
+                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                            <i class="fas fa-history mr-2"></i>Restablecer Temporada
+                        </button>
+                    </form>
+                    {% else %}
+                    <button disabled class="bg-red-600/50 text-white/50 font-bold py-2 px-4 rounded cursor-not-allowed">
+                        <i class="fas fa-lock mr-2"></i>Restablecer Temporada (Premium)
+                    </button>
+                    <p class="text-xs text-warning mt-2">
+                        <a href="{{ url_for('premium') }}" class="hover:underline">Actualiza a Premium para
+                            desbloquear</a>
+                    </p>
+                    {% endif %}
+                </div>
+
+                <!-- Delete League -->
+                <div>
+                    <h4 class="font-bold mb-2">Eliminar Liga</h4>
+                    <p class="text-white/60 mb-4 text-sm">Elimina permanentemente la liga y todos sus datos.</p>
+                    <form method="POST" action="{{ url_for('delete_league', league_id=league.id) }}"
+                        onsubmit="return confirm('¿Estás seguro? Esta acción eliminará la liga y todos sus datos.')">
+                        <button type="submit"
+                            class="bg-transparent border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-bold py-2 px-4 rounded transition-colors">
+                            <i class="fas fa-trash mr-2"></i>Eliminar Liga
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    function showTab(tabName) {
+        // Hide all tabs
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        // Show selected tab
+        document.getElementById(tabName).classList.add('active');
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    }
+
+    // Check URL hash for tab
+    if (window.location.hash) {
+        const tab = window.location.hash.substring(1);
+        if (document.getElementById(tab)) {
+            showTab(tab);
+        }
+    }
+</script>
+{% endblock %}

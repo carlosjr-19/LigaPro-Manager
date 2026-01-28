@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}{{ team.name }} - LigaPro Manager{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            {% if current_user.role == 'captain' %}
+                <a href="{{ url_for('captain_dashboard') }}" class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            {% else %}
+                <a href="{{ url_for('league_detail', league_id=league.id) }}" class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+                    <i class="fas fa-arrow-left"></i> Volver a {{ league.name }}
+                </a>
+            {% endif %}
+            
+            <div class="flex items-center gap-6">
+                {% if team.shield_url %}
+                    <img src="{{ team.shield_url }}" class="w-20 h-20 rounded-lg object-cover">
+                {% else %}
+                    <div class="w-20 h-20 bg-white/10 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-3xl text-white/40"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h1 class="text-3xl font-bold">{{ team.name }}</h1>
+                    <p class="text-white/60">{{ league.name }}</p>
+                    {% if team.captain_name %}
+                        <p class="text-white/40 text-sm mt-1">
+                            <i class="fas fa-user-tie mr-1"></i> Capitán: {{ team.captain_name }}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Players -->
+                <div class="card">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold">
+                            <i class="fas fa-users mr-2 text-primary"></i>Jugadores
+                        </h2>
+                        <a href="{{ url_for('create_player', team_id=team.id) }}" class="btn-primary text-sm">
+                            <i class="fas fa-plus mr-1"></i>Añadir
+                        </a>
+                    </div>
+                    
+                    {% if players %}
+                        <div class="space-y-3">
+                            {% for player in players %}
+                                <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                                    <div class="flex items-center gap-3">
+                                        {% if player.photo_url %}
+                                            <img src="{{ player.photo_url }}" class="w-10 h-10 rounded-full object-cover">
+                                        {% else %}
+                                            <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-user text-white/40"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <p class="font-medium">{{ player.name }}</p>
+                                            {% if player.curp %}
+                                                <p class="text-white/40 text-xs">{{ player.curp }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        {% if current_user.is_premium %}
+                                            <a href="{{ url_for('edit_player', player_id=player.id) }}" 
+                                               class="text-white/40 hover:text-white">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        {% endif %}
+                                        <form method="POST" action="{{ url_for('delete_player', player_id=player.id) }}"
+                                              onsubmit="return confirm('¿Eliminar jugador?')" class="inline">
+                                            <button type="submit" class="text-red-400 hover:text-red-300">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-white/60 text-center py-8">No hay jugadores registrados</p>
+                    {% endif %}
+                </div>
+
+                <!-- Matches -->
+                <div class="card">
+                    <h2 class="text-xl font-bold mb-6">
+                        <i class="fas fa-calendar mr-2 text-primary"></i>Partidos
+                    </h2>
+                    
+                    {% if matches %}
+                        <div class="space-y-3">
+                            {% for match in matches %}
+                                <div class="p-3 bg-white/5 rounded-lg">
+                                    <p class="text-white/40 text-xs mb-2">{{ match.match_date.strftime('%d/%m/%Y %H:%M') }}</p>
+                                    <div class="flex items-center gap-4">
+                                        <span class="font-medium {% if match.home_team_id == team.id %}text-primary{% endif %}">
+                                            {{ teams_dict[match.home_team_id].name }}
+                                        </span>
+                                        {% if match.is_completed %}
+                                            <span class="text-lg font-bold">{{ match.home_score }} - {{ match.away_score }}</span>
+                                        {% else %}
+                                            <span class="text-white/40">vs</span>
+                                        {% endif %}
+                                        <span class="font-medium {% if match.away_team_id == team.id %}text-primary{% endif %}">
+                                            {{ teams_dict[match.away_team_id].name }}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-white/60 text-center py-8">No hay partidos programados</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Team Actions -->
+                {% if current_user.role == 'owner' %}
+                    <div class="card">
+                        <h3 class="font-bold mb-4">Acciones</h3>
+                        <div class="space-y-3">
+                            <a href="{{ url_for('edit_team', team_id=team.id) }}" class="btn-secondary w-full text-center block">
+                                <i class="fas fa-edit mr-2"></i>Editar Equipo
+                            </a>
+                            
+                            {% if not team.captain_user_id %}
+                                <form method="POST" action="{{ url_for('add_captain', team_id=team.id) }}" class="space-y-2">
+                                    <input type="text" name="captain_name" placeholder="Nombre del capitán" 
+                                           class="input-field text-sm" required>
+                                    <button type="submit" class="btn-secondary w-full text-sm">
+                                        <i class="fas fa-user-plus mr-2"></i>Asignar Capitán
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                            <form method="POST" action="{{ url_for('delete_team', team_id=team.id) }}"
+                                  onsubmit="return confirm('¿Eliminar equipo y todos sus datos?')">
+                                <button type="submit" class="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 py-2 px-4 rounded text-sm">
+                                    <i class="fas fa-trash mr-2"></i>Eliminar Equipo
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Captain Credentials -->
+                {% if team.captain_email and current_user.role == 'owner' %}
+                    <div class="card border-warning/30">
+                        <h3 class="font-bold mb-4 text-warning">
+                            <i class="fas fa-key mr-2"></i>Credenciales Capitán
+                        </h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="bg-white/5 p-3 rounded">
+                                <p class="text-white/60">Email:</p>
+                                <p class="font-mono">{{ team.captain_email }}</p>
+                            </div>
+                            <div class="bg-white/5 p-3 rounded">
+                                <p class="text-white/60">Contraseña:</p>
+                                <p class="font-mono">{{ team.captain_password_plain }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Notes -->
+                {% if current_user.role == 'owner' %}
+                    <div class="card">
+                        <h3 class="font-bold mb-4">
+                            <i class="fas fa-sticky-note mr-2 text-primary"></i>Notas
+                        </h3>
+                        <form method="POST" action="{{ url_for('add_team_note', team_id=team.id) }}" class="mb-4">
+                            <textarea name="note_text" placeholder="Añadir nota..." 
+                                      class="input-field text-sm resize-none" rows="2" required></textarea>
+                            <button type="submit" class="btn-primary w-full mt-2 text-sm">
+                                <i class="fas fa-plus mr-1"></i>Añadir Nota
+                            </button>
+                        </form>
+                        
+                        {% if notes %}
+                            <div class="space-y-2 max-h-64 overflow-y-auto">
+                                {% for note in notes %}
+                                    <div class="p-3 bg-white/5 rounded text-sm">
+                                        <p>{{ note.text }}</p>
+                                        <p class="text-white/40 text-xs mt-1">{{ note.created_at.strftime('%d/%m/%Y') }}</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-white/40 text-sm">Sin notas</p>
+                        {% endif %}
+                    </div>
+                {% elif notes %}
+                    <!-- Show notes to captain (read-only) -->
+                    <div class="card border-warning/30">
+                        <h3 class="font-bold mb-4 text-warning">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Notas del Admin
+                        </h3>
+                        <div class="space-y-2">
+                            {% for note in notes %}
+                                <div class="p-3 bg-warning/10 rounded text-sm">
+                                    <p>{{ note.text }}</p>
+                                    <p class="text-white/40 text-xs mt-1">{{ note.created_at.strftime('%d/%m/%Y') }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "LigaPro Manager",
+      "archetype": "Performance Pro",
+      "tone": "Athletic, Precision, High-Contrast, Professional",
+      "theme_strategy": "Stadium Night (Dark Mode Default)"
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Barlow Condensed, sans-serif",
+        "body": "Inter, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "weights": {
+        "headings": "800",
+        "body": "400",
+        "bold": "700"
+      },
+      "scale": {
+        "h1": "text-6xl tracking-tighter uppercase",
+        "h2": "text-4xl tracking-tight uppercase",
+        "h3": "text-2xl tracking-tight uppercase",
+        "body": "text-base leading-relaxed",
+        "small": "text-sm tracking-wide uppercase opacity-80"
+      },
+      "google_fonts_import": "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;800&family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400&display=swap"
+    },
+    "colors": {
+      "palette": {
+        "background": "#0A0A0A",
+        "foreground": "#FFFFFF",
+        "card": "#121212",
+        "card_foreground": "#FFFFFF",
+        "primary": "#FF3B30",
+        "primary_foreground": "#FFFFFF",
+        "secondary": "#1F1F1F",
+        "secondary_foreground": "#FFFFFF",
+        "accent": "#007AFF",
+        "accent_foreground": "#FFFFFF",
+        "success": "#00E676",
+        "warning": "#FFD60A",
+        "destructive": "#FF453A",
+        "border": "#333333",
+        "input": "#1F1F1F",
+        "ring": "#FF3B30"
+      },
+      "gradients": {
+        "hero": "linear-gradient(to bottom right, #1a1a1a, #0a0a0a)",
+        "accent_glow": "radial-gradient(circle at center, rgba(255, 59, 48, 0.15), transparent 70%)"
+      }
+    },
+    "spacing": {
+      "container_padding": "p-6 md:p-8 lg:p-12",
+      "section_gap": "gap-8",
+      "item_gap": "gap-4"
+    },
+    "borders": {
+      "radius": "rounded-sm",
+      "width": "border",
+      "style": "border-white/10"
+    },
+    "shadows": {
+      "card": "none",
+      "hover": "0 0 0 1px rgba(255, 255, 255, 0.2)",
+      "glow": "0 0 20px rgba(255, 59, 48, 0.3)"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:bg-primary/90 uppercase font-bold tracking-wider rounded-sm h-10 px-6 transition-all duration-200",
+      "secondary": "bg-secondary text-secondary-foreground hover:bg-secondary/80 uppercase font-semibold tracking-wide rounded-sm h-10 px-6 border border-white/10",
+      "ghost": "hover:bg-white/5 text-white/80 hover:text-white uppercase font-medium tracking-wide rounded-sm"
+    },
+    "cards": {
+      "base": "bg-card border border-white/10 rounded-sm p-6 relative overflow-hidden",
+      "hover_effect": "hover:border-white/20 transition-colors duration-300"
+    },
+    "inputs": {
+      "base": "bg-input border-white/10 focus:border-primary focus:ring-1 focus:ring-primary rounded-sm h-10 px-3 text-sm placeholder:text-white/30"
+    },
+    "tables": {
+      "wrapper": "w-full overflow-auto border border-white/10 rounded-sm",
+      "header": "bg-secondary text-white/60 uppercase text-xs font-bold tracking-wider h-10 px-4 text-left sticky top-0",
+      "row": "border-b border-white/5 hover:bg-white/5 transition-colors",
+      "cell": "p-4 text-sm font-medium"
+    },
+    "badges": {
+      "base": "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+      "success": "border-transparent bg-success/20 text-success hover:bg-success/30",
+      "warning": "border-transparent bg-warning/20 text-warning hover:bg-warning/30",
+      "destructive": "border-transparent bg-destructive/20 text-destructive hover:bg-destructive/30"
+    }
+  },
+  "layout_strategies": {
+    "dashboard_grid": "grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[minmax(180px,auto)]",
+    "bento_items": {
+      "hero": "col-span-full md:col-span-8 row-span-2",
+      "stats": "col-span-full md:col-span-4 row-span-1",
+      "list": "col-span-full md:col-span-4 row-span-2",
+      "action": "col-span-full md:col-span-4 row-span-1"
+    }
+  },
+  "visual_assets": {
+    "images": {
+      "hero_bg": "https://images.unsplash.com/photo-1679391029864-d46f366a456b?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "login_bg": "https://images.unsplash.com/photo-1729564739457-2c6aa728b06e?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "player_placeholder": "https://images.unsplash.com/photo-1677119966332-8c6e9fb0efab?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "trophy": "https://images.unsplash.com/photo-1637203727317-3cc1a557cdbf?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "ball_grass": "https://images.unsplash.com/photo-1625187538367-6a8483a79cc2?crop=entropy&cs=srgb&fm=jpg&q=85"
+    },
+    "icons": "lucide-react"
+  },
+  "motion": {
+    "page_transition": {
+      "initial": { "opacity": 0, "y": 20 },
+      "animate": { "opacity": 1, "y": 0 },
+      "exit": { "opacity": 0, "y": -20 },
+      "transition": { "duration": 0.3, "ease": "easeOut" }
+    },
+    "hover_scale": {
+      "whileHover": { "scale": 1.02 },
+      "transition": { "duration": 0.2 }
+    }
+  },
+  "universal_guidelines": [
+    "Use 'Barlow Condensed' for all headings to give a sports-broadcast feel.",
+    "Maintain high contrast: White text on Black background. Avoid gray-on-gray.",
+    "Use 'Electric Blaze' (#FF3B30) sparingly for primary actions and alerts.",
+    "Tables must be dense and scanable. Use zebra striping for readability.",
+    "All interactive elements must have a hover state (brightness up or border glow).",
+    "Use 'sonner' for all toast notifications.",
+    "Ensure all inputs and buttons have 'data-testid' attributes.",
+    "Do not use gradients for backgrounds, use solid colors or subtle noise textures.",
+    "For the 'Share Standings' feature, ensure the generated image has high contrast and clear typography."
+  ]
+}

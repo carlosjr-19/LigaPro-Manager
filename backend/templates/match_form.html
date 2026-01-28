@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Partido - LigaPro Manager{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-2xl mx-auto px-6 py-4">
+            <a href="{{ url_for('league_detail', league_id=league.id) }}#matches" class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+                <i class="fas fa-arrow-left"></i> Volver a {{ league.name }}
+            </a>
+            <h1 class="text-2xl font-bold">{{ title }}</h1>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-6 py-8">
+        <div class="card">
+            <form method="POST" class="space-y-6">
+                {{ form.hidden_tag() }}
+                
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Equipo Local *
+                    </label>
+                    {{ form.home_team_id(class="input-field") }}
+                    {% for error in form.home_team_id.errors %}
+                        <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Equipo Visitante *
+                    </label>
+                    {{ form.away_team_id(class="input-field") }}
+                    {% for error in form.away_team_id.errors %}
+                        <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Fecha y Hora *
+                    </label>
+                    {{ form.match_date(class="input-field", type="datetime-local") }}
+                    {% for error in form.match_date.errors %}
+                        <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i class="fas fa-calendar-plus mr-2"></i>Programar Partido
+                    </button>
+                    <a href="{{ url_for('league_detail', league_id=league.id) }}#matches" class="btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
