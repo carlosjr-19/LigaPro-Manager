@@ -2,12 +2,12 @@
 Flask Server Entry Point for ASGI compatibility with uvicorn
 """
 
-from app import app, db, User, bcrypt
+from app import app as flask_app, db, User, bcrypt
 import os
 
 def init_database():
     """Initialize database and create default admin user"""
-    with app.app_context():
+    with flask_app.app_context():
         # Create tables
         db.create_all()
         
@@ -34,4 +34,4 @@ def init_database():
 init_database()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8001, debug=True)
+    flask_app.run(host='0.0.0.0', port=8001, debug=True)
