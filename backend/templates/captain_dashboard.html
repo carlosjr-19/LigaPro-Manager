@@ -59,7 +59,12 @@
                                 <tr class="border-b border-white/10 text-white/60 text-xs uppercase">
                                     <th class="text-left p-2">#</th>
                                     <th class="text-left p-2">Equipo</th>
-                                    <th class="text-center p-2">PJ</th>
+                                    <th class="text-center p-2" title="Partidos Jugados">PJ</th>
+                                    <th class="text-center p-2 hidden sm:table-cell" title="Ganados">G</th>
+                                    <th class="text-center p-2 hidden sm:table-cell" title="Empatados">E</th>
+                                    <th class="text-center p-2 hidden sm:table-cell" title="Perdidos">P</th>
+                                    <th class="text-center p-2 hidden md:table-cell" title="Goles a Favor">GF</th>
+                                    <th class="text-center p-2 hidden md:table-cell" title="Goles en Contra">GC</th>
                                     <th class="text-center p-2">DG</th>
                                     <th class="text-center p-2">PTS</th>
                                 </tr>
@@ -75,6 +80,11 @@
                                         </span>
                                     </td>
                                     <td class="p-2 text-center">{{ s.played }}</td>
+                                    <td class="p-2 text-center hidden sm:table-cell">{{ s.won }}</td>
+                                    <td class="p-2 text-center hidden sm:table-cell">{{ s.drawn }}</td>
+                                    <td class="p-2 text-center hidden sm:table-cell">{{ s.lost }}</td>
+                                    <td class="p-2 text-center hidden md:table-cell">{{ s.goals_for }}</td>
+                                    <td class="p-2 text-center hidden md:table-cell">{{ s.goals_against }}</td>
                                     <td class="p-2 text-center">{{ s.goal_difference }}</td>
                                     <td class="p-2 text-center font-bold text-primary">{{ s.points }}</td>
                                 </tr>

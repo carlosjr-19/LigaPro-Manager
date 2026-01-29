@@ -11,9 +11,9 @@
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
             {% else %}
-            <a href="{{ url_for('league_detail', league_id=league.id) }}"
+            <a href="{{ url_for('league_detail', league_id=league.id, _anchor='teams') }}"
                 class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
-                <i class="fas fa-arrow-left"></i> Volver a {{ league.name }}
+                <i class="fas fa-arrow-left"></i> Volver a Equipos
             </a>
             {% endif %}
 
@@ -48,9 +48,15 @@
                         <h2 class="text-xl font-bold">
                             <i class="fas fa-users mr-2 text-primary"></i>Jugadores
                         </h2>
-                        <a href="{{ url_for('create_player', team_id=team.id) }}" class="btn-primary text-sm">
-                            <i class="fas fa-plus mr-1"></i>Añadir
-                        </a>
+                        <div class="flex gap-2">
+                            <a href="{{ url_for('generate_credentials', team_id=team.id) }}" target="_blank"
+                                class="btn-secondary text-sm">
+                                <i class="fas fa-id-card mr-1"></i>Credenciales
+                            </a>
+                            <a href="{{ url_for('create_player', team_id=team.id) }}" class="btn-primary text-sm">
+                                <i class="fas fa-plus mr-1"></i>Añadir
+                            </a>
+                        </div>
                     </div>
 
                     {% if players %}
@@ -66,7 +72,12 @@
                                 </div>
                                 {% endif %}
                                 <div>
-                                    <p class="font-medium">{{ player.name }}</p>
+                                    <p class="font-medium">
+                                        {% if player.number %}
+                                        <span class="text-primary font-bold mr-1">#{{ player.number }}</span>
+                                        {% endif %}
+                                        {{ player.name }}
+                                    </p>
                                     {% if player.curp %}
                                     <p class="text-white/40 text-xs">{{ player.curp }}</p>
                                     {% endif %}

@@ -107,6 +107,7 @@ class Player(db.Model):
     name = db.Column(db.String(100), nullable=False)
     team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=False)
     curp = db.Column(db.String(20), nullable=True)
+    number = db.Column(db.Integer, nullable=True)
     photo_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -175,6 +176,7 @@ class TeamForm(FlaskForm):
 
 class PlayerForm(FlaskForm):
     name = StringField('Nombre del Jugador', validators=[DataRequired(), Length(min=2, max=100)])
+    number = IntegerField('Número (Dorsal)', validators=[Optional()])
     curp = StringField('CURP', validators=[Optional(), Length(max=20)])
     photo_url = StringField('URL de Foto', validators=[Optional()])
 
@@ -457,7 +459,25 @@ def league_detail(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     teams = Team.query.filter_by(league_id=league_id).all()
     standings = calculate_standings(league_id)
-    matches = Match.query.filter_by(league_id=league_id).order_by(Match.match_date).all()
+    
+    # Matches Paging
+    page = request.args.get('page', 1, type=int)
+    from sqlalchemy import or_
+    matches_pagination = Match.query.filter(
+        Match.league_id == league_id,
+        or_(Match.stage == 'regular', Match.stage == None, Match.stage == '')
+    ).order_by(Match.match_date.desc()).paginate(page=page, per_page=30, error_out=False)
+    
+    # Keep raw matches just in case other logic needs it (though maybe not efficiently)
+    # But for now let's just use matches_pagination for the main list
+    # The template uses 'matches' to extract playoffs too if not passed explicitly? 
+    # Actually playoff_matches are passed explicitly.
+    # The 'matches' var was used for: `set regular_matches = matches|selectattr...`
+    # We will replace that logic with the pre-filtered matches_pagination
+    
+    matches = matches_pagination.items 
+    # Note: I'm not fetching ALL matches anymore into 'matches', specific playoff queries handle playoffs.
+
     
     playoff_matches = {
         'repechaje': Match.query.filter_by(league_id=league_id, stage='repechaje').all(),
@@ -510,7 +530,8 @@ def league_detail(league_id):
                           recent_matches=recent_matches,
                           upcoming_matches=upcoming_matches,
                           players_by_team=players_by_team,
-                          stat_form=stat_form)
+                          stat_form=stat_form,
+                          matches_pagination=matches_pagination)
 
 
 @app.route('/leagues/<league_id>/edit', methods=['GET', 'POST'])
@@ -532,7 +553,7 @@ def edit_league(league_id):
             league.slogan = form.slogan.data
         db.session.commit()
         flash('Liga actualizada.', 'success')
-        return redirect(url_for('league_detail', league_id=league_id))
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='settings'))
     
     return render_template('league_form.html', form=form, title='Editar Liga', league=league)
 
@@ -777,6 +798,27 @@ def add_team_note(team_id):
     return redirect(url_for('team_detail', team_id=team_id))
 
 
+@app.route('/teams/<team_id>/credentials', methods=['GET'])
+@login_required
+def generate_credentials(team_id):
+    team = Team.query.get_or_404(team_id)
+    league = team.league
+    
+    # Check access (Owner or Captain)
+    if current_user.role == 'captain':
+        if current_user.team_id != team_id:
+            flash('No tienes acceso.', 'danger')
+            return redirect(url_for('captain_dashboard'))
+    else:
+        if league.user_id != current_user.id:
+            flash('No tienes acceso.', 'danger')
+            return redirect(url_for('dashboard'))
+            
+    players = Player.query.filter_by(team_id=team_id).order_by(Player.number.asc(), Player.name.asc()).all()
+    
+    return render_template('credentials.html', team=team, players=players)
+
+
 # ==================== PLAYER ROUTES ====================
 
 @app.route('/teams/<team_id>/players/new', methods=['GET', 'POST'])
@@ -800,6 +842,7 @@ def create_player(team_id):
         player = Player(
             name=form.name.data,
             team_id=team_id,
+            number=form.number.data,
             curp=form.curp.data,
             photo_url=form.photo_url.data
         )
@@ -832,6 +875,7 @@ def edit_player(player_id):
     form = PlayerForm(obj=player)
     if form.validate_on_submit():
         player.name = form.name.data
+        player.number = form.number.data
         player.curp = form.curp.data
         player.photo_url = form.photo_url.data
         db.session.commit()
@@ -880,21 +924,36 @@ def create_match(league_id):
     
     if form.validate_on_submit():
         if form.home_team_id.data == form.away_team_id.data:
-            flash('El equipo local y visitante no pueden ser el mismo.', 'danger')
+            flash('Un equipo no puede jugar contra sí mismo.', 'danger')
         else:
             match = Match(
                 league_id=league_id,
                 home_team_id=form.home_team_id.data,
                 away_team_id=form.away_team_id.data,
-                match_date=form.match_date.data,
-                stage='regular'
+                match_date=form.match_date.data
             )
             db.session.add(match)
             db.session.commit()
             flash('Partido programado.', 'success')
             return redirect(url_for('league_detail', league_id=league_id, _anchor='matches'))
+
+    # Calculate match history for frontend display
+    completed_matches = Match.query.filter_by(league_id=league_id, is_completed=True).all()
+    teams_history = {t.id: {} for t in teams}
     
-    return render_template('match_form.html', form=form, league=league, title='Nuevo Partido')
+    for m in completed_matches:
+        # Check if teams still exist (in case deleted but match kept? usually safe due to FK but good practice)
+        if m.home_team_id in teams_history and m.away_team_id in teams_history:
+            # Home vs Away
+            teams_history[m.home_team_id][m.away_team_id] = teams_history[m.home_team_id].get(m.away_team_id, 0) + 1
+            # Away vs Home
+            teams_history[m.away_team_id][m.home_team_id] = teams_history[m.away_team_id].get(m.home_team_id, 0) + 1
+            
+    # Create a mapping of id -> name for easy JS lookup
+    teams_map = {t.id: t.name for t in teams}
+
+    return render_template('match_form.html', form=form, league=league, 
+                         title='Programar Partido', teams_history=teams_history, teams_map=teams_map)
 
 
 @app.route('/matches/<match_id>/result', methods=['GET', 'POST'])
@@ -1509,6 +1568,14 @@ def run_auto_migration():
                     print("Auto-Migration: slogan added via app.py")
                 except Exception as e:
                     print(f"Auto-Migration Error (slogan): {e}")
+
+            if 'number' not in [c['name'] for c in inspector.get_columns('players')]:
+                try:
+                    conn.execute(text("ALTER TABLE players ADD COLUMN number INTEGER"))
+                    conn.commit()
+                    print("Auto-Migration: number added via app.py")
+                except Exception as e:
+                    print(f"Auto-Migration Error (number): {e}")
 
 # Run once on module load (works for Gunicorn workers)
 try:
