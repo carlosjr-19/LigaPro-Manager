@@ -1480,6 +1480,43 @@ def generate_share_report(league_id):
                           include_keepers=include_keepers, top_goalkeepers=top_goalkeepers)
 
 
+# ==================== AUTO MIGRATION ====================
+
+def run_auto_migration():
+    """Checks and adds missing columns automatically on startup"""
+    with app.app_context():
+        from sqlalchemy import text, inspect
+        inspector = inspect(db.engine)
+        
+        if not inspector.has_table("leagues"):
+            return
+
+        columns = [c['name'] for c in inspector.get_columns('leagues')]
+        
+        with db.engine.connect() as conn:
+            if 'logo_url' not in columns:
+                try:
+                    conn.execute(text("ALTER TABLE leagues ADD COLUMN logo_url TEXT"))
+                    conn.commit()
+                    print("Auto-Migration: logo_url added via app.py")
+                except Exception as e:
+                    print(f"Auto-Migration Error (logo_url): {e}")
+
+            if 'slogan' not in columns:
+                try:
+                    conn.execute(text("ALTER TABLE leagues ADD COLUMN slogan VARCHAR(255)"))
+                    conn.commit()
+                    print("Auto-Migration: slogan added via app.py")
+                except Exception as e:
+                    print(f"Auto-Migration Error (slogan): {e}")
+
+# Run once on module load (works for Gunicorn workers)
+try:
+    run_auto_migration()
+except Exception as e:
+    print(f"Migration Setup Failed: {e}")
+
+
 # ==================== MAIN ====================
 
 if __name__ == '__main__':
