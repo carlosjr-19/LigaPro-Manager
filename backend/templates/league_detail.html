@@ -653,21 +653,40 @@
                 <p class="text-white/40 text-sm mb-6">Tienes {{ teams|length }} equipos en la liga</p>
 
                 {% if teams|length >= 5 %}
-                <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <form method="POST" action="{{ url_for('generate_playoffs', league_id=league.id) }}">
-                        <input type="hidden" name="mode" value="corte_directo">
-                        <button type="submit" class="btn-primary w-full sm:w-auto">
-                            <i class="fas fa-cut mr-2"></i>Corte Directo
-                        </button>
+                <div class="flex flex-col gap-4 justify-center items-center">
+                    <form method="POST" action="{{ url_for('generate_playoffs', league_id=league.id) }}"
+                        class="flex flex-col items-center gap-6">
+                        <div class="mb-4 text-left inline-block">
+                            <label class="block text-sm text-white/60 mb-2">Formato de Eliminatorias:</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="playoff_type" value="single" checked
+                                        class="form-radio text-primary">
+                                    <span>Partido Único</span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-2 {% if current_user.is_premium %}cursor-pointer{% else %}opacity-50 cursor-not-allowed{% endif %}"
+                                    title="{% if not current_user.is_premium %}Premium requerido{% endif %}">
+                                    <input type="radio" name="playoff_type" value="double" {% if not
+                                        current_user.is_premium %}disabled{% endif %} class="form-radio text-primary">
+                                    <span>Ida y Vuelta (Premium)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <button type="submit" name="mode" value="corte_directo"
+                                class="btn-primary w-full sm:w-auto">
+                                <i class="fas fa-cut mr-2"></i>Corte Directo
+                            </button>
+                            {% if teams|length >= 6 %}
+                            <button type="submit" name="mode" value="con_repechaje"
+                                class="btn-secondary w-full sm:w-auto">
+                                <i class="fas fa-random mr-2"></i>Con Repechaje
+                            </button>
+                            {% endif %}
+                        </div>
                     </form>
-                    {% if teams|length >= 6 %}
-                    <form method="POST" action="{{ url_for('generate_playoffs', league_id=league.id) }}">
-                        <input type="hidden" name="mode" value="con_repechaje">
-                        <button type="submit" class="btn-secondary w-full sm:w-auto">
-                            <i class="fas fa-random mr-2"></i>Con Repechaje
-                        </button>
-                    </form>
-                    {% endif %}
                 </div>
                 {% else %}
                 <p class="text-warning">Se necesitan al menos 5 equipos para generar la liguilla</p>

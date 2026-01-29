@@ -23,6 +23,12 @@ try:
 except sqlite3.OperationalError:
     print("slogan column already exists")
 
+try:
+    c.execute('ALTER TABLE leagues ADD COLUMN playoff_type VARCHAR(20)')
+    print("Added playoff_type column")
+except sqlite3.OperationalError:
+    print("playoff_type column already exists")
+
 conn.commit()
 conn.close()
 print("Database updated successfully")
