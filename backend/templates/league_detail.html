@@ -26,7 +26,10 @@
     <div class="bg-card border-b border-white/10 sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-6">
             <div class="flex gap-1 overflow-x-auto">
-                <button onclick="showTab('standings')" class="tab-btn active" data-tab="standings">
+                <button onclick="showTab('panel')" class="tab-btn active" data-tab="panel">
+                    <i class="fas fa-columns mr-2"></i>Panel
+                </button>
+                <button onclick="showTab('standings')" class="tab-btn" data-tab="standings">
                     <i class="fas fa-trophy mr-2"></i>Tabla
                 </button>
                 <button onclick="showTab('teams')" class="tab-btn" data-tab="teams">
@@ -68,8 +71,167 @@
 
     <!-- Content -->
     <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Panel Tab -->
+        <div id="panel" class="tab-content active">
+            <!-- Top 5 Standings -->
+            <div class="mb-8 p-4 bg-white/5 rounded-lg border border-white/10 relative">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg flex items-center gap-2">
+                        <i class="fas fa-trophy text-primary"></i> Liderazgo (Top 5)
+                    </h3>
+                    {% if current_user.role == 'owner' %}
+                    <button onclick="openShareModal()"
+                        class="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded transition-colors">
+                        <i class="fas fa-download mr-1"></i>Descargar
+                    </button>
+                    {% endif %}
+                </div>
+                <!-- ... table ... -->
+
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-white/10 text-white/60 text-xs uppercase">
+                            <th class="text-left py-2">#</th>
+                            <th class="text-left py-2">Equipo</th>
+                            <th class="text-center py-2">PJ</th>
+                            <th class="text-center py-2">PTS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in standings[:5] %}
+                        <tr class="border-b border-white/5 hover:bg-white/5">
+                            <td class="py-2 text-primary font-bold">{{ loop.index }}</td>
+                            <td class="py-2 flex items-center gap-2">
+                                {% if s.team.shield_url %}
+                                <img src="{{ s.team.shield_url }}" class="w-6 h-6 rounded object-cover">
+                                {% endif %}
+                                {{ s.team.name }}
+                            </td>
+                            <td class="text-center py-2">{{ s.played }}</td>
+                            <td class="text-center py-2 font-bold">{{ s.points }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="py-4 text-center text-white/40">Sin datos</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Recent Matches -->
+                <div class="bg-white/5 rounded-lg border border-white/10 p-4">
+                    <h3 class="font-bold mb-4 text-lg flex items-center gap-2">
+                        <i class="fas fa-history text-blue-400"></i> Últimos Resultados
+                    </h3>
+                    <div class="space-y-3">
+                        {% for match in recent_matches %}
+                        <div
+                            class="flex justify-between items-center text-sm border-b border-white/5 pb-2 last:border-0">
+                            <div class="flex-1 text-right">{{ teams_dict[match.home_team_id].name }}</div>
+                            <div class="px-3 font-bold bg-white/10 rounded mx-2 py-1">
+                                {{ match.home_score }} - {{ match.away_score }}
+                            </div>
+                            <div class="flex-1 text-left">{{ teams_dict[match.away_team_id].name }}</div>
+                        </div>
+                        {% else %}
+                        <p class="text-white/40 text-sm italic">No hay resultados recientes.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Upcoming Matches -->
+                <div class="bg-white/5 rounded-lg border border-white/10 p-4">
+                    <h3 class="font-bold mb-4 text-lg flex items-center gap-2">
+                        <i class="fas fa-calendar-alt text-green-400"></i> Próximos Partidos
+                    </h3>
+                    <div class="space-y-3">
+                        {% for match in upcoming_matches %}
+                        <div class="text-sm border-b border-white/5 pb-2 last:border-0">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-white/60 text-xs">{{ match.match_date.strftime('%d/%m %I:%M %p')
+                                    }}</span>
+                            </div>
+                            <div class="flex justify-between items-center font-medium">
+                                <span>{{ teams_dict[match.home_team_id].name }}</span>
+                                <span class="text-white/40 text-xs">vs</span>
+                                <span>{{ teams_dict[match.away_team_id].name }}</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-white/40 text-sm italic">No hay partidos programados.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Top Scorers -->
+                <div class="bg-white/5 rounded-lg border border-white/10 p-4">
+                    <h3 class="font-bold mb-4 text-lg flex items-center gap-2">
+                        <i class="fas fa-futbol text-yellow-400"></i> Top 3 Goleadores
+                    </h3>
+                    <div class="space-y-2">
+                        {% for stat in top_scorers[:3] %}
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
+                                    {% if stat.photo_url %}
+                                    <img src="{{ stat.photo_url }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <i class="fas fa-user text-white/40"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-bold">{{ stat.player_name }}</p>
+                                    <p class="text-xs text-white/40">{{ stat.team.name }}</p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-primary">{{ stat.value }}</span>
+                        </div>
+                        {% else %}
+                        <p class="text-white/40 text-sm italic">Sin registros.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Top Keepers -->
+                <div class="bg-white/5 rounded-lg border border-white/10 p-4">
+                    <h3 class="font-bold mb-4 text-lg flex items-center gap-2">
+                        <i class="fas fa-hand-paper text-red-400"></i> Top 3 Arqueros
+                    </h3>
+                    <div class="space-y-2">
+                        {% for stat in top_goalkeepers[:3] %}
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
+                                    {% if stat.photo_url %}
+                                    <img src="{{ stat.photo_url }}" class="w-full h-full object-cover">
+                                    {% else %}
+                                    <i class="fas fa-user text-white/40"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="font-bold">{{ stat.player_name }}</p>
+                                    <p class="text-xs text-white/40">{{ stat.team.name }}</p>
+                                </div>
+                            </div>
+                            <span class="font-bold text-red-400">{{ stat.value }}</span>
+                        </div>
+                        {% else %}
+                        <p class="text-white/40 text-sm italic">Sin registros.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Standings Tab -->
-        <div id="standings" class="tab-content active">
+        <div id="standings" class="tab-content">
             <h2 class="text-2xl font-bold mb-6">Tabla de Posiciones</h2>
             {% if standings %}
             <div class="card overflow-x-auto">
@@ -175,7 +337,7 @@
             {% set regular_matches = matches|selectattr('stage', 'in', ['regular', none])|list %}
             {% if regular_matches %}
             <div class="space-y-4">
-                {% for match in regular_matches|sort(attribute='match_date') %}
+                {% for match in regular_matches|sort(attribute='match_date', reverse=True) %}
                 <div class="card">
                     <div class="flex flex-col md:flex-row md:items-center gap-4">
                         <div class="flex-1">
@@ -218,14 +380,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div>
+                        <div class="flex items-center gap-2">
                             {% if match.is_completed %}
-                            <span class="bg-success/20 text-success px-3 py-1 rounded text-xs">Finalizado</span>
+                            <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded text-xs">Finalizado</span>
                             {% else %}
                             <a href="{{ url_for('update_match_result', match_id=match.id) }}"
                                 class="btn-secondary text-sm">
                                 Registrar Resultado
                             </a>
+                            <form method="POST" action="{{ url_for('delete_match', match_id=match.id) }}" class="inline"
+                                onsubmit="return confirm('¿Estás seguro de eliminar este partido?');">
+                                <button type="submit" class="text-white/40 hover:text-red-500 transition-colors p-2"
+                                    title="Eliminar Partido">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
                             {% endif %}
                         </div>
                     </div>
@@ -668,6 +837,124 @@
         const tab = window.location.hash.substring(1);
         if (document.getElementById(tab)) {
             showTab(tab);
+        }
+    }
+</script>
+
+<!-- Share Modal -->
+<div id="shareModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
+    <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative">
+        <button onclick="closeShareModal()" class="absolute top-4 right-4 text-white/40 hover:text-white">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <form action="{{ url_for('generate_share_report', league_id=league.id) }}" method="POST" target="_blank"
+            class="p-6">
+            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                <i class="fas fa-file-export text-blue-400"></i> Generar Reporte
+            </h3>
+
+            <div class="space-y-4">
+                <!-- Standings -->
+                <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
+                    <input type="checkbox" name="include_standings" checked
+                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                    <span class="flex-1">Tabla de Posiciones</span>
+                </label>
+
+                <!-- Recent -->
+                <div class="border border-white/10 rounded p-3">
+                    <label class="flex items-center gap-3 mb-3 cursor-pointer">
+                        <input type="checkbox" name="include_recent" id="check_recent" onchange="toggleDateInputs()"
+                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                        <span class="flex-1">Resultados Recientes</span>
+                    </label>
+                    <div id="date_inputs" class="grid grid-cols-2 gap-2 text-sm hidden pl-7">
+                        <div>
+                            <label class="block text-white/40 text-xs mb-1">Desde</label>
+                            <input type="date" name="date_start"
+                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-white/40 text-xs mb-1">Hasta</label>
+                            <input type="date" name="date_end"
+                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming -->
+                <label
+                    class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer {% if not upcoming_matches %}opacity-50 pointer-events-none{% endif %}">
+                    <input type="checkbox" name="include_upcoming" {% if upcoming_matches %}checked{% else %}disabled{%
+                        endif %} class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                    <span class="flex-1">Próximos Partidos</span>
+                    {% if not upcoming_matches %}<span class="text-xs text-red-400">Sin datos</span>{% endif %}
+                </label>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
+                        {% if not current_user.is_premium %}opacity-50{% endif %} 
+                        {% if not top_scorers %}pointer-events-none opacity-30{% endif %}">
+                        <input type="checkbox" name="include_scorers" {% if current_user.is_premium %}checked{% else
+                            %}disabled{% endif %}
+                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                        <div class="flex flex-col">
+                            <span class="flex-1">Goleadores</span>
+                            {% if not current_user.is_premium %}
+                            <span class="text-xs text-yellow-500 font-bold"><i
+                                    class="fas fa-crown text-[10px] mr-1"></i>Premium</span>
+                            {% endif %}
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
+                        {% if not current_user.is_premium %}opacity-50{% endif %} 
+                        {% if not top_goalkeepers %}pointer-events-none opacity-30{% endif %}">
+                        <input type="checkbox" name="include_keepers" {% if current_user.is_premium %}checked{% else
+                            %}disabled{% endif %}
+                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                        <div class="flex flex-col">
+                            <span class="flex-1">Arqueros</span>
+                            {% if not current_user.is_premium %}
+                            <span class="text-xs text-yellow-500 font-bold"><i
+                                    class="fas fa-crown text-[10px] mr-1"></i>Premium</span>
+                            {% endif %}
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mt-8 flex justify-end gap-3">
+                <button type="button" onclick="closeShareModal()"
+                    class="px-4 py-2 text-white/60 hover:text-white transition-colors">Cancelar</button>
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-bold transition-colors">
+                    Generar Vista Previa
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openShareModal() {
+        document.getElementById('shareModal').classList.remove('hidden');
+        document.getElementById('shareModal').classList.add('flex');
+    }
+
+    function closeShareModal() {
+        document.getElementById('shareModal').classList.add('hidden');
+        document.getElementById('shareModal').classList.remove('flex');
+    }
+
+    function toggleDateInputs() {
+        const isChecked = document.getElementById('check_recent').checked;
+        const inputs = document.getElementById('date_inputs');
+        if (isChecked) {
+            inputs.classList.remove('hidden');
+        } else {
+            inputs.classList.add('hidden');
         }
     }
 </script>

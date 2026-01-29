@@ -46,6 +46,22 @@ def run_migrations():
                     conn.commit()
                     print("Migration applied: show_stats column added.")
                 except Exception as e:
+                    pass
+                
+                try:
+                    conn.execute(text("ALTER TABLE leagues ADD COLUMN logo_url TEXT"))
+                    conn.commit()
+                    print("Migration applied: logo_url column added.")
+                except Exception as e:
+                    pass
+
+                try:
+                    conn.execute(text("ALTER TABLE leagues ADD COLUMN slogan VARCHAR(255)"))
+                    conn.commit()
+                    print("Migration applied: slogan column added.")
+                except Exception as e:
+                    pass
+                except Exception as e:
                     # Ignore error if column likely exists
                     # print(f"Migration skipped (likely exists): {e}")
                     pass

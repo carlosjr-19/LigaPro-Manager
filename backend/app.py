@@ -62,6 +62,8 @@ class League(db.Model):
     playoff_mode = db.Column(db.String(20), nullable=True)
     playoff_bye_teams = db.Column(db.Text, nullable=True)  # JSON string of team IDs
     show_stats = db.Column(db.Boolean, default=True)
+    logo_url = db.Column(db.Text, nullable=True) # Premium only
+    slogan = db.Column(db.String(255), nullable=True) # Premium only
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
@@ -161,6 +163,8 @@ class LeagueForm(FlaskForm):
     draw_points = IntegerField('Puntos por Empate', validators=[DataRequired()], default=1)
     # Field handles by template conditional, but need it in form
     show_stats = BooleanField('Mostrar Estadísticas a Capitanes', default=True)
+    logo_url = StringField('URL del Logo (Premium)', validators=[Optional()])
+    slogan = StringField('Slogan de la Liga (Premium)', validators=[Optional(), Length(max=255)])
 
 
 class TeamForm(FlaskForm):
@@ -475,6 +479,19 @@ def league_detail(league_id):
     top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).all()
     top_goalkeepers = SeasonStat.query.filter_by(league_id=league_id, stat_type='conceded').order_by(SeasonStat.value.asc()).all()
     
+    # Dashboard Data
+    # Recent Matches: Completed, valid stage, sorted by date DESC, limit 3
+    recent_matches = Match.query.filter(
+        Match.league_id == league_id,
+        Match.is_completed == True
+    ).order_by(Match.match_date.desc()).limit(3).all()
+
+    # Upcoming Matches: Not completed, valid stage, sorted by date ASC, limit 3
+    upcoming_matches = Match.query.filter(
+        Match.league_id == league_id,
+        Match.is_completed == False
+    ).order_by(Match.match_date).limit(3).all()
+
     # Form for adding stats (Owner Only)
     stat_form = StatForm()
     if current_user.role == 'owner':
@@ -490,6 +507,8 @@ def league_detail(league_id):
                           teams_dict=teams_dict,
                           top_scorers=top_scorers,
                           top_goalkeepers=top_goalkeepers,
+                          recent_matches=recent_matches,
+                          upcoming_matches=upcoming_matches,
                           players_by_team=players_by_team,
                           stat_form=stat_form)
 
@@ -509,6 +528,8 @@ def edit_league(league_id):
         league.draw_points = form.draw_points.data
         if current_user.is_premium:
             league.show_stats = form.show_stats.data
+            league.logo_url = form.logo_url.data
+            league.slogan = form.slogan.data
         db.session.commit()
         flash('Liga actualizada.', 'success')
         return redirect(url_for('league_detail', league_id=league_id))
@@ -902,6 +923,27 @@ def update_match_result(match_id):
     
     return render_template('match_result_form.html', form=form, match=match, 
                           home_team=home_team, away_team=away_team, league=league)
+
+
+@app.route('/matches/<match_id>/delete', methods=['POST'])
+@login_required
+@owner_required
+def delete_match(match_id):
+    match = Match.query.get_or_404(match_id)
+    league_id = match.league_id
+    
+    if match.league.user_id != current_user.id:
+        flash('No tienes acceso.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    if match.is_completed:
+        flash('No se pueden eliminar partidos que ya tienen resultado.', 'warning')
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='matches'))
+        
+    db.session.delete(match)
+    db.session.commit()
+    flash('Partido eliminado.', 'success')
+    return redirect(url_for('league_detail', league_id=league_id, _anchor='matches'))
 
 
 # ==================== SEASON ROUTES ====================
@@ -1340,20 +1382,102 @@ def create_admin():
     """Create default admin user"""
     existing = User.query.filter_by(email='delegado@ligapro.com').first()
     if existing:
-        print('Admin user already exists')
+        print('Admin already exists.')
         return
-    
-    hashed = bcrypt.generate_password_hash('password123').decode('utf-8')
-    admin = User(
+        
+    hashed = bcrypt.generate_password_hash('admin123').decode('utf-8')
+    user = User(
+        name='Delegado Liga',
         email='delegado@ligapro.com',
         password=hashed,
-        name='Delegado Admin',
         role='owner',
-        is_premium=False
+        is_premium=True
     )
-    db.session.add(admin)
+    db.session.add(user)
     db.session.commit()
-    print('Admin user created: delegado@ligapro.com / password123')
+    print('Admin user created successfully.')
+
+
+# ==================== SHARE ROUTES ====================
+
+@app.route('/leagues/<league_id>/share', methods=['POST'])
+@login_required
+@owner_required
+def generate_share_report(league_id):
+    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    # Get form data
+    include_standings = request.form.get('include_standings') == 'on'
+    include_recent = request.form.get('include_recent') == 'on'
+    date_start_str = request.form.get('date_start')
+    date_end_str = request.form.get('date_end')
+    include_upcoming = request.form.get('include_upcoming') == 'on'
+    include_scorers = request.form.get('include_scorers') == 'on'
+    include_keepers = request.form.get('include_keepers') == 'on'
+    
+    # Data containers
+    standings = []
+    recent_matches = []
+    upcoming_matches = []
+    top_scorers = []
+    top_goalkeepers = []
+    teams_dict = {}
+    
+    # Needs teams anyway for matches dict
+    teams = Team.query.filter_by(league_id=league_id).all()
+    teams_dict = {t.id: t for t in teams}
+
+    if include_standings:
+        standings = calculate_standings(league_id)
+        
+    if include_recent:
+        query = Match.query.filter(
+            Match.league_id == league_id,
+            Match.is_completed == True
+        )
+        
+        # Apply Date Filter if provided
+        if date_start_str:
+            try:
+                date_start = datetime.strptime(date_start_str, '%Y-%m-%d')
+                query = query.filter(Match.match_date >= date_start)
+            except ValueError:
+                pass
+                
+        if date_end_str:
+            try:
+                # Add 1 day to end date to include the full day
+                date_end = datetime.strptime(date_end_str, '%Y-%m-%d')
+                # Adjust for simple date compare if using datetime
+                query = query.filter(Match.match_date <= date_end.replace(hour=23, minute=59))
+            except ValueError:
+                pass
+                
+        recent_matches = query.order_by(Match.match_date.desc()).all()
+        
+    if include_upcoming:
+        upcoming_matches = Match.query.filter(
+            Match.league_id == league_id,
+            Match.is_completed == False
+        ).order_by(Match.match_date.asc()).all()
+        
+    if include_scorers:
+        top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).limit(5).all()
+        
+    if include_keepers:
+        top_goalkeepers = SeasonStat.query.filter_by(league_id=league_id, stat_type='conceded').order_by(SeasonStat.value.asc()).limit(5).all()
+        
+    return render_template('share_report.html',
+                          league=league,
+                          today=datetime.now().strftime('%d/%m/%Y'),
+                          teams_dict=teams_dict,
+                          include_standings=include_standings, standings=standings,
+                          include_recent=include_recent, recent_matches=recent_matches,
+                          date_start=date_start_str if date_start_str else 'Inicio',
+                          date_end=date_end_str if date_end_str else 'Actualidad',
+                          include_upcoming=include_upcoming, upcoming_matches=upcoming_matches,
+                          include_scorers=include_scorers, top_scorers=top_scorers,
+                          include_keepers=include_keepers, top_goalkeepers=top_goalkeepers)
 
 
 # ==================== MAIN ====================
