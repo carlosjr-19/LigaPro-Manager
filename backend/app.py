@@ -12,8 +12,12 @@ from wtforms import StringField, PasswordField, SelectField, IntegerField, DateT
 from wtforms.validators import DataRequired, Email, Length, Optional, NumberRange, InputRequired
 from datetime import datetime, timezone
 from functools import wraps
+from dotenv import load_dotenv
 import os
 import uuid
+import stripe
+
+load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -21,6 +25,10 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'ligapro-secret-key-chan
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_path = os.path.join(basedir, 'instance', 'ligapro.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:///{db_path}')
+app.config['STRIPE_PUBLIC_KEY'] = os.environ.get('STRIPE_PUBLIC_KEY')
+app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY')
+app.config['STRIPE_PRICE_ID'] = os.environ.get('STRIPE_PRICE_ID')
+stripe.api_key = app.config['STRIPE_SECRET_KEY']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
@@ -1507,14 +1515,88 @@ def premium():
     return render_template('premium.html')
 
 
-@app.route('/premium/activate', methods=['POST'])
+@app.route('/create-checkout-session', methods=['POST'])
 @login_required
-def activate_premium():
-    # In a real app, this would integrate with Stripe
+def create_checkout_session():
+    try:
+        stripe_price_id = app.config['STRIPE_PRICE_ID']
+
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[
+                {
+                    'price': stripe_price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=url_for('premium', _external=True),
+            customer_email=current_user.email,
+            client_reference_id=current_user.id,
+        )
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        flash(f'Error al conectar con Stripe: {str(e)}', 'danger')
+        return redirect(url_for('premium'))
+
+
+@app.route('/success')
+@login_required
+def success():
+    session_id = request.args.get('session_id')
+    if session_id:
+        # Aquí podrías verificar la sesión con Stripe si quisieras doble seguridad
+        # session = stripe.checkout.Session.retrieve(session_id)
+        pass
+    
     current_user.is_premium = True
     db.session.commit()
-    flash('¡Cuenta Premium activada!', 'success')
+    flash('¡Gracias por tu suscripción! Tu cuenta ahora es Premium.', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/stripe_webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+
+    if not webhook_secret:
+        return 'Webhook secret not configured', 500
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
+    except ValueError as e:
+        # Payload inválido
+        return 'Invalid payload', 400
+    except stripe.error.SignatureVerificationError as e:
+        # Firma inválida (alguien intenta hackear)
+        return 'Invalid signature', 400
+
+    # Manejar el evento: Pago Exitoso
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        
+        # Recuperamos el ID del usuario que guardamos al crear la sesión
+        user_id = session.get('client_reference_id')
+        
+        if user_id:
+            # Buscamos al usuario y activamos el Premium de verdad
+            # Usamos un contexto de aplicación por si acaso (aunque Flask suele manejarlo)
+            try:
+                user = User.query.get(user_id)
+                if user:
+                    user.is_premium = True
+                    db.session.commit()
+                    print(f"✅ WEBHOOK: Premium activado para el usuario {user.email}")
+                else:
+                    print(f"⚠️ WEBHOOK: Usuario {user_id} no encontrado.")
+            except Exception as e:
+                print(f"❌ WEBHOOK ERROR: No se pudo actualizar la DB: {e}")
+                db.session.rollback()
+
+    return jsonify(success=True)
 
 
 # ==================== ERROR HANDLERS ====================

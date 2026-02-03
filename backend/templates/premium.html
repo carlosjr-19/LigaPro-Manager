@@ -5,7 +5,8 @@
 <div class="min-h-screen">
     <header class="bg-card border-b border-white/10">
         <div class="max-w-4xl mx-auto px-6 py-4">
-            <a href="{{ url_for('dashboard') }}" class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+            <a href="{{ url_for('dashboard') }}"
+                class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
                 <i class="fas fa-arrow-left"></i> Volver al Dashboard
             </a>
             <h1 class="text-3xl font-bold">Actualizar a Premium</h1>
@@ -87,23 +88,24 @@
                     </li>
                 </ul>
                 <div class="text-center mb-6">
-                    <p class="text-3xl font-bold mb-2 text-warning">$9.99 USD</p>
-                    <p class="text-white/40">Pago único</p>
+                    <p class="text-3xl font-bold mb-2 text-warning">$200 MXN</p>
+                    <p class="text-white/40">Al mes</p>
                 </div>
-                
+
                 {% if current_user.is_premium %}
-                    <button disabled class="btn-secondary w-full cursor-not-allowed opacity-50">
-                        <i class="fas fa-check mr-2"></i>Ya eres Premium
-                    </button>
+                <button disabled class="btn-secondary w-full cursor-not-allowed opacity-50">
+                    <i class="fas fa-check mr-2"></i>Ya eres Premium
+                </button>
                 {% else %}
-                    <form method="POST" action="{{ url_for('activate_premium') }}">
-                        <button type="submit" class="w-full bg-warning hover:bg-yellow-600 text-black font-bold py-3 px-4 rounded transition-colors">
-                            <i class="fas fa-crown mr-2"></i>Activar Premium
-                        </button>
-                    </form>
-                    <p class="text-white/40 text-xs text-center mt-3">
-                        * En esta demo, Premium se activa automáticamente
-                    </p>
+                <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                    <button type="submit"
+                        class="w-full bg-warning hover:bg-yellow-600 text-black font-bold py-3 px-4 rounded transition-colors">
+                        <i class="fas fa-crown mr-2"></i>Suscribirse con Stripe
+                    </button>
+                </form>
+                <p class="text-white/40 text-xs text-center mt-3">
+                    * Serás redirigido a la pasarela de pago segura de Stripe
+                </p>
                 {% endif %}
             </div>
         </div>
