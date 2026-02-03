@@ -342,12 +342,13 @@ def calculate_standings(league_id, include_playoffs=False):
 @app.route('/')
 def index():
     if current_user.is_authenticated:
+        next_page = request.args.get('next') # Added this line to define next_page
         if current_user.role == 'admin':
-            return redirect(url_for('admin_dashboard'))
+            return redirect(next_page or url_for('admin_dashboard'))
         if current_user.role == 'captain':
-            return redirect(url_for('captain_dashboard'))
-        return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+            return redirect(next_page or url_for('captain_dashboard'))
+        return redirect(next_page or url_for('dashboard'))
+    return render_template('landing.html', title='Inicio')
 
 
 @app.route('/login', methods=['GET', 'POST'])
