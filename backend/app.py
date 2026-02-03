@@ -29,6 +29,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:
 app.config['STRIPE_PUBLIC_KEY'] = os.environ.get('STRIPE_PUBLIC_KEY')
 app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY')
 app.config['STRIPE_PRICE_ID'] = os.environ.get('STRIPE_PRICE_ID')
+app.config['STRIPE_CAPTAIN_PRICE_ID'] = os.environ.get('STRIPE_CAPTAIN_PRICE_ID')
 stripe.api_key = app.config['STRIPE_SECRET_KEY']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -1586,28 +1587,47 @@ def premium():
     return render_template('premium.html')
 
 
+@app.route('/premium/captain')
+@login_required
+def captain_premium():
+    return render_template('captain_premium.html')
+
+
 @app.route('/create-checkout-session', methods=['POST'])
 @login_required
 def create_checkout_session():
     try:
-        stripe_price_id = app.config['STRIPE_PRICE_ID']
+        plan_type = request.args.get('plan', 'owner') # 'owner' (subscription) or 'captain' (one-time)
+        
+        if plan_type == 'captain':
+             price_id = app.config['STRIPE_CAPTAIN_PRICE_ID']
+             mode = 'payment'
+        else:
+             price_id = app.config['STRIPE_PRICE_ID']
+             mode = 'subscription'
+
+        if not price_id:
+            flash(f'Error de configuración: No se encontró el Price ID para {plan_type}.', 'danger')
+            return redirect(url_for('premium'))
 
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
-                    'price': stripe_price_id,
+                    'price': price_id,
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
+            mode=mode,
             success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('premium', _external=True),
+            cancel_url=url_for('premium', _external=True) if plan_type == 'owner' else url_for('captain_premium', _external=True),
             customer_email=current_user.email,
             client_reference_id=current_user.id,
         )
         return redirect(checkout_session.url, code=303)
     except Exception as e:
         flash(f'Error al conectar con Stripe: {str(e)}', 'danger')
+        if plan_type == 'captain':
+            return redirect(url_for('captain_premium'))
         return redirect(url_for('premium'))
 
 
