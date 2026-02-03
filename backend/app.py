@@ -74,7 +74,7 @@ class League(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(100), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
-    max_teams = db.Column(db.Integer, default=12)
+    max_teams = db.Column(db.Integer, default=10)
     win_points = db.Column(db.Integer, default=3)
     draw_points = db.Column(db.Integer, default=1)
     loss_points = db.Column(db.Integer, default=0)
@@ -86,7 +86,6 @@ class League(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
-    teams = db.relationship('Team', backref='league', lazy=True, cascade='all, delete-orphan')
     teams = db.relationship('Team', backref='league', lazy=True, cascade='all, delete-orphan')
     matches = db.relationship('Match', backref='league', lazy=True, cascade='all, delete-orphan')
     playoff_type = db.Column(db.String(20), default='single') # 'single' or 'double'
@@ -187,7 +186,7 @@ class RegisterForm(FlaskForm):
 
 class LeagueForm(FlaskForm):
     name = StringField('Nombre de la Liga', validators=[DataRequired(), Length(min=2, max=100)])
-    max_teams = IntegerField('Máximo de Equipos', validators=[DataRequired(), NumberRange(min=4, max=32)], default=12)
+    max_teams = IntegerField('Máximo de Equipos', validators=[DataRequired(), NumberRange(min=4, max=32)], default=10)
     win_points = IntegerField('Puntos por Victoria', validators=[DataRequired()], default=3)
     draw_points = IntegerField('Puntos por Empate', validators=[DataRequired()], default=1)
     # Field handles by template conditional, but need it in form
@@ -476,16 +475,22 @@ def create_league():
     form = LeagueForm()
     if form.validate_on_submit():
         max_teams = form.max_teams.data
-        if not current_user.is_premium and max_teams > 12:
-            max_teams = 12
-            flash('Límite de 12 equipos para usuarios gratuitos.', 'info')
+        win_points = form.win_points.data
+        draw_points = form.draw_points.data
+        
+        # Enforce Free Tier Limits (Override even if client bypassed disabled inputs)
+        if not current_user.is_premium:
+            max_teams = 10
+            win_points = 3
+            draw_points = 1
+            # Note: We don't flash message about override to keep UX clean since UI is locked
         
         league = League(
             name=form.name.data,
             user_id=current_user.id,
             max_teams=max_teams,
-            win_points=form.win_points.data,
-            draw_points=form.draw_points.data
+            win_points=win_points,
+            draw_points=draw_points
         )
         db.session.add(league)
         db.session.commit()
@@ -563,6 +568,10 @@ def league_detail(league_id):
     if current_user.role == 'owner' or current_user.role == 'admin':
         stat_form.team_id.choices = [(t.id, t.name) for t in teams]
     
+    # Form for editing league settings (embedded)
+    form = LeagueForm(obj=league)
+
+    
     return render_template('league_detail.html', 
                           league=league, 
                           teams=teams,
@@ -577,13 +586,13 @@ def league_detail(league_id):
                           upcoming_matches=upcoming_matches,
                           players_by_team=players_by_team,
                           stat_form=stat_form,
-                          matches_pagination=matches_pagination)
+                          matches_pagination=matches_pagination,
+                          form=form)
 
 
 @app.route('/leagues/<league_id>/edit', methods=['GET', 'POST'])
 @login_required
 @owner_required
-@premium_required
 def edit_league(league_id):
     if current_user.role == 'admin':
         league = League.query.get_or_404(league_id)
@@ -593,13 +602,16 @@ def edit_league(league_id):
     
     if form.validate_on_submit():
         league.name = form.name.data
-        league.max_teams = form.max_teams.data
-        league.win_points = form.win_points.data
-        league.draw_points = form.draw_points.data
+        
+        # Premium/Restricted Features: Max Teams, Points, Visuals
         if current_user.is_premium:
+            league.max_teams = form.max_teams.data
+            league.win_points = form.win_points.data
+            league.draw_points = form.draw_points.data
             league.show_stats = form.show_stats.data
             league.logo_url = form.logo_url.data
             league.slogan = form.slogan.data
+        
         db.session.commit()
         flash('Liga actualizada.', 'success')
         return redirect(url_for('league_detail', league_id=league_id, _anchor='settings'))
@@ -866,6 +878,15 @@ def generate_credentials(team_id):
             flash('No tienes acceso.', 'danger')
             return redirect(url_for('dashboard'))
             
+    # Validar que el DUEÑO de la liga sea Premium
+    # (Ya sea que entre el dueño o el capitán, la funcionalidad depende de la suscripción del dueño)
+    if not league.owner.is_active_premium:
+        flash('La generación de credenciales es una función Premium.', 'warning')
+        if current_user.role == 'owner':
+            return redirect(url_for('premium'))
+        else:
+            return redirect(url_for('captain_dashboard'))
+
     players = Player.query.filter_by(team_id=team_id).order_by(Player.number.asc(), Player.name.asc()).all()
     
     return render_template('credentials.html', team=team, players=players)

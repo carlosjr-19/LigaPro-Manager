@@ -756,37 +756,119 @@
         <div id="settings" class="tab-content">
             <h2 class="text-2xl font-bold mb-6">Configuración de la Liga</h2>
 
-            {% if current_user.is_premium %}
-            <div class="card">
-                <h3 class="text-xl mb-4">Sistema de Puntuación</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div>
-                        <label class="block text-sm text-white/60 mb-2">Puntos por Victoria</label>
-                        <div class="input-field bg-white/5">{{ league.win_points }}</div>
+            <!-- Settings Form (Embedded) -->
+            <div class="card bg-white/5 border-white/10 p-6">
+                <!-- If form is submitted from here, it goes to edit_league -->
+                <form method="POST" action="{{ url_for('edit_league', league_id=league.id) }}"
+                    enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+
+                    <!-- Basic Info (Always Editable) -->
+                    <div class="mb-6">
+                        <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Nombre de la
+                            Liga</label>
+                        {{ form.name(class="input-field", placeholder="Nombre de tu liga") }}
                     </div>
-                    <div>
-                        <label class="block text-sm text-white/60 mb-2">Puntos por Empate</label>
-                        <div class="input-field bg-white/5">{{ league.draw_points }}</div>
+
+                    <!-- Gameplay Settings (Points & Max Teams - Premium to Edit) -->
+                    <div class="mb-6 p-4 rounded-xl border border-white/10 relative overflow-hidden bg-white/5">
+                        {% if not current_user.is_premium %}
+                        <div
+                            class="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-lock text-yellow-500 text-2xl mb-2"></i>
+                                <p class="text-white font-bold text-sm">Configuración Gameplay Premium</p>
+                                <p class="text-white/40 text-xs mb-3">Actualiza para editar puntos y límites de equipos
+                                </p>
+                                <a href="{{ url_for('premium') }}"
+                                    class="text-xs bg-yellow-500 hover:bg-yellow-400 text-black px-3 py-1 rounded font-bold transition-colors">
+                                    Mejorar
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                            <i class="fas fa-gamepad text-blue-400"></i> Configuración de Juego
+                        </h3>
+
+                        <div class="mb-4 {% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                            <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Máximo de
+                                Equipos</label>
+                            {{ form.max_teams(class="input-field", placeholder="Ej: 10") }}
+                            {% if not current_user.is_premium %}
+                            <p class="text-xs text-white/40 mt-1">Límite gratuito: 10 equipos</p>
+                            {% endif %}
+                        </div>
+
+                        <div
+                            class="grid grid-cols-1 md:grid-cols-2 gap-4 {% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                            <div>
+                                <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Pts
+                                    Victoria</label>
+                                {{ form.win_points(class="input-field") }}
+                            </div>
+                            <div>
+                                <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Pts
+                                    Empate</label>
+                                {{ form.draw_points(class="input-field") }}
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm text-white/60 mb-2">Puntos por Derrota</label>
-                        <div class="input-field bg-white/5">{{ league.loss_points }}</div>
+
+                    <!-- Visual Settings (Premium Only) -->
+                    <div class="mb-8 p-4 rounded-xl border border-white/10 relative overflow-hidden bg-white/5">
+                        {% if not current_user.is_premium %}
+                        <div
+                            class="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                            <div class="text-center">
+                                <i class="fas fa-crown text-yellow-500 text-2xl mb-2"></i>
+                                <p class="text-white font-bold text-sm">Personalización Premium</p>
+                                <p class="text-white/40 text-xs mb-3">Logos, slogans y estadísticas</p>
+                                <a href="{{ url_for('premium') }}"
+                                    class="text-xs bg-yellow-500 hover:bg-yellow-400 text-black px-3 py-1 rounded font-bold transition-colors">
+                                    Mejorar
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <h3 class="text-sm font-bold text-yellow-500 mb-4 flex items-center gap-2">
+                            <i class="fas fa-paint-brush"></i> Personalización Visual
+                        </h3>
+
+                        <div class="{% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                            <div class="mb-4">
+                                <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Logo de la Liga
+                                    (URL)</label>
+                                {{ form.logo_url(class="input-field", placeholder="https://...") }}
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Slogan</label>
+                                {{ form.slogan(class="input-field", placeholder="Frase corta") }}
+                            </div>
+
+                            <div class="flex items-center gap-3 pt-2 border-t border-white/10">
+                                {{ form.show_stats(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary
+                                focus:ring-primary") }}
+                                <div>
+                                    <label class="block text-sm font-bold text-white mb-1">
+                                        Mostrar Estadísticas a Capitanes
+                                    </label>
+                                    <p class="text-xs text-white/50">
+                                        Top 5 goleadores y arqueros visibles en panel de capitanes.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <a href="{{ url_for('edit_league', league_id=league.id) }}" class="btn-primary">
-                    <i class="fas fa-edit mr-2"></i>Editar Configuración
-                </a>
+
+                    <button type="submit" class="w-full btn-primary py-3 font-bold text-lg shadow-lg shadow-primary/20">
+                        <i class="fas fa-save mr-2"></i>Guardar Cambios
+                    </button>
+                </form>
             </div>
-            {% else %}
-            <div class="card text-center py-12 bg-warning/5 border-warning/30">
-                <i class="fas fa-crown text-4xl text-warning mb-4"></i>
-                <h3 class="text-xl mb-2">Función Premium</h3>
-                <p class="text-white/60 mb-6">Actualiza a Premium para editar la configuración de tus ligas</p>
-                <a href="{{ url_for('premium') }}" class="btn-primary">
-                    <i class="fas fa-crown mr-2"></i>Actualizar a Premium
-                </a>
-            </div>
-            {% endif %}
 
             <!-- Danger Zone -->
             <div class="card mt-6 border-red-500/30">
