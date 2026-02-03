@@ -224,7 +224,7 @@
                 </div>
 
                 <!-- League Stats (Sidebar Compact) -->
-                {% if league.show_stats and (top_scorers or top_goalkeepers) %}
+                {% if league.owner.is_active_premium and league.show_stats and (top_scorers or top_goalkeepers) %}
                 <!-- Top Scorers -->
                 {% if top_scorers %}
                 <div class="card">
