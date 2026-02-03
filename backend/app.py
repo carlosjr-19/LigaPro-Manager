@@ -29,7 +29,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:
 app.config['STRIPE_PUBLIC_KEY'] = os.environ.get('STRIPE_PUBLIC_KEY')
 app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY')
 app.config['STRIPE_PRICE_ID'] = os.environ.get('STRIPE_PRICE_ID')
-app.config['STRIPE_CAPTAIN_PRICE_ID'] = os.environ.get('STRIPE_CAPTAIN_PRICE_ID', 'price_1Sws8AEFcoT9Q6F3jRKdjFyX')
+app.config['STRIPE_CAPTAIN_PRICE_ID'] = os.environ.get('STRIPE_CAPTAIN_PRICE_ID')
 stripe.api_key = app.config['STRIPE_SECRET_KEY']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
