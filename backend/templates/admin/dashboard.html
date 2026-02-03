@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Administrador{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                <i class="fas fa-shield-alt mr-2"></i>Admin Dashboard
+            </h1>
+            <div class="flex gap-3">
+                <a href="{{ url_for('admin_users') }}" class="btn-secondary">
+                    <i class="fas fa-users mr-2"></i>Usuarios
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <a href="{{ url_for('admin_users') }}"
+                class="card bg-purple-900/20 border-purple-500/30 hover:bg-purple-900/30 transition-colors cursor-pointer group">
+                <h3 class="text-xl text-white/60 mb-2 group-hover:text-purple-300">Total Usuarios</h3>
+                <p class="text-4xl font-bold text-purple-400">{{ total_users }}</p>
+                <div class="mt-4 text-sm text-white/40">
+                    <span class="text-success"><i class="fas fa-check-circle mr-1"></i>{{ premium_users }}
+                        Premium</span>
+                </div>
+            </a>
+
+            <a href="{{ url_for('admin_leagues') }}"
+                class="card bg-blue-900/20 border-blue-500/30 hover:bg-blue-900/30 transition-colors cursor-pointer group">
+                <h3 class="text-xl text-white/60 mb-2 group-hover:text-blue-300">Ligas Activas</h3>
+                <p class="text-4xl font-bold text-blue-400">{{ total_leagues }}</p>
+            </a>
+
+            <a href="{{ url_for('admin_teams') }}"
+                class="card bg-green-900/20 border-green-500/30 hover:bg-green-900/30 transition-colors cursor-pointer group">
+                <h3 class="text-xl text-white/60 mb-2 group-hover:text-green-300">Total Equipos</h3>
+                <p class="text-4xl font-bold text-green-400">{{ total_teams }}</p>
+            </a>
+
+            <div class="card bg-orange-900/20 border-orange-500/30">
+                <h3 class="text-xl text-white/60 mb-2">Jugadores Reg.</h3>
+                <p class="text-4xl font-bold text-orange-400">{{ total_players }}</p>
+            </div>
+        </div>
+
+        <!-- Recent Users -->
+        <h2 class="text-2xl font-bold mb-6">Usuarios Recientes</h2>
+        <div class="card overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-white/10">
+                        <th class="py-3 px-4 text-white/60">Usuario</th>
+                        <th class="py-3 px-4 text-white/60">Rol</th>
+                        <th class="py-3 px-4 text-white/60">Estado</th>
+                        <th class="py-3 px-4 text-white/60">Registro</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr class="border-b border-white/5 last:border-0 hover:bg-white/5">
+                        <td class="py-3 px-4">
+                            <div>{{ user.name }}</div>
+                            <div class="text-xs text-white/40">{{ user.email }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span
+                                class="badge {% if user.role == 'owner' %}badge-primary{% else %}badge-secondary{% endif %}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if user.is_active_premium %}
+                            <span class="badge bg-warning/20 text-warning border-warning/50">Premium</span>
+                            {% else %}
+                            <span class="text-white/40">Grauito</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-white/40">
+                            {{ user.created_at.strftime('%d/%m/%Y') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+{% endblock %}

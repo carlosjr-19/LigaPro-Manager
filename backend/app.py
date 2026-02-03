@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 import os
 import uuid
 import stripe
+from datetime import datetime, timezone, timedelta
 
 load_dotenv()
 
@@ -50,9 +51,19 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), default='owner')  # owner or captain
     is_premium = db.Column(db.Boolean, default=False)
+    premium_expires_at = db.Column(db.DateTime, nullable=True)
     team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
+    @property
+    def is_active_premium(self):
+        """Check if user has active premium (lifetime or temporary)"""
+        if self.is_premium:
+            return True
+        if self.premium_expires_at and self.premium_expires_at > datetime.now(timezone.utc):
+            return True
+        return False
+
     # Relationships
     leagues = db.relationship('League', backref='owner', lazy=True, foreign_keys='League.user_id')
 
@@ -99,6 +110,13 @@ class Team(db.Model):
     notes = db.relationship('TeamNote', backref='team', lazy=True, cascade='all, delete-orphan')
     home_matches = db.relationship('Match', backref='home_team', lazy=True, foreign_keys='Match.home_team_id')
     away_matches = db.relationship('Match', backref='away_team', lazy=True, foreign_keys='Match.away_team_id')
+    
+    # Captain Relationship (Virtual)
+    captain = db.relationship('User', 
+                             primaryjoin="Team.captain_user_id == User.id",
+                             foreign_keys=captain_user_id,
+                             uselist=False,
+                             viewonly=True)
 
 
 class TeamNote(db.Model):
@@ -225,7 +243,7 @@ def owner_required(f):
     """Decorator to require owner role"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if current_user.role != 'owner':
+        if current_user.role != 'owner' and current_user.role != 'admin':
             flash('Acceso denegado. Solo para administradores.', 'danger')
             return redirect(url_for('captain_dashboard'))
         return f(*args, **kwargs)
@@ -236,9 +254,19 @@ def premium_required(f):
     """Decorator to require premium subscription"""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_premium:
+        if not current_user.is_active_premium:
             flash('Esta función requiere suscripción Premium.', 'warning')
             return redirect(url_for('premium'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    """Decorator to require admin role"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.role != 'admin':
+            flash('Acceso denegado. Solo para administradores del sistema.', 'danger')
+            return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -314,6 +342,8 @@ def calculate_standings(league_id, include_playoffs=False):
 @app.route('/')
 def index():
     if current_user.is_authenticated:
+        if current_user.role == 'admin':
+            return redirect(url_for('admin_dashboard'))
         if current_user.role == 'captain':
             return redirect(url_for('captain_dashboard'))
         return redirect(url_for('dashboard'))
@@ -332,6 +362,8 @@ def login():
             login_user(user)
             flash('¡Bienvenido!', 'success')
             next_page = request.args.get('next')
+            if current_user.role == 'admin':
+                return redirect(next_page or url_for('admin_dashboard'))
             if current_user.role == 'captain':
                 return redirect(next_page or url_for('captain_dashboard'))
             return redirect(next_page or url_for('dashboard'))
@@ -466,7 +498,10 @@ def create_league():
 @login_required
 @owner_required
 def league_detail(league_id):
-    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    if current_user.role == 'admin':
+        league = League.query.get_or_404(league_id)
+    else:
+        league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     teams = Team.query.filter_by(league_id=league_id).all()
     standings = calculate_standings(league_id)
     
@@ -524,7 +559,7 @@ def league_detail(league_id):
 
     # Form for adding stats (Owner Only)
     stat_form = StatForm()
-    if current_user.role == 'owner':
+    if current_user.role == 'owner' or current_user.role == 'admin':
         stat_form.team_id.choices = [(t.id, t.name) for t in teams]
     
     return render_template('league_detail.html', 
@@ -549,7 +584,10 @@ def league_detail(league_id):
 @owner_required
 @premium_required
 def edit_league(league_id):
-    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    if current_user.role == 'admin':
+        league = League.query.get_or_404(league_id)
+    else:
+        league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     form = LeagueForm(obj=league)
     
     if form.validate_on_submit():
@@ -572,7 +610,10 @@ def edit_league(league_id):
 @login_required
 @owner_required
 def delete_league(league_id):
-    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    if current_user.role == 'admin':
+        league = League.query.get_or_404(league_id)
+    else:
+        league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     db.session.delete(league)
     db.session.commit()
     flash('Liga eliminada.', 'success')
@@ -1599,6 +1640,105 @@ def stripe_webhook():
     return jsonify(success=True)
 
 
+# ==================== ADMIN ROUTES ====================
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_dashboard():
+    # Dashboard Stats
+    total_users = User.query.count()
+    total_leagues = League.query.count()
+    total_teams = Team.query.count()
+    total_players = Player.query.count()
+    premium_users = User.query.filter_by(is_premium=True).count()
+    
+    # Active users (with temporary premium)
+    temp_premium = User.query.filter(User.premium_expires_at > datetime.now(timezone.utc)).count()
+    
+    # Recent Users
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
+    
+    return render_template('admin/dashboard.html', 
+                          total_users=total_users,
+                          total_leagues=total_leagues,
+                          total_teams=total_teams,
+                          total_players=total_players,
+                          premium_users=premium_users,
+                          temp_premium=temp_premium,
+                          recent_users=recent_users)
+
+@app.route('/admin/leagues')
+@login_required
+@admin_required
+def admin_leagues():
+    leagues = League.query.order_by(League.created_at.desc()).all()
+    # Pre-calculate counts to avoid N+1 in template (though access via property is lazy, this is cleaner)
+    # Actually, SQLAlchemy relationship lazy='true' does separate queries.
+    # We'll just pass the objects.
+    return render_template('admin/leagues.html', leagues=leagues)
+
+@app.route('/admin/teams')
+@login_required
+@admin_required
+def admin_teams():
+    # Join with League and User (Captain) to get names efficiently
+    teams = Team.query.join(League).order_by(Team.created_at.desc()).all()
+    return render_template('admin/teams.html', teams=teams)
+
+@app.route('/admin/users')
+@login_required
+@admin_required
+def admin_users():
+    page = request.args.get('page', 1, type=int)
+    search = request.args.get('search', '')
+    
+    query = User.query
+    if search:
+        query = query.filter(User.email.contains(search) | User.name.contains(search))
+        
+    users = query.order_by(User.created_at.desc()).paginate(page=page, per_page=20)
+    return render_template('admin/users.html', users=users, search=search)
+
+@app.route('/admin/users/<user_id>/grant_premium', methods=['POST'])
+@login_required
+@admin_required
+def admin_grant_premium(user_id):
+    user = User.query.get_or_404(user_id)
+    days = request.form.get('days', 7, type=int)
+    
+    from datetime import timedelta
+    user.premium_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
+    db.session.commit()
+    
+    flash(f'Premium temporal ({days} días) otorgado a {user.email}.', 'success')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/users/<user_id>/toggle_premium', methods=['POST'])
+@login_required
+@admin_required
+def admin_toggle_premium(user_id):
+    user = User.query.get_or_404(user_id)
+    user.is_premium = not user.is_premium
+    # Clear temp premium if setting permanent
+    if user.is_premium:
+        user.premium_expires_at = None
+        
+    db.session.commit()
+    status = "Activado" if user.is_premium else "Desactivado"
+    flash(f'Premium permanente {status} para {user.email}.', 'success')
+    return redirect(url_for('admin_users'))
+    
+@app.route('/admin/users/<user_id>/login_as', methods=['POST'])
+@login_required
+@admin_required
+def admin_login_as(user_id):
+    user = User.query.get_or_404(user_id)
+    login_user(user)
+    flash(f'Has iniciado sesión como {user.name}', 'info')
+    return redirect(url_for('dashboard'))
+
+
 # ==================== ERROR HANDLERS ====================
 
 @app.errorhandler(404)
@@ -1768,6 +1908,14 @@ def run_auto_migration():
                     print("Auto-Migration: number added via app.py")
                 except Exception as e:
                     print(f"Auto-Migration Error (number): {e}")
+
+            if 'premium_expires_at' not in [c['name'] for c in inspector.get_columns('users')]:
+                try:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN premium_expires_at TIMESTAMP"))
+                    conn.commit()
+                    print("Auto-Migration: premium_expires_at added via app.py")
+                except Exception as e:
+                    print(f"Auto-Migration Error (premium_expires_at): {e}")
 
 # Run once on module load (works for Gunicorn workers)
 try:
