@@ -60,8 +60,16 @@ class User(UserMixin, db.Model):
         """Check if user has active premium (lifetime or temporary)"""
         if self.is_premium:
             return True
-        if self.premium_expires_at and self.premium_expires_at > datetime.now(timezone.utc):
-            return True
+        
+        if self.premium_expires_at:
+            # Handle timezone awareness for comparison
+            expires_at = self.premium_expires_at
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            
+            if expires_at > datetime.now(timezone.utc):
+                return True
+                
         return False
 
     # Relationships
