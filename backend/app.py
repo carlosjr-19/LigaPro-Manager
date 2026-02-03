@@ -29,6 +29,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:
 app.config['STRIPE_PUBLIC_KEY'] = os.environ.get('STRIPE_PUBLIC_KEY')
 app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY')
 app.config['STRIPE_PRICE_ID'] = os.environ.get('STRIPE_PRICE_ID')
+app.config['STRIPE_CAPTAIN_PRICE_ID'] = os.environ.get('STRIPE_CAPTAIN_PRICE_ID')
 stripe.api_key = app.config['STRIPE_SECRET_KEY']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -876,28 +877,61 @@ def generate_credentials(team_id):
     team = Team.query.get_or_404(team_id)
     league = team.league
     
-    # Check access (Owner or Captain)
-    if current_user.role == 'captain':
-        if current_user.team_id != team_id:
-            flash('No tienes acceso.', 'danger')
+    # Permission Check: League Owner OR Team Captain
+    # Permission Check: League Owner OR Team Captain
+    is_owner = league.user_id == current_user.id
+    
+    # Robust Captain Check:
+    # 1. Matches team.captain_user_id (Ideal)
+    # 2. Matches current_user.team_id + role='captain' (Fallback/Self-Repair)
+    is_captain = False
+    
+    if team.captain_user_id == current_user.id:
+        is_captain = True
+    elif current_user.role == 'captain' and current_user.team_id == team_id:
+        is_captain = True
+        # Self-Repair: Link was broken, fixing it now.
+        if not team.captain_user_id:
+            team.captain_user_id = current_user.id
+            db.session.commit()
+    
+    if not (is_owner or is_captain):
+        flash('No tienes permiso para ver estas credenciales.', 'danger')
+        
+        if current_user.role == 'captain':
             return redirect(url_for('captain_dashboard'))
-    else:
-        if league.user_id != current_user.id:
-            flash('No tienes acceso.', 'danger')
-            return redirect(url_for('dashboard'))
-            
-    # Validar que el DUEÑO de la liga sea Premium
-    # (Ya sea que entre el dueño o el capitán, la funcionalidad depende de la suscripción del dueño)
-    if not league.owner.is_active_premium:
-        flash('La generación de credenciales es una función Premium.', 'warning')
-        if current_user.role == 'owner':
-            return redirect(url_for('premium'))
+        return redirect(url_for('dashboard'))
+    
+    # Premium Access Logic
+    # 1. League Owner is Premium -> Access Granted to Owner AND Captain
+    # 2. Captain is Premium -> Access Granted to Captain (Plan Capitán)
+    
+    has_access = False
+    
+    if is_owner:
+        # Owner always has access if they are premium? Or free owners too?
+        # Assuming Owner needs Premium for "advanced" features, OR credentials are a basic premium feature.
+        # Original code checked: if not league.owner.is_active_premium.
+        if league.owner.is_active_premium:
+            has_access = True
+    
+    if is_captain:
+        # Captain gets access if:
+        # a) Owner is Premium (Unlocks for everyone in league)
+        # b) Captain is Premium (Specific unlock)
+        if league.owner.is_active_premium or current_user.is_active_premium:
+             has_access = True
+             
+    if not has_access:
+        flash('Esta función requiere Premium (Dueño de Liga o Plan Capitán).', 'warning')
+        if is_captain and not is_owner:
+            return redirect(url_for('captain_premium'))
         else:
-            return redirect(url_for('captain_dashboard'))
-
+            return redirect(url_for('premium'))
+            
     players = Player.query.filter_by(team_id=team_id).order_by(Player.number.asc(), Player.name.asc()).all()
     
-    return render_template('credentials.html', team=team, players=players)
+    return render_template('credentials.html', team=team, players=players, league=league)
 
 
 # ==================== PLAYER ROUTES ====================
@@ -1586,22 +1620,35 @@ def premium():
     return render_template('premium.html')
 
 
+@app.route('/premium/captain')
+@login_required
+def captain_premium():
+    return render_template('captain_premium.html')
+
+
 @app.route('/create-checkout-session', methods=['POST'])
 @login_required
 def create_checkout_session():
     try:
-        stripe_price_id = app.config['STRIPE_PRICE_ID']
+        plan_type = request.args.get('plan', 'owner') # 'owner' (subscription) or 'captain' (one-time)
+        
+        if plan_type == 'captain':
+             price_id = app.config['STRIPE_CAPTAIN_PRICE_ID']
+             mode = 'payment'
+        else:
+             price_id = app.config['STRIPE_PRICE_ID']
+             mode = 'subscription'
 
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
-                    'price': stripe_price_id,
+                    'price': price_id,
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
+            mode=mode,
             success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('premium', _external=True),
+            cancel_url=url_for('premium', _external=True) if plan_type == 'owner' else url_for('captain_premium', _external=True),
             customer_email=current_user.email,
             client_reference_id=current_user.id,
         )
@@ -1715,6 +1762,9 @@ def admin_teams():
     # Join with League and User (Captain) to get names efficiently
     teams = Team.query.join(League).order_by(Team.created_at.desc()).all()
     return render_template('admin/teams.html', teams=teams)
+
+
+
 
 @app.route('/admin/users')
 @login_required
