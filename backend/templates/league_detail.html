@@ -5,12 +5,12 @@
 <div class="min-h-screen">
     <!-- Header -->
     <header class="bg-card border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6 py-4">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 py-4">
             <a href="{{ url_for('dashboard') }}"
                 class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
                 <i class="fas fa-arrow-left"></i> Volver al Dashboard
             </a>
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0 text-center md:text-left">
                 <div>
                     <h1 class="text-3xl font-bold">{{ league.name }}</h1>
                     <p class="text-white/60">{{ teams|length }} / {{ league.max_teams }} equipos</p>
@@ -88,35 +88,40 @@
                 </div>
                 <!-- ... table ... -->
 
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="border-b border-white/10 text-white/60 text-xs uppercase">
-                            <th class="text-left py-2">#</th>
-                            <th class="text-left py-2">Equipo</th>
-                            <th class="text-center py-2">PJ</th>
-                            <th class="text-center py-2">PTS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for s in standings[:5] %}
-                        <tr class="border-b border-white/5 hover:bg-white/5">
-                            <td class="py-2 text-primary font-bold">{{ loop.index }}</td>
-                            <td class="py-2 flex items-center gap-2">
-                                {% if s.team.shield_url %}
-                                <img src="{{ s.team.shield_url }}" class="w-6 h-6 rounded object-cover">
-                                {% endif %}
-                                {{ s.team.name }}
-                            </td>
-                            <td class="text-center py-2">{{ s.played }}</td>
-                            <td class="text-center py-2 font-bold">{{ s.points }}</td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4" class="py-4 text-center text-white/40">Sin datos</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <!-- ... table ... -->
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm min-w-[300px]">
+                        <thead>
+                            <tr class="border-b border-white/10 text-white/60 text-xs uppercase">
+                                <th class="text-left py-2">#</th>
+                                <th class="text-left py-2">Equipo</th>
+                                <th class="text-center py-2">PJ</th>
+                                <th class="text-center py-2">PTS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in standings[:5] %}
+                            <tr class="border-b border-white/5 hover:bg-white/5">
+                                <td class="py-2 text-primary font-bold">{{ loop.index }}</td>
+                                <td class="py-2 flex items-center gap-2">
+                                    {% if s.team.shield_url %}
+                                    <img src="{{ s.team.shield_url }}" class="w-6 h-6 rounded object-cover">
+                                    {% endif %}
+                                    {{ s.team.name }}
+                                </td>
+                                <td class="text-center py-2">{{ s.played }}</td>
+                                <td class="text-center py-2 font-bold">{{ s.points }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="py-4 text-center text-white/40">Sin datos</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
 
@@ -327,7 +332,7 @@
 
         <!-- Matches Tab -->
         <div id="matches" class="tab-content">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 md:gap-0">
                 <h2 class="text-2xl font-bold">Partidos</h2>
                 <a href="{{ url_for('create_match', league_id=league.id) }}" class="btn-primary">
                     <i class="fas fa-plus mr-2"></i>Programar Partido
@@ -466,7 +471,7 @@
                     <div class="mb-6 bg-white/5 p-4 rounded-lg border border-white/10">
                         <h3 class="font-bold mb-4 text-sm uppercase text-primary">Agregar Goleador</h3>
                         <form method="POST" action="{{ url_for('add_stat', league_id=league.id) }}"
-                            class="flex gap-4 items-end">
+                            class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
                             {{ stat_form.hidden_tag() }}
                             <input type="hidden" name="stat_type" value="goals">
                             <!-- Photo URL will be auto-filled from player selection in backend -->
@@ -550,7 +555,7 @@
                     <div class="mb-6 bg-white/5 p-4 rounded-lg border border-white/10">
                         <h3 class="font-bold mb-4 text-sm uppercase text-primary">Agregar Arquero</h3>
                         <form method="POST" action="{{ url_for('add_stat', league_id=league.id) }}"
-                            class="flex gap-4 items-end">
+                            class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
                             {{ stat_form.hidden_tag() }}
                             <input type="hidden" name="stat_type" value="conceded">
                             <!-- Photo URL will be auto-filled from player selection in backend -->
@@ -626,7 +631,7 @@
 
         <!-- Playoff Tab -->
         <div id="playoff" class="tab-content">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 md:gap-0">
                 <h2 class="text-2xl font-bold">Liguilla / Playoffs</h2>
                 <div class="flex gap-2">
                     {% if has_playoffs %}

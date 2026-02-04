@@ -17,7 +17,7 @@
             </a>
             {% endif %}
 
-            <div class="flex items-center gap-6">
+            <div class="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
                 {% if team.shield_url %}
                 <img src="{{ team.shield_url }}" class="w-20 h-20 rounded-lg object-cover">
                 {% else %}
@@ -44,11 +44,11 @@
             <div class="lg:col-span-2 space-y-8">
                 <!-- Players -->
                 <div class="card">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 md:gap-0">
                         <h2 class="text-xl font-bold">
                             <i class="fas fa-users mr-2 text-primary"></i>Jugadores
                         </h2>
-                        <div class="flex gap-2">
+                        <div class="flex flex-wrap justify-center gap-2">
                             {% if league.owner.is_active_premium %}
                             <a href="{{ url_for('generate_credentials', team_id=team.id) }}" target="_blank"
                                 class="btn-secondary text-sm">
@@ -123,8 +123,8 @@
                         <div class="p-3 bg-white/5 rounded-lg">
                             <p class="text-white/40 text-xs mb-2">{{ match.match_date.strftime('%d/%m/%Y %I:%M %p') }}
                             </p>
-                            <div class="flex items-center justify-between gap-4">
-                                <div class="flex items-center gap-3 flex-1 justify-end">
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div class="flex items-center gap-3 flex-1 justify-end w-full sm:w-auto">
                                     <span
                                         class="font-medium {% if match.home_team_id == team.id %}text-primary{% endif %} text-right">
                                         {{ teams_dict[match.home_team_id].name }}
@@ -148,7 +148,7 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="flex items-center gap-3 flex-1">
+                                <div class="flex items-center gap-3 flex-1 w-full sm:w-auto">
                                     {% if teams_dict[match.away_team_id].shield_url %}
                                     <img src="{{ teams_dict[match.away_team_id].shield_url }}"
                                         class="w-8 h-8 rounded object-cover bg-white/5">

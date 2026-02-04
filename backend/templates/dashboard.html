@@ -5,8 +5,8 @@
 <div class="min-h-screen">
     <!-- Header -->
     <header class="bg-card border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
                 <div class="flex items-center gap-4">
                     <img src="{{ url_for('static', filename='img/LigaPro_Manager.png') }}" alt="Logo"
                         class="w-12 h-12 object-contain">
@@ -34,8 +34,9 @@
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-6 py-8">
-        <div class="flex justify-between items-center mb-8">
+    <main class="max-w-7xl mx-auto px-4 md:px-6 py-8">
+        <div
+            class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 md:gap-0 text-center md:text-left">
             <div>
                 <h2 class="text-3xl font-bold">Mis Ligas</h2>
                 <p class="text-white/60">Gestiona tus torneos de fútbol</p>
@@ -88,8 +89,8 @@
         <!-- Stats -->
         {% if not current_user.is_premium %}
         <div class="mt-8 card bg-white/5 border-warning/30">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-warning/20 rounded-lg flex items-center justify-center">
+            <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+                <div class="w-12 h-12 bg-warning/20 rounded-lg flex items-center justify-center shrink-0">
                     <i class="fas fa-info-circle text-warning text-xl"></i>
                 </div>
                 <div class="flex-1">
