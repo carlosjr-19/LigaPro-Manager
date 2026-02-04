@@ -164,6 +164,32 @@
 
             <!-- Sidebar -->
             <div class="space-y-6">
+                <!-- Captain Tools (Premium) -->
+                <div class="card bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border-blue-500/30">
+                    <h3 class="font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-crown text-blue-400"></i>
+                        <span>Herramientas de Capitán</span>
+                    </h3>
+
+                    {% if current_user.is_premium %}
+                    <a href="{{ url_for('generate_credentials', team_id=team.id) }}"
+                        class="btn-primary w-full text-center block bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 border-0">
+                        <i class="fas fa-id-card mr-2"></i>Generar Credenciales
+                    </a>
+                    {% else %}
+                    <div class="text-center">
+                        <p class="text-xs text-white/60 mb-3">
+                            <i class="fas fa-lock text-yellow-500 mr-1"></i>
+                            Desbloquea generación de credenciales profesional.
+                        </p>
+                        <a href="{{ url_for('captain_premium') }}"
+                            class="btn-secondary w-full text-center block border-blue-500/50 text-blue-300 hover:bg-blue-500/10">
+                            <i class="fas fa-unlock mr-2"></i>Desbloquear ($50)
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
                 <!-- Quick Actions -->
                 <div class="card">
                     <h3 class="font-bold mb-4">Acciones Rápidas</h3>
@@ -224,7 +250,7 @@
                 </div>
 
                 <!-- League Stats (Sidebar Compact) -->
-                {% if league.show_stats and (top_scorers or top_goalkeepers) %}
+                {% if league.owner.is_active_premium and league.show_stats and (top_scorers or top_goalkeepers) %}
                 <!-- Top Scorers -->
                 {% if top_scorers %}
                 <div class="card">

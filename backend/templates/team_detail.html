@@ -49,10 +49,16 @@
                             <i class="fas fa-users mr-2 text-primary"></i>Jugadores
                         </h2>
                         <div class="flex gap-2">
+                            {% if league.owner.is_active_premium %}
                             <a href="{{ url_for('generate_credentials', team_id=team.id) }}" target="_blank"
                                 class="btn-secondary text-sm">
                                 <i class="fas fa-id-card mr-1"></i>Credenciales
                             </a>
+                            {% else %}
+                            <span class="btn-secondary text-sm opacity-50 cursor-not-allowed" title="Función Premium">
+                                <i class="fas fa-crown text-yellow-500 mr-1"></i>Credenciales
+                            </span>
+                            {% endif %}
                             <a href="{{ url_for('create_player', team_id=team.id) }}" class="btn-primary text-sm">
                                 <i class="fas fa-plus mr-1"></i>Añadir
                             </a>

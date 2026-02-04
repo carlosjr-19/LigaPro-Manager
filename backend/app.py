@@ -29,6 +29,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:
 app.config['STRIPE_PUBLIC_KEY'] = os.environ.get('STRIPE_PUBLIC_KEY')
 app.config['STRIPE_SECRET_KEY'] = os.environ.get('STRIPE_SECRET_KEY')
 app.config['STRIPE_PRICE_ID'] = os.environ.get('STRIPE_PRICE_ID')
+app.config['STRIPE_CAPTAIN_PRICE_ID'] = os.environ.get('STRIPE_CAPTAIN_PRICE_ID')
 stripe.api_key = app.config['STRIPE_SECRET_KEY']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -60,8 +61,16 @@ class User(UserMixin, db.Model):
         """Check if user has active premium (lifetime or temporary)"""
         if self.is_premium:
             return True
-        if self.premium_expires_at and self.premium_expires_at > datetime.now(timezone.utc):
-            return True
+        
+        if self.premium_expires_at:
+            # Handle timezone awareness for comparison
+            expires_at = self.premium_expires_at
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+            
+            if expires_at > datetime.now(timezone.utc):
+                return True
+                
         return False
 
     # Relationships
@@ -74,7 +83,7 @@ class League(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(100), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
-    max_teams = db.Column(db.Integer, default=12)
+    max_teams = db.Column(db.Integer, default=10)
     win_points = db.Column(db.Integer, default=3)
     draw_points = db.Column(db.Integer, default=1)
     loss_points = db.Column(db.Integer, default=0)
@@ -86,7 +95,6 @@ class League(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
-    teams = db.relationship('Team', backref='league', lazy=True, cascade='all, delete-orphan')
     teams = db.relationship('Team', backref='league', lazy=True, cascade='all, delete-orphan')
     matches = db.relationship('Match', backref='league', lazy=True, cascade='all, delete-orphan')
     playoff_type = db.Column(db.String(20), default='single') # 'single' or 'double'
@@ -187,7 +195,7 @@ class RegisterForm(FlaskForm):
 
 class LeagueForm(FlaskForm):
     name = StringField('Nombre de la Liga', validators=[DataRequired(), Length(min=2, max=100)])
-    max_teams = IntegerField('Máximo de Equipos', validators=[DataRequired(), NumberRange(min=4, max=32)], default=12)
+    max_teams = IntegerField('Máximo de Equipos', validators=[DataRequired(), NumberRange(min=4, max=32)], default=10)
     win_points = IntegerField('Puntos por Victoria', validators=[DataRequired()], default=3)
     draw_points = IntegerField('Puntos por Empate', validators=[DataRequired()], default=1)
     # Field handles by template conditional, but need it in form
@@ -342,12 +350,13 @@ def calculate_standings(league_id, include_playoffs=False):
 @app.route('/')
 def index():
     if current_user.is_authenticated:
+        next_page = request.args.get('next') # Added this line to define next_page
         if current_user.role == 'admin':
-            return redirect(url_for('admin_dashboard'))
+            return redirect(next_page or url_for('admin_dashboard'))
         if current_user.role == 'captain':
-            return redirect(url_for('captain_dashboard'))
-        return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
+            return redirect(next_page or url_for('captain_dashboard'))
+        return redirect(next_page or url_for('dashboard'))
+    return render_template('landing.html', title='Inicio')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -475,16 +484,22 @@ def create_league():
     form = LeagueForm()
     if form.validate_on_submit():
         max_teams = form.max_teams.data
-        if not current_user.is_premium and max_teams > 12:
-            max_teams = 12
-            flash('Límite de 12 equipos para usuarios gratuitos.', 'info')
+        win_points = form.win_points.data
+        draw_points = form.draw_points.data
+        
+        # Enforce Free Tier Limits (Override even if client bypassed disabled inputs)
+        if not current_user.is_premium:
+            max_teams = 10
+            win_points = 3
+            draw_points = 1
+            # Note: We don't flash message about override to keep UX clean since UI is locked
         
         league = League(
             name=form.name.data,
             user_id=current_user.id,
             max_teams=max_teams,
-            win_points=form.win_points.data,
-            draw_points=form.draw_points.data
+            win_points=win_points,
+            draw_points=draw_points
         )
         db.session.add(league)
         db.session.commit()
@@ -562,6 +577,10 @@ def league_detail(league_id):
     if current_user.role == 'owner' or current_user.role == 'admin':
         stat_form.team_id.choices = [(t.id, t.name) for t in teams]
     
+    # Form for editing league settings (embedded)
+    form = LeagueForm(obj=league)
+
+    
     return render_template('league_detail.html', 
                           league=league, 
                           teams=teams,
@@ -576,13 +595,13 @@ def league_detail(league_id):
                           upcoming_matches=upcoming_matches,
                           players_by_team=players_by_team,
                           stat_form=stat_form,
-                          matches_pagination=matches_pagination)
+                          matches_pagination=matches_pagination,
+                          form=form)
 
 
 @app.route('/leagues/<league_id>/edit', methods=['GET', 'POST'])
 @login_required
 @owner_required
-@premium_required
 def edit_league(league_id):
     if current_user.role == 'admin':
         league = League.query.get_or_404(league_id)
@@ -592,13 +611,16 @@ def edit_league(league_id):
     
     if form.validate_on_submit():
         league.name = form.name.data
-        league.max_teams = form.max_teams.data
-        league.win_points = form.win_points.data
-        league.draw_points = form.draw_points.data
+        
+        # Premium/Restricted Features: Max Teams, Points, Visuals
         if current_user.is_premium:
+            league.max_teams = form.max_teams.data
+            league.win_points = form.win_points.data
+            league.draw_points = form.draw_points.data
             league.show_stats = form.show_stats.data
             league.logo_url = form.logo_url.data
             league.slogan = form.slogan.data
+        
         db.session.commit()
         flash('Liga actualizada.', 'success')
         return redirect(url_for('league_detail', league_id=league_id, _anchor='settings'))
@@ -855,19 +877,61 @@ def generate_credentials(team_id):
     team = Team.query.get_or_404(team_id)
     league = team.league
     
-    # Check access (Owner or Captain)
-    if current_user.role == 'captain':
-        if current_user.team_id != team_id:
-            flash('No tienes acceso.', 'danger')
+    # Permission Check: League Owner OR Team Captain
+    # Permission Check: League Owner OR Team Captain
+    is_owner = league.user_id == current_user.id
+    
+    # Robust Captain Check:
+    # 1. Matches team.captain_user_id (Ideal)
+    # 2. Matches current_user.team_id + role='captain' (Fallback/Self-Repair)
+    is_captain = False
+    
+    if team.captain_user_id == current_user.id:
+        is_captain = True
+    elif current_user.role == 'captain' and current_user.team_id == team_id:
+        is_captain = True
+        # Self-Repair: Link was broken, fixing it now.
+        if not team.captain_user_id:
+            team.captain_user_id = current_user.id
+            db.session.commit()
+    
+    if not (is_owner or is_captain):
+        flash('No tienes permiso para ver estas credenciales.', 'danger')
+        
+        if current_user.role == 'captain':
             return redirect(url_for('captain_dashboard'))
-    else:
-        if league.user_id != current_user.id:
-            flash('No tienes acceso.', 'danger')
-            return redirect(url_for('dashboard'))
+        return redirect(url_for('dashboard'))
+    
+    # Premium Access Logic
+    # 1. League Owner is Premium -> Access Granted to Owner AND Captain
+    # 2. Captain is Premium -> Access Granted to Captain (Plan Capitán)
+    
+    has_access = False
+    
+    if is_owner:
+        # Owner always has access if they are premium? Or free owners too?
+        # Assuming Owner needs Premium for "advanced" features, OR credentials are a basic premium feature.
+        # Original code checked: if not league.owner.is_active_premium.
+        if league.owner.is_active_premium:
+            has_access = True
+    
+    if is_captain:
+        # Captain gets access if:
+        # a) Owner is Premium (Unlocks for everyone in league)
+        # b) Captain is Premium (Specific unlock)
+        if league.owner.is_active_premium or current_user.is_active_premium:
+             has_access = True
+             
+    if not has_access:
+        flash('Esta función requiere Premium (Dueño de Liga o Plan Capitán).', 'warning')
+        if is_captain and not is_owner:
+            return redirect(url_for('captain_premium'))
+        else:
+            return redirect(url_for('premium'))
             
     players = Player.query.filter_by(team_id=team_id).order_by(Player.number.asc(), Player.name.asc()).all()
     
-    return render_template('credentials.html', team=team, players=players)
+    return render_template('credentials.html', team=team, players=players, league=league)
 
 
 # ==================== PLAYER ROUTES ====================
@@ -1556,22 +1620,35 @@ def premium():
     return render_template('premium.html')
 
 
+@app.route('/premium/captain')
+@login_required
+def captain_premium():
+    return render_template('captain_premium.html')
+
+
 @app.route('/create-checkout-session', methods=['POST'])
 @login_required
 def create_checkout_session():
     try:
-        stripe_price_id = app.config['STRIPE_PRICE_ID']
+        plan_type = request.args.get('plan', 'owner') # 'owner' (subscription) or 'captain' (one-time)
+        
+        if plan_type == 'captain':
+             price_id = app.config['STRIPE_CAPTAIN_PRICE_ID']
+             mode = 'payment'
+        else:
+             price_id = app.config['STRIPE_PRICE_ID']
+             mode = 'subscription'
 
         checkout_session = stripe.checkout.Session.create(
             line_items=[
                 {
-                    'price': stripe_price_id,
+                    'price': price_id,
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
+            mode=mode,
             success_url=url_for('success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('premium', _external=True),
+            cancel_url=url_for('premium', _external=True) if plan_type == 'owner' else url_for('captain_premium', _external=True),
             customer_email=current_user.email,
             client_reference_id=current_user.id,
         )
@@ -1685,6 +1762,9 @@ def admin_teams():
     # Join with League and User (Captain) to get names efficiently
     teams = Team.query.join(League).order_by(Team.created_at.desc()).all()
     return render_template('admin/teams.html', teams=teams)
+
+
+
 
 @app.route('/admin/users')
 @login_required
