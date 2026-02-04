@@ -3,7 +3,7 @@ LigaPro Manager - Flask Application
 Full-stack football league management with PostgreSQL
 """
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
@@ -414,6 +414,53 @@ def logout():
     logout_user()
     flash('Has cerrado sesión.', 'info')
     return redirect(url_for('login'))
+
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+        
+    step = 'email'
+    if 'reset_user_id' in session:
+        step = 'password'
+        
+    if request.method == 'POST':
+        if step == 'email':
+            email = request.form.get('email')
+            user = User.query.filter_by(email=email).first()
+            
+            if user:
+                session['reset_user_id'] = user.id
+                flash('Usuario encontrado. Por favor establece tu nueva contraseña.', 'success')
+                return redirect(url_for('forgot_password'))
+            else:
+                flash('No encontramos una cuenta con ese correo.', 'danger')
+                
+        elif step == 'password':
+            password = request.form.get('password')
+            confirm = request.form.get('confirm_password')
+            
+            if password != confirm:
+                flash('Las contraseñas no coinciden.', 'danger')
+            else:
+                user_id = session.get('reset_user_id')
+                user = User.query.get(user_id)
+                
+                if user:
+                    hashed = bcrypt.generate_password_hash(password).decode('utf-8')
+                    user.password = hashed
+                    db.session.commit()
+                    
+                    session.pop('reset_user_id', None)
+                    flash('Contraseña actualizada exitosamente. Inicia sesión.', 'success')
+                    return redirect(url_for('login'))
+                else:
+                    session.pop('reset_user_id', None)
+                    flash('Error de sesión. Intenta de nuevo.', 'danger')
+                    return redirect(url_for('forgot_password'))
+                    
+    return render_template('forgot_password.html', step=step)
 
 
 # ==================== DASHBOARD ROUTES ====================
@@ -896,7 +943,7 @@ def generate_credentials(team_id):
             db.session.commit()
     
     if not (is_owner or is_captain):
-        flash('No tienes permiso para ver estas credenciales.', 'danger')
+        flash('No tienes permiso para ver estos registros.', 'danger')
         
         if current_user.role == 'captain':
             return redirect(url_for('captain_dashboard'))

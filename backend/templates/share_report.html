@@ -231,7 +231,9 @@
 
             html2canvas(target, {
                 backgroundColor: '#0f172a',
-                scale: 2 // High resolution
+                scale: 2, // High resolution
+                useCORS: true,
+                allowTaint: true
             }).then(canvas => {
                 const link = document.createElement('a');
                 link.download = 'reporte-{{ league.name|lower|replace(" ", "-") }}.png';
