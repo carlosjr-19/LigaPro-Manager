@@ -415,17 +415,19 @@
                         <div class="flex items-center gap-2">
                             {% if match.is_completed %}
                             <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded text-xs">Finalizado</span>
-                            {% if current_user.is_premium %}
-                            <!-- Delete button for completed matches (Premium only) -->
-                            <!-- Typically we restrict deleting completed matches, but user asked for it in previous context -->
-                            <!-- Actually, code prevents deleting completed matches. So this block is fine as is or empty -->
-                            {% endif %}
+                            <a href="{{ url_for('update_match_result', match_id=match.id) }}"
+                                class="text-blue-400 hover:text-blue-300 text-sm p-2" title="Editar Resultado">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
                             {% else %}
+                            <a href="{{ url_for('edit_match', match_id=match.id) }}"
+                                class="text-white/40 hover:text-white transition-colors p-2" title="Editar Detalles">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
                             <a href="{{ url_for('update_match_result', match_id=match.id) }}"
                                 class="btn-secondary text-sm">
                                 Registrar Resultado
                             </a>
-                            {% if not match.is_completed %}
                             <form method="POST" action="{{ url_for('delete_match', match_id=match.id) }}" class="inline"
                                 onsubmit="return confirm('¿Estás seguro de eliminar este partido?');">
                                 <button type="submit" class="text-white/40 hover:text-red-500 transition-colors p-2"
@@ -433,7 +435,6 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
-                            {% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -767,7 +768,16 @@
                                 </div>
                                 {% if match.is_completed %}
                                 <span class="bg-success/20 text-success px-3 py-1 rounded text-xs">Finalizado</span>
+                                <a href="{{ url_for('update_match_result', match_id=match.id) }}"
+                                    class="text-blue-400 hover:text-blue-300 text-sm p-2" title="Editar Resultado">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
                                 {% else %}
+                                <a href="{{ url_for('edit_match', match_id=match.id) }}"
+                                    class="text-white/40 hover:text-white transition-colors p-2"
+                                    title="Editar Detalles">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
                                 <a href="{{ url_for('update_match_result', match_id=match.id) }}"
                                     class="btn-secondary text-sm">Resultado</a>
                                 {% endif %}

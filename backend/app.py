@@ -1290,6 +1290,60 @@ def delete_match(match_id):
     return redirect(url_for('league_detail', league_id=league_id, _anchor='matches'))
 
 
+@app.route('/matches/<match_id>/edit', methods=['GET', 'POST'])
+@login_required
+@owner_required
+def edit_match(match_id):
+    match = Match.query.get_or_404(match_id)
+    league_id = match.league_id
+    league = match.league
+    
+    if league.user_id != current_user.id:
+        flash('No tienes acceso.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    if match.is_completed:
+        flash('No se pueden editar los detalles de un partido ya jugado. Solo se puede modificar el resultado.', 'warning')
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='matches'))
+        
+    form = MatchForm(obj=match)
+    # Populate choices
+    teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
+    form.home_team_id.choices = [(t.id, t.name) for t in teams]
+    form.away_team_id.choices = [(t.id, t.name) for t in teams]
+    
+    courts = Court.query.filter_by(league_id=league_id).all()
+    form.court_id.choices = [(c.id, c.name) for c in courts]
+    
+    if form.validate_on_submit():
+        if form.home_team_id.data == form.away_team_id.data:
+            flash('Un equipo no puede jugar contra sí mismo.', 'danger')
+        else:
+            match.home_team_id = form.home_team_id.data
+            match.away_team_id = form.away_team_id.data
+            match.court_id = form.court_id.data
+            match.match_date = form.match_date.data
+            
+            db.session.commit()
+            flash('Partido actualizado.', 'success')
+            return redirect(url_for('league_detail', league_id=league_id, _anchor='matches'))
+            
+    # Calculate match history for frontend display (reuse logic)
+    completed_matches = Match.query.filter_by(league_id=league_id, is_completed=True).all()
+    teams_history = {t.id: {} for t in teams}
+    
+    for m in completed_matches:
+        if m.id == match.id: continue # Exclude current match if it was somehow completed (safeguard)
+        if m.home_team_id in teams_history and m.away_team_id in teams_history:
+            teams_history[m.home_team_id][m.away_team_id] = teams_history[m.home_team_id].get(m.away_team_id, 0) + 1
+            teams_history[m.away_team_id][m.home_team_id] = teams_history[m.away_team_id].get(m.home_team_id, 0) + 1
+            
+    teams_map = {t.id: t.name for t in teams}
+    
+    return render_template('match_form.html', form=form, league=league, 
+                          title='Editar Partido', teams_history=teams_history, teams_map=teams_map)
+
+
 # ==================== SEASON ROUTES ====================
 
 @app.route('/leagues/<league_id>/reset_season', methods=['POST'])
