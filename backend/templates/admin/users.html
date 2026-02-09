@@ -14,7 +14,17 @@
             <div class="flex justify-between items-end">
                 <h1 class="text-3xl font-bold">Gestión de Usuarios</h1>
 
+                <div class="flex gap-2">
+                    <a href="{{ url_for('admin_users') }}"
+                        class="btn-sm {% if not current_role %}btn-primary{% else %}btn-secondary{% endif %}">Todos</a>
+                    <a href="{{ url_for('admin_users', role='owner') }}"
+                        class="btn-sm {% if current_role == 'owner' %}btn-primary{% else %}btn-secondary{% endif %}">Owners</a>
+                    <a href="{{ url_for('admin_users', role='captain') }}"
+                        class="btn-sm {% if current_role == 'captain' %}btn-primary{% else %}btn-secondary{% endif %}">Capitanes</a>
+                </div>
+
                 <form action="{{ url_for('admin_users') }}" method="GET" class="flex gap-2">
+                    <input type="hidden" name="role" value="{{ current_role }}">
                     <input type="text" name="search" value="{{ search }}" placeholder="Buscar por email o nombre..."
                         class="input-field w-64">
                     <button type="submit" class="btn-secondary">
@@ -40,7 +50,13 @@
                     {% for user in users.items %}
                     <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
                         <td class="py-4 px-6">
-                            <div class="font-bold text-lg mb-1">{{ user.name }}</div>
+                            <div class="font-bold text-lg mb-1">
+                                {{ user.name }}
+                                {% if user.is_suspended %}
+                                <span
+                                    class="bg-red-500/20 text-red-400 px-2 py-0.5 rounded text-xs ml-2">SUSPENDIDO</span>
+                                {% endif %}
+                            </div>
                             <div class="text-sm text-white/60">{{ user.email }}</div>
                             <div class="text-xs text-white/40 mt-1">ID: {{ user.id }}</div>
                         </td>
@@ -84,9 +100,21 @@
                                 <form action="{{ url_for('admin_toggle_premium', user_id=user.id) }}" method="POST"
                                     class="inline">
                                     <button type="submit"
-                                        class="btn-icon {% if user.is_premium %}bg-red-500/20 text-red-400 hover:bg-red-500{% else %}bg-green-500/20 text-green-400 hover:bg-green-500{% endif %} hover:text-white"
-                                        title="{% if user.is_premium %}Quitar Permanentemente{% else %}Dar Permanente{% endif %}">
+                                        class="btn-icon {% if user.is_premium %}bg-blue-500/20 text-blue-400 hover:bg-blue-500{% else %}bg-green-500/20 text-green-400 hover:bg-green-500{% endif %} hover:text-white"
+                                        title="{% if user.is_premium %}Quitar Permanente{% else %}Dar Permanente{% endif %}">
                                         <i class="fas {% if user.is_premium %}fa-ban{% else %}fa-check{% endif %}"></i>
+                                    </button>
+                                </form>
+
+                                <!-- Suspend/Unsuspend -->
+                                <form action="{{ url_for('admin_toggle_suspend', user_id=user.id) }}" method="POST"
+                                    class="inline"
+                                    onsubmit="return confirm('¿Estás seguro de {% if user.is_suspended %}reactivar{% else %}suspender{% endif %} a este usuario?');">
+                                    <button type="submit"
+                                        class="btn-icon {% if user.is_suspended %}bg-green-500/20 text-green-400 hover:bg-green-500{% else %}bg-orange-500/20 text-orange-400 hover:bg-orange-500{% endif %} hover:text-white"
+                                        title="{% if user.is_suspended %}Reactivar{% else %}Suspender{% endif %}">
+                                        <i
+                                            class="fas {% if user.is_suspended %}fa-unlock{% else %}fa-lock{% endif %}"></i>
                                     </button>
                                 </form>
 
@@ -96,6 +124,17 @@
                                     <button type="submit" class="btn-icon bg-white/10 hover:bg-white/20"
                                         title="Iniciar Sesión Como">
                                         <i class="fas fa-sign-in-alt"></i>
+                                    </button>
+                                </form>
+
+                                <!-- Delete User -->
+                                <form action="{{ url_for('admin_delete_user', user_id=user.id) }}" method="POST"
+                                    class="inline"
+                                    onsubmit="return confirm('¿ESTÁS SEGURO? Eliminar este usuario borrará permanentemente todas sus ligas, equipos y partidos asociados. Esta acción no se puede deshacer.');">
+                                    <button type="submit"
+                                        class="btn-icon bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
+                                        title="Eliminar Usuario Permanentemente">
+                                        <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
                             </div>

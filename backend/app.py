@@ -52,6 +52,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), default='owner')  # owner or captain
     is_premium = db.Column(db.Boolean, default=False)
+    is_suspended = db.Column(db.Boolean, default=False)
     premium_expires_at = db.Column(db.DateTime, nullable=True)
     team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -74,7 +75,7 @@ class User(UserMixin, db.Model):
         return False
 
     # Relationships
-    leagues = db.relationship('League', backref='owner', lazy=True, foreign_keys='League.user_id')
+    leagues = db.relationship('League', backref='owner', lazy=True, cascade='all, delete-orphan', foreign_keys='League.user_id')
 
 
 class League(db.Model):
@@ -117,6 +118,7 @@ class Team(db.Model):
     
     # Relationships
     players = db.relationship('Player', backref='team', lazy=True, cascade='all, delete-orphan')
+    users = db.relationship('User', backref='team_ref', lazy=True, cascade='all, delete-orphan', foreign_keys='User.team_id')
     notes = db.relationship('TeamNote', backref='team', lazy=True, cascade='all, delete-orphan')
     home_matches = db.relationship('Match', backref='home_team', lazy=True, foreign_keys='Match.home_team_id')
     away_matches = db.relationship('Match', backref='away_team', lazy=True, foreign_keys='Match.away_team_id')
@@ -385,6 +387,10 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
+            if user.is_suspended:
+                flash('Tu cuenta ha sido suspendida. Contacta al administrador.', 'danger')
+                return render_template('login.html', form=form)
+                
             login_user(user)
             flash('¡Bienvenido!', 'success')
             next_page = request.args.get('next')
@@ -2001,13 +2007,17 @@ def admin_teams():
 def admin_users():
     page = request.args.get('page', 1, type=int)
     search = request.args.get('search', '')
+    role = request.args.get('role', '')
     
     query = User.query
     if search:
         query = query.filter(User.email.contains(search) | User.name.contains(search))
+    
+    if role:
+        query = query.filter_by(role=role)
         
     users = query.order_by(User.created_at.desc()).paginate(page=page, per_page=20)
-    return render_template('admin/users.html', users=users, search=search)
+    return render_template('admin/users.html', users=users, search=search, current_role=role)
 
 @app.route('/admin/users/<user_id>/grant_premium', methods=['POST'])
 @login_required
@@ -2046,6 +2056,39 @@ def admin_login_as(user_id):
     login_user(user)
     flash(f'Has iniciado sesión como {user.name}', 'info')
     return redirect(url_for('dashboard'))
+
+
+@app.route('/admin/users/<user_id>/suspend', methods=['POST'])
+@login_required
+@admin_required
+def admin_toggle_suspend(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.role == 'admin':
+        flash('No puedes suspender a otro administrador.', 'danger')
+        return redirect(url_for('admin_users'))
+        
+    user.is_suspended = not user.is_suspended
+    db.session.commit()
+    
+    status = "SUSPENDIDO" if user.is_suspended else "REACTIVADO"
+    flash(f'Usuario {user.email} ha sido {status}.', 'success' if not user.is_suspended else 'warning')
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/admin/users/<user_id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def admin_delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.role == 'admin':
+        flash('No puedes eliminar a otro administrador.', 'danger')
+        return redirect(url_for('admin_users'))
+        
+    # Cascade delete is handled by SQLAlchemy relationships, but let's be explicit about intention
+    db.session.delete(user)
+    db.session.commit()
+    flash(f'Usuario {user.email} eliminado permanentemente.', 'success')
+    return redirect(url_for('admin_users'))
 
 
 # ==================== ERROR HANDLERS ====================
@@ -2241,6 +2284,14 @@ def run_auto_migration():
                     print("Auto-Migration: premium_expires_at added via app.py")
                 except Exception as e:
                     print(f"Auto-Migration Error (premium_expires_at): {e}")
+
+            if 'is_suspended' not in [c['name'] for c in inspector.get_columns('users')]:
+                try:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN is_suspended BOOLEAN DEFAULT FALSE"))
+                    conn.commit()
+                    print("Auto-Migration: is_suspended added via app.py")
+                except Exception as e:
+                    print(f"Auto-Migration Error (is_suspended): {e}")
 
             # Teams Soft Delete
             if 'is_deleted' not in [c['name'] for c in inspector.get_columns('teams')]:
