@@ -41,6 +41,20 @@ def run_migration():
             else:
                 print("Skipped: slogan already exists.")
 
+            # 3. Add teams.is_deleted if not exists
+            if inspector.has_table("teams"):
+                team_columns = [c['name'] for c in inspector.get_columns('teams')]
+                if 'is_deleted' not in team_columns:
+                    try:
+                        print("Adding teams.is_deleted column...")
+                        conn.execute(text("ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE"))
+                        conn.commit()
+                        print("Success: teams.is_deleted added.")
+                    except Exception as e:
+                        print(f"Error adding teams.is_deleted: {e}")
+                else:
+                    print("Skipped: teams.is_deleted already exists.")
+
     print("Migration finished.")
 
 if __name__ == "__main__":

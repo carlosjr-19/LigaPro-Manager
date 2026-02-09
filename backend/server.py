@@ -69,6 +69,15 @@ def run_migrations():
                     print("Migration applied: slogan column added.")
                 except Exception as e:
                     pass
+                
+                # Migration 2: Add is_deleted to teams
+                try:
+                    conn.execute(text("ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE"))
+                    conn.commit()
+                    print("Migration applied: is_deleted column added to teams.")
+                except Exception as e:
+                    # print(f"Migration skipped (teams.is_deleted): {e}")
+                    pass
                 except Exception as e:
                     # Ignore error if column likely exists
                     # print(f"Migration skipped (likely exists): {e}")
