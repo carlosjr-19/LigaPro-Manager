@@ -2191,7 +2191,7 @@ def run_auto_migration():
             # Teams Soft Delete
             if 'is_deleted' not in [c['name'] for c in inspector.get_columns('teams')]:
                 try:
-                    conn.execute(text("ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT 0"))
+                    conn.execute(text("ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE"))
                     conn.commit()
                     print("Auto-Migration: is_deleted added to teams via app.py")
                 except Exception as e:
@@ -2205,7 +2205,7 @@ def run_auto_migration():
                             id VARCHAR(36) PRIMARY KEY,
                             name VARCHAR(100) NOT NULL,
                             league_id VARCHAR(36) NOT NULL,
-                            created_at DATETIME,
+                            created_at TIMESTAMP,
                             FOREIGN KEY(league_id) REFERENCES leagues(id)
                         )
                     '''))
