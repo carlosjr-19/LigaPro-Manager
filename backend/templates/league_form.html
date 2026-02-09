@@ -28,6 +28,19 @@
                     {% endfor %}
                 </div>
 
+                {% if not league %}
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Nombre de la Cancha Principal
+                    </label>
+                    <input type="text" name="court_name" class="input-field" placeholder="Ej: La Canchita"
+                        value="Cancha Principal">
+                    <p class="text-xs text-white/40 mt-1">Podrás agregar más canchas (hasta 3 con Premium) después.</p>
+                </div>
+                {% endif %}
+
+
+
                 <div>
                     <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
                         Máximo de Equipos

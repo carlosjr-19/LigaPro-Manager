@@ -145,24 +145,35 @@
                 <h3 class="font-bold mb-4 text-orange-400 flex items-center gap-2">
                     <i class="fas fa-calendar-alt"></i> Próximos Partidos
                 </h3>
-                <div class="grid grid-cols-2 gap-4">
-                    {% for match in upcoming_matches %}
-                    <div class="bg-white/5 p-3 rounded text-sm border border-white/5">
-                        {% if match.stage != 'regular' %}
-                        <p class="text-yellow-400 text-[10px] font-bold uppercase tracking-widest text-center mb-1">
-                            {% if match.stage == 'quarterfinal' %}Cuartos de Final
-                            {% elif match.stage == 'repechaje' %}Repechaje
-                            {% elif match.stage == 'semifinal' %}Semifinal
-                            {% elif match.stage == 'final' %}Gran Final
-                            {% else %}{{ match.stage }}{% endif %}
-                        </p>
-                        {% endif %}
-                        <p class="text-white/40 text-xs mb-2 text-center">{{ match.match_date.strftime('%d/%m %I:%M %p')
-                            }}</p>
-                        <div class="flex justify-between items-center font-medium">
-                            <span class="flex-1 text-right">{{ teams_dict[match.home_team_id].name }}</span>
-                            <span class="text-white/40 text-xs mx-2">vs</span>
-                            <span class="flex-1 text-left">{{ teams_dict[match.away_team_id].name }}</span>
+                <div class="space-y-6">
+                    {% for court_name, matches in matches_by_court.items() %}
+                    <div class="glass rounded-lg p-5">
+                        <h4
+                            class="font-bold text-white/80 uppercase tracking-widest text-xs mb-3 border-b border-white/10 pb-2">
+                            <i class="fas fa-map-marker-alt mr-2 text-blue-400"></i>{{ court_name }}
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            {% for match in matches %}
+                            <div class="bg-white/5 p-3 rounded text-sm border border-white/5">
+                                {% if match.stage != 'regular' %}
+                                <p
+                                    class="text-yellow-400 text-[10px] font-bold uppercase tracking-widest text-center mb-1">
+                                    {% if match.stage == 'quarterfinal' %}Cuartos de Final
+                                    {% elif match.stage == 'repechaje' %}Repechaje
+                                    {% elif match.stage == 'semifinal' %}Semifinal
+                                    {% elif match.stage == 'final' %}Gran Final
+                                    {% else %}{{ match.stage }}{% endif %}
+                                </p>
+                                {% endif %}
+                                <p class="text-white/40 text-xs mb-2 text-center">{{ match.match_date.strftime('%d/%m
+                                    %I:%M %p') }}</p>
+                                <div class="flex justify-between items-center font-medium">
+                                    <span class="flex-1 text-right">{{ teams_dict[match.home_team_id].name }}</span>
+                                    <span class="text-white/40 text-xs mx-2">vs</span>
+                                    <span class="flex-1 text-left">{{ teams_dict[match.away_team_id].name }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                     {% endfor %}

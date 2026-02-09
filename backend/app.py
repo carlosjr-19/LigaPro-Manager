@@ -97,6 +97,7 @@ class League(db.Model):
     # Relationships
     teams = db.relationship('Team', backref='league', lazy=True, cascade='all, delete-orphan')
     matches = db.relationship('Match', backref='league', lazy=True, cascade='all, delete-orphan')
+    courts = db.relationship('Court', backref='league', lazy=True, cascade='all, delete-orphan')
     playoff_type = db.Column(db.String(20), default='single') # 'single' or 'double'
 
 
@@ -111,6 +112,7 @@ class Team(db.Model):
     captain_email = db.Column(db.String(120), nullable=True)
     captain_password_plain = db.Column(db.String(50), nullable=True)
     captain_name = db.Column(db.String(100), nullable=True)
+    is_deleted = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
@@ -148,11 +150,24 @@ class Player(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
 
+class Court(db.Model):
+    __tablename__ = 'courts'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(100), nullable=False)
+    league_id = db.Column(db.String(36), db.ForeignKey('leagues.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    matches = db.relationship('Match', backref='court', lazy=True)
+
+
 class Match(db.Model):
     __tablename__ = 'matches'
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     league_id = db.Column(db.String(36), db.ForeignKey('leagues.id'), nullable=False)
+    court_id = db.Column(db.String(36), db.ForeignKey('courts.id'), nullable=True) # Valid court ID
     home_team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=False)
     away_team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=False)
     home_score = db.Column(db.Integer, nullable=True)
@@ -220,6 +235,7 @@ class PlayerForm(FlaskForm):
 class MatchForm(FlaskForm):
     home_team_id = SelectField('Equipo Local', validators=[DataRequired()])
     away_team_id = SelectField('Equipo Visitante', validators=[DataRequired()])
+    court_id = SelectField('Cancha', validators=[DataRequired()])
     match_date = DateTimeField('Fecha y Hora', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
 
 
@@ -282,7 +298,8 @@ def admin_required(f):
 def calculate_standings(league_id, include_playoffs=False):
     """Calculate standings for a league"""
     league = League.query.get_or_404(league_id)
-    teams = Team.query.filter_by(league_id=league_id).all()
+    # Only show active teams in standings
+    teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
     
     # Get completed matches (only regular season by default)
     if include_playoffs:
@@ -549,6 +566,15 @@ def create_league():
             draw_points=draw_points
         )
         db.session.add(league)
+        db.session.flush() # Get ID
+        
+        # Create Default Court
+        court_name = request.form.get('court_name', 'Cancha Principal')
+        if not court_name: court_name = 'Cancha Principal'
+        
+        default_court = Court(name=court_name, league_id=league.id)
+        db.session.add(default_court)
+        
         db.session.commit()
         flash('Liga creada exitosamente.', 'success')
         return redirect(url_for('league_detail', league_id=league.id))
@@ -564,7 +590,11 @@ def league_detail(league_id):
         league = League.query.get_or_404(league_id)
     else:
         league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
-    teams = Team.query.filter_by(league_id=league_id).all()
+    
+    # Show only active teams in the list, but keep deleted teams for historical match references if needed
+    active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
+    all_teams = Team.query.filter_by(league_id=league_id).all() # Need all for matches history lookup
+    
     standings = calculate_standings(league_id)
     
     # Matches Paging
@@ -594,11 +624,11 @@ def league_detail(league_id):
     }
     has_playoffs = any(len(m) > 0 for m in playoff_matches.values())
     
-    teams_dict = {t.id: t for t in teams}
+    teams_dict = {t.id: t for t in all_teams}
     
     # Pass players by team for JS dropdown
     players_by_team = {}
-    for team in teams:
+    for team in active_teams:
         players = Player.query.filter_by(team_id=team.id).order_by(Player.name).all()
         players_by_team[team.id] = [{'id': p.id, 'name': p.name, 'photo_url': p.photo_url} for p in players]
     
@@ -622,7 +652,7 @@ def league_detail(league_id):
     # Form for adding stats (Owner Only)
     stat_form = StatForm()
     if current_user.role == 'owner' or current_user.role == 'admin':
-        stat_form.team_id.choices = [(t.id, t.name) for t in teams]
+        stat_form.team_id.choices = [(t.id, t.name) for t in active_teams]
     
     # Form for editing league settings (embedded)
     form = LeagueForm(obj=league)
@@ -630,7 +660,8 @@ def league_detail(league_id):
     
     return render_template('league_detail.html', 
                           league=league, 
-                          teams=teams,
+                          teams=active_teams,
+                          courts=league.courts,
                           standings=standings,
                           matches=matches,
                           playoff_matches=playoff_matches,
@@ -689,6 +720,82 @@ def delete_league(league_id):
     return redirect(url_for('dashboard'))
 
 
+# ==================== COURT ROUTES ====================
+
+@app.route('/leagues/<league_id>/courts', methods=['POST'])
+@login_required
+@owner_required
+@premium_required
+def add_court(league_id):
+    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    # Check limit (premium only, max 3)
+    court_count = Court.query.filter_by(league_id=league_id).count()
+    if court_count >= 3:
+        flash('Máximo 3 canchas permitidas.', 'warning')
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='settings'))
+    
+    court_name = request.form.get('court_name')
+    if not court_name or len(court_name.strip()) == 0:
+        flash('El nombre de la cancha es requerido.', 'danger')
+        return redirect(url_for('league_detail', league_id=league_id, _anchor='settings'))
+        
+    court = Court(name=court_name, league_id=league_id)
+    db.session.add(court)
+    db.session.commit()
+    
+    flash('Cancha agregada exitosamente.', 'success')
+    return redirect(url_for('league_detail', league_id=league_id, _anchor='settings'))
+
+
+@app.route('/courts/<court_id>/update', methods=['POST'])
+@login_required
+@owner_required
+def update_court(court_id):
+    court = Court.query.get_or_404(court_id)
+    # Check ownership through league
+    league = League.query.filter_by(id=court.league_id, user_id=current_user.id).first_or_404()
+    
+    new_name = request.form.get('court_name')
+    if not new_name or len(new_name.strip()) == 0:
+        flash('El nombre de la cancha es requerido.', 'danger')
+    else:
+        court.name = new_name
+        db.session.commit()
+        flash('Nombre de cancha actualizado.', 'success')
+        
+    return redirect(url_for('league_detail', league_id=league.id, _anchor='settings'))
+
+
+@app.route('/courts/<court_id>/delete', methods=['POST'])
+@login_required
+@owner_required
+def delete_court(court_id):
+    court = Court.query.get_or_404(court_id)
+    # Check ownership through league
+    league = League.query.filter_by(id=court.league_id, user_id=current_user.id).first_or_404()
+    
+    # Check if last court
+    court_count = Court.query.filter_by(league_id=league.id).count()
+    if court_count <= 1:
+        flash('No puedes eliminar la última cancha.', 'danger')
+        return redirect(url_for('league_detail', league_id=league.id, _anchor='settings'))
+    
+    # Check if matches assigned
+    match_count = Match.query.filter_by(court_id=court.id).count()
+    if match_count > 0:
+        flash('No puedes eliminar una cancha con partidos asignados.', 'warning')
+        return redirect(url_for('league_detail', league_id=league.id, _anchor='settings'))
+        
+    db.session.delete(court)
+    db.session.commit()
+    flash('Cancha eliminada.', 'success')
+    return redirect(url_for('league_detail', league_id=league.id, _anchor='settings'))
+
+
+
+
+
 # ==================== TEAM ROUTES ====================
 
 @app.route('/leagues/<league_id>/teams/new', methods=['GET', 'POST'])
@@ -698,7 +805,7 @@ def create_team(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     
     # Check team limit
-    team_count = Team.query.filter_by(league_id=league_id).count()
+    team_count = Team.query.filter_by(league_id=league_id, is_deleted=False).count()
     if not current_user.is_premium and team_count >= 12:
         flash('Límite de 12 equipos para usuarios gratuitos.', 'warning')
         return redirect(url_for('league_detail', league_id=league_id))
@@ -818,10 +925,14 @@ def delete_team(team_id):
     
     league_id = team.league_id
     
-    # Delete matches involving this team
+    # Soft Delete: Mark as deleted, preserve COMPLETED matches
+    # remove UPCOMING matches as they cannot be played
     Match.query.filter(
-        (Match.home_team_id == team_id) | (Match.away_team_id == team_id)
+        (Match.home_team_id == team_id) | (Match.away_team_id == team_id),
+        Match.is_completed == False
     ).delete(synchronize_session=False)
+    
+    team.is_deleted = True
 
     # Delete players
     Player.query.filter_by(team_id=team_id).delete(synchronize_session=False)
@@ -830,14 +941,20 @@ def delete_team(team_id):
     TeamNote.query.filter_by(team_id=team_id).delete(synchronize_session=False)
 
     # Delete captain user if exists
+    # First try by direct link
     if team.captain_user_id:
         captain = User.query.get(team.captain_user_id)
         if captain:
             db.session.delete(captain)
+            
+    # Also ensure any user marked as captain of this team is removed (cleanup)
+    User.query.filter_by(team_id=team_id, role='captain').delete(synchronize_session=False)
     
-    db.session.delete(team)
+    # Do NOT delete the team record itself
+    # db.session.delete(team) 
+    
     db.session.commit()
-    flash('Equipo eliminado.', 'success')
+    flash('Equipo eliminado de la competencia. Sus partidos históricos se conservan.', 'success')
     # Redirect to teams tab
     return redirect(url_for('league_detail', league_id=league_id, _anchor='teams'))
 
@@ -1078,11 +1195,16 @@ def delete_player(player_id):
 @owner_required
 def create_match(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
-    teams = Team.query.filter_by(league_id=league_id).all()
+    # Only allow scheduling matches between active teams
+    teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
     
     form = MatchForm()
     form.home_team_id.choices = [(t.id, t.name) for t in teams]
     form.away_team_id.choices = [(t.id, t.name) for t in teams]
+    
+    # Populate court choices
+    courts = Court.query.filter_by(league_id=league_id).all()
+    form.court_id.choices = [(c.id, c.name) for c in courts]
     
     if form.validate_on_submit():
         if form.home_team_id.data == form.away_team_id.data:
@@ -1092,6 +1214,7 @@ def create_match(league_id):
                 league_id=league_id,
                 home_team_id=form.home_team_id.data,
                 away_team_id=form.away_team_id.data,
+                court_id=form.court_id.data,
                 match_date=form.match_date.data
             )
             db.session.add(match)
@@ -1185,9 +1308,13 @@ def reset_season(league_id):
     
     # Delete Season Stats (Goleadores / Arqueros)
     SeasonStat.query.filter_by(league_id=league_id).delete(synchronize_session=False)
+
+    # Clean up soft-deleted teams (Hard Delete)
+    # Now that matches are gone, we can safely remove the "ghost" teams
+    deleted_teams_count = Team.query.filter_by(league_id=league_id, is_deleted=True).delete(synchronize_session=False)
     
     db.session.commit()
-    flash(f'Temporada reiniciada correctamente. Se eliminaron {deleted} partidos. Equipos y jugadores preservados.', 'success')
+    flash(f'Temporada reiniciada. {deleted} partidos eliminados. {deleted_teams_count} equipos eliminados permanentemente.', 'success')
     return redirect(url_for('league_detail', league_id=league_id))
 
 
@@ -1562,8 +1689,9 @@ def add_stat(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     
     form = StatForm()
+    form = StatForm()
     # Populate choices dynamically for validation
-    teams = Team.query.filter_by(league_id=league_id).all()
+    teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
     form.team_id.choices = [(t.id, t.name) for t in teams]
     
     if form.validate_on_submit():
@@ -1966,11 +2094,27 @@ def generate_share_report(league_id):
         recent_matches = query.order_by(Match.match_date.desc()).all()
         
     if include_upcoming:
+        if date_start_str and date_end_str:
+             # If date filter is applied, maybe we want upcoming in that range too?
+             # But usually upcoming means "future from now". 
+             # Let's keep distinct logic: Upcoming is always future matches.
+             pass
+
         upcoming_matches = Match.query.filter(
             Match.league_id == league_id,
             Match.is_completed == False
-        ).order_by(Match.match_date.asc()).all()
-        
+        ).order_by(Match.match_date.asc()).limit(10).all()
+
+    # Group upcoming matches by court
+    matches_by_court = {}
+    if upcoming_matches:
+        for match in upcoming_matches:
+            # Use court name if exists, else "Cancha Principal" or similar fallback
+            court_name = match.court.name if match.court else "Cancha Principal"
+            if court_name not in matches_by_court:
+                matches_by_court[court_name] = []
+            matches_by_court[court_name].append(match)
+
     if include_scorers:
         top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).limit(5).all()
         
@@ -1983,11 +2127,11 @@ def generate_share_report(league_id):
                           teams_dict=teams_dict,
                           include_standings=include_standings, standings=standings,
                           include_recent=include_recent, recent_matches=recent_matches,
-                          date_start=date_start_str if date_start_str else 'Inicio',
-                          date_end=date_end_str if date_end_str else 'Actualidad',
-                          include_upcoming=include_upcoming, upcoming_matches=upcoming_matches,
+                          include_upcoming=include_upcoming, upcoming_matches=upcoming_matches, matches_by_court=matches_by_court,
                           include_scorers=include_scorers, top_scorers=top_scorers,
-                          include_keepers=include_keepers, top_goalkeepers=top_goalkeepers)
+                          include_keepers=include_keepers, top_goalkeepers=top_goalkeepers,
+                          date_start=date_start_str if date_start_str else 'Inicio',
+                          date_end=date_end_str if date_end_str else 'Actualidad')
 
 
 # ==================== AUTO MIGRATION ====================
@@ -2043,6 +2187,46 @@ def run_auto_migration():
                     print("Auto-Migration: premium_expires_at added via app.py")
                 except Exception as e:
                     print(f"Auto-Migration Error (premium_expires_at): {e}")
+
+            # Teams Soft Delete
+            if 'is_deleted' not in [c['name'] for c in inspector.get_columns('teams')]:
+                try:
+                    conn.execute(text("ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT 0"))
+                    conn.commit()
+                    print("Auto-Migration: is_deleted added to teams via app.py")
+                except Exception as e:
+                    print(f"Auto-Migration Error (teams.is_deleted): {e}")
+
+            # Courts Table
+            if not inspector.has_table("courts"):
+                try:
+                    conn.execute(text('''
+                        CREATE TABLE courts (
+                            id VARCHAR(36) PRIMARY KEY,
+                            name VARCHAR(100) NOT NULL,
+                            league_id VARCHAR(36) NOT NULL,
+                            created_at DATETIME,
+                            FOREIGN KEY(league_id) REFERENCES leagues(id)
+                        )
+                    '''))
+                    conn.commit()
+                    print("Auto-Migration: courts table created via app.py")
+                except Exception as e:
+                    print(f"Auto-Migration Error (create courts): {e}")
+
+            # Matches Court ID
+            if 'court_id' not in [c['name'] for c in inspector.get_columns('matches')]:
+                try:
+                    conn.execute(text("ALTER TABLE matches ADD COLUMN court_id VARCHAR(36) REFERENCES courts(id)"))
+                    conn.commit()
+                    print("Auto-Migration: court_id added to matches via app.py")
+                    
+                    # Optional: Create default court and assign existing matches
+                    # This is complex to do safely in auto-migration for all scenarios, 
+                    # but essential for preventing null errors in reports if not handled via code.
+                    # For now, code handles null court_id (e.g. "Cancha Principal" fallback).
+                except Exception as e:
+                    print(f"Auto-Migration Error (matches.court_id): {e}")
 
 # Run once on module load (works for Gunicorn workers)
 try:

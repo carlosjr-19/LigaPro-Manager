@@ -42,6 +42,16 @@
 
                 <div>
                     <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Cancha *
+                    </label>
+                    {{ form.court_id(class="input-field") }}
+                    {% for error in form.court_id.errors %}
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
                         Fecha y Hora *
                     </label>
                     {{ form.match_date(class="input-field", type="datetime-local") }}

@@ -135,11 +135,19 @@
                         {% for match in recent_matches %}
                         <div
                             class="flex justify-between items-center text-sm border-b border-white/5 pb-2 last:border-0">
-                            <div class="flex-1 text-right">{{ teams_dict[match.home_team_id].name }}</div>
+                            <div class="flex-1 text-right">
+                                {{ teams_dict[match.home_team_id].name }}
+                                {% if teams_dict[match.home_team_id].is_deleted %}<span
+                                    class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                            </div>
                             <div class="px-3 font-bold bg-white/10 rounded mx-2 py-1">
                                 {{ match.home_score }} - {{ match.away_score }}
                             </div>
-                            <div class="flex-1 text-left">{{ teams_dict[match.away_team_id].name }}</div>
+                            <div class="flex-1 text-left">
+                                {{ teams_dict[match.away_team_id].name }}
+                                {% if teams_dict[match.away_team_id].is_deleted %}<span
+                                    class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                            </div>
                         </div>
                         {% else %}
                         <p class="text-white/40 text-sm italic">No hay resultados recientes.</p>
@@ -160,9 +168,17 @@
                                     }}</span>
                             </div>
                             <div class="flex justify-between items-center font-medium">
-                                <span>{{ teams_dict[match.home_team_id].name }}</span>
+                                <span>
+                                    {{ teams_dict[match.home_team_id].name }}
+                                    {% if teams_dict[match.home_team_id].is_deleted %}<span
+                                        class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                </span>
                                 <span class="text-white/40 text-xs">vs</span>
-                                <span>{{ teams_dict[match.away_team_id].name }}</span>
+                                <span>
+                                    {{ teams_dict[match.away_team_id].name }}
+                                    {% if teams_dict[match.away_team_id].is_deleted %}<span
+                                        class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                </span>
                             </div>
                         </div>
                         {% else %}
@@ -347,10 +363,18 @@
                         <div class="flex-1">
                             <p class="text-white/60 text-sm mb-4">
                                 {{ match.match_date.strftime('%d/%m/%Y %I:%M %p') }}
+                                {% if match.court %}
+                                <span class="ml-2 text-blue-400 font-medium"><i
+                                        class="fas fa-map-marker-alt mr-1"></i>{{ match.court.name }}</span>
+                                {% endif %}
                             </p>
                             <div class="flex items-center justify-between gap-4">
                                 <div class="flex items-center gap-3 flex-1 justify-end">
-                                    <span class="font-bold text-right">{{ teams_dict[match.home_team_id].name }}</span>
+                                    <span class="font-bold text-right">
+                                        {{ teams_dict[match.home_team_id].name }}
+                                        {% if teams_dict[match.home_team_id].is_deleted %}<span
+                                            class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                    </span>
                                     {% if teams_dict[match.home_team_id].shield_url %}
                                     <img src="{{ teams_dict[match.home_team_id].shield_url }}"
                                         class="w-8 h-8 rounded object-cover bg-white/5">
@@ -380,7 +404,11 @@
                                         <i class="fas fa-shield-alt text-xs text-white/40"></i>
                                     </div>
                                     {% endif %}
-                                    <span class="font-bold">{{ teams_dict[match.away_team_id].name }}</span>
+                                    <span class="font-bold">
+                                        {{ teams_dict[match.away_team_id].name }}
+                                        {% if teams_dict[match.away_team_id].is_deleted %}<span
+                                            class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -719,7 +747,11 @@
                         <div class="card {% if stage_name == 'final' %}border-yellow-400/50{% endif %}">
                             <div class="flex items-center justify-between">
                                 <div class="flex-1 flex items-center gap-4">
-                                    <span class="font-bold">{{ teams_dict[match.home_team_id].name }}</span>
+                                    <span class="font-bold">
+                                        {{ teams_dict[match.home_team_id].name }}
+                                        {% if teams_dict[match.home_team_id].is_deleted %}<span
+                                            class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                    </span>
                                     {% if match.is_completed %}
                                     <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
                                     <span class="text-white/40">-</span>
@@ -727,7 +759,11 @@
                                     {% else %}
                                     <span class="text-white/40">vs</span>
                                     {% endif %}
-                                    <span class="font-bold">{{ teams_dict[match.away_team_id].name }}</span>
+                                    <span class="font-bold">
+                                        {{ teams_dict[match.away_team_id].name }}
+                                        {% if teams_dict[match.away_team_id].is_deleted %}<span
+                                            class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                    </span>
                                 </div>
                                 {% if match.is_completed %}
                                 <span class="bg-success/20 text-success px-3 py-1 rounded text-xs">Finalizado</span>
@@ -764,7 +800,8 @@
             <!-- Settings Form (Embedded) -->
             <div class="card bg-white/5 border-white/10 p-6">
                 <!-- If form is submitted from here, it goes to edit_league -->
-                <form method="POST" action="{{ url_for('edit_league', league_id=league.id) }}"
+                <!-- If form is submitted from here, it goes to edit_league -->
+                <form id="leagueSettingsForm" method="POST" action="{{ url_for('edit_league', league_id=league.id) }}"
                     enctype="multipart/form-data">
                     {{ form.hidden_tag() }}
 
@@ -820,60 +857,127 @@
                             </div>
                         </div>
                     </div>
+            </div>
+            </form>
 
-                    <!-- Visual Settings (Premium Only) -->
-                    <div class="mb-8 p-4 rounded-xl border border-white/10 relative overflow-hidden bg-white/5">
-                        {% if not current_user.is_premium %}
-                        <div
-                            class="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
-                            <div class="text-center">
-                                <i class="fas fa-crown text-yellow-500 text-2xl mb-2"></i>
-                                <p class="text-white font-bold text-sm">Personalización Premium</p>
-                                <p class="text-white/40 text-xs mb-3">Logos, slogans y estadísticas</p>
-                                <a href="{{ url_for('premium') }}"
-                                    class="text-xs bg-yellow-500 hover:bg-yellow-400 text-black px-3 py-1 rounded font-bold transition-colors">
-                                    Mejorar
-                                </a>
-                            </div>
-                        </div>
+            <!-- Court Settings (Outside main form) -->
+            <div class="mb-8 p-4 rounded-xl border border-white/10 bg-white/5">
+                <h3 class="text-sm font-bold text-green-400 mb-4 flex items-center gap-2">
+                    <i class="fas fa-map-marker-alt"></i> Canchas
+                </h3>
+
+                <div class="space-y-3 mb-4">
+                    {% for court in courts %}
+                    <div class="bg-black/20 p-3 rounded border border-white/5 flex items-center justify-between">
+                        <form method="POST" action="{{ url_for('update_court', court_id=court.id) }}"
+                            class="flex-1 flex items-center gap-2 mr-2">
+                            <input type="text" name="court_name" value="{{ court.name }}"
+                                class="w-full bg-transparent border-none text-white focus:ring-0 p-0 font-medium text-sm"
+                                placeholder="Nombre de cancha">
+                            <button type="submit"
+                                class="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors"
+                                title="Guardar nombre">
+                                <i class="fas fa-save"></i>
+                            </button>
+                        </form>
+
+                        {% if current_user.role == 'owner' and courts|length > 1 %}
+                        <form method="POST" action="{{ url_for('delete_court', court_id=court.id) }}"
+                            onsubmit="return confirm('¿Eliminar {{ court.name }}? No debe tener partidos asignados.')">
+                            <button type="submit"
+                                class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors"
+                                title="Eliminar cancha">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                         {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
 
-                        <h3 class="text-sm font-bold text-yellow-500 mb-4 flex items-center gap-2">
-                            <i class="fas fa-paint-brush"></i> Personalización Visual
-                        </h3>
-
-                        <div class="{% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
-                            <div class="mb-4">
-                                <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Logo de la Liga
-                                    (URL)</label>
-                                {{ form.logo_url(class="input-field", placeholder="https://...") }}
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Slogan</label>
-                                {{ form.slogan(class="input-field", placeholder="Frase corta") }}
-                            </div>
-
-                            <div class="flex items-center gap-3 pt-2 border-t border-white/10">
-                                {{ form.show_stats(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary
-                                focus:ring-primary") }}
-                                <div>
-                                    <label class="block text-sm font-bold text-white mb-1">
-                                        Mostrar Estadísticas a Capitanes
-                                    </label>
-                                    <p class="text-xs text-white/50">
-                                        Top 5 goleadores y arqueros visibles en panel de capitanes.
-                                    </p>
-                                </div>
-                            </div>
+                {% if current_user.role == 'owner' %}
+                {% if current_user.is_premium %}
+                {% if courts|length < 3 %} <form method="POST" action="{{ url_for('add_court', league_id=league.id) }}"
+                    class="flex gap-2 items-center">
+                    <input type="text" name="court_name" class="input-field text-sm py-1.5"
+                        placeholder="Nombre nueva cancha" required>
+                    <button type="submit" class="btn-primary text-xs py-2 whitespace-nowrap">
+                        <i class="fas fa-plus mr-1"></i> Agregar
+                    </button>
+                    </form>
+                    {% else %}
+                    <p class="text-xs text-white/40 text-center bg-white/5 p-2 rounded">
+                        <i class="fas fa-info-circle mr-1"></i> Has alcanzado el límite de 3 canchas.
+                    </p>
+                    {% endif %}
+                    {% else %}
+                    <div
+                        class="flex items-center justify-between gap-3 opacity-75 bg-white/5 p-3 rounded border border-white/5 border-dashed">
+                        <button disabled class="btn-secondary text-xs opacity-50 cursor-not-allowed whitespace-nowrap">
+                            <i class="fas fa-plus mr-1"></i> Agregar Cancha
+                        </button>
+                        <div class="text-xs text-warning flex-1 text-right leading-tight">
+                            <i class="fas fa-lock mr-1"></i>
+                            Solo Premium puede agregar más canchas (Max 3).
                         </div>
                     </div>
-
-                    <button type="submit" class="w-full btn-primary py-3 font-bold text-lg shadow-lg shadow-primary/20">
-                        <i class="fas fa-save mr-2"></i>Guardar Cambios
-                    </button>
-                </form>
+                    {% endif %}
+                    {% endif %}
             </div>
+
+            <!-- Visual Settings (Premium Only) -->
+            <div class="mb-8 p-4 rounded-xl border border-white/10 relative overflow-hidden bg-white/5">
+                {% if not current_user.is_premium %}
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fas fa-crown text-yellow-500 text-2xl mb-2"></i>
+                        <p class="text-white font-bold text-sm">Personalización Premium</p>
+                        <p class="text-white/40 text-xs mb-3">Logos, slogans y estadísticas</p>
+                        <a href="{{ url_for('premium') }}"
+                            class="text-xs bg-yellow-500 hover:bg-yellow-400 text-black px-3 py-1 rounded font-bold transition-colors">
+                            Mejorar
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <h3 class="text-sm font-bold text-yellow-500 mb-4 flex items-center gap-2">
+                    <i class="fas fa-paint-brush"></i> Personalización Visual
+                </h3>
+
+                <div class="{% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                    <div class="mb-4">
+                        <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Logo de la Liga
+                            (URL)</label>
+                        {{ form.logo_url(class="input-field", placeholder="https://...", form="leagueSettingsForm") }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Slogan</label>
+                        {{ form.slogan(class="input-field", placeholder="Frase corta", form="leagueSettingsForm") }}
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-2 border-t border-white/10">
+                        {{ form.show_stats(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary
+                        focus:ring-primary", form="leagueSettingsForm") }}
+                        <div>
+                            <label class="block text-sm font-bold text-white mb-1">
+                                Mostrar Estadísticas a Capitanes
+                            </label>
+                            <p class="text-xs text-white/50">
+                                Top 5 goleadores y arqueros visibles en panel de capitanes.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" form="leagueSettingsForm"
+                class="w-full btn-primary py-3 font-bold text-lg shadow-lg shadow-primary/20">
+                <i class="fas fa-save mr-2"></i>Guardar Cambios
+            </button>
+            <!-- End Settings Tab Content -->
+            <!-- End Settings Forms -->
 
             <!-- Danger Zone -->
             <div class="card mt-6 border-red-500/30">
@@ -917,8 +1021,9 @@
                     </form>
                 </div>
             </div>
-        </div>
-    </main>
+        </div> <!-- End Settings Tab -->
+</div>
+</main>
 </div>
 
 <!-- Players Data for JS -->

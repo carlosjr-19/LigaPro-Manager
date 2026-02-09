@@ -31,6 +31,14 @@ def init_database():
         # Run Migrations (Safe to run multiple times)
         run_migrations()
         
+        # Run Court & Team Schema Migrations
+        try:
+            from migrations import migrate
+            print("Running Schema/Data Migrations...")
+            migrate()
+        except Exception as e:
+            print(f"Error running external migrations: {e}")
+        
         print('Database initialized!')
 
 def run_migrations():
