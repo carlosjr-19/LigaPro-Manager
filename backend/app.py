@@ -113,7 +113,9 @@ class Team(db.Model):
     captain_email = db.Column(db.String(120), nullable=True)
     captain_password_plain = db.Column(db.String(50), nullable=True)
     captain_name = db.Column(db.String(100), nullable=True)
+    captain_name = db.Column(db.String(100), nullable=True)
     is_deleted = db.Column(db.Boolean, default=False)
+    is_hidden = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
@@ -301,7 +303,8 @@ def calculate_standings(league_id, include_playoffs=False):
     """Calculate standings for a league"""
     league = League.query.get_or_404(league_id)
     # Only show active teams in standings
-    teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
+    # Only show active (visible) teams in standings
+    teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
     
     # Get completed matches (only regular season by default)
     if include_playoffs:
@@ -965,6 +968,25 @@ def delete_team(team_id):
     return redirect(url_for('league_detail', league_id=league_id, _anchor='teams'))
 
 
+@app.route('/teams/<team_id>/toggle_visibility', methods=['POST'])
+@login_required
+@owner_required
+def toggle_team_visibility(team_id):
+    team = Team.query.get_or_404(team_id)
+    league = team.league
+    
+    if league.user_id != current_user.id:
+        flash('No tienes acceso.', 'danger')
+        return redirect(url_for('dashboard'))
+        
+    team.is_hidden = not team.is_hidden
+    db.session.commit()
+    
+    status = "OCULTO" if team.is_hidden else "VISIBLE"
+    flash(f'Equipo {team.name} ahora está {status}.', 'success' if not team.is_hidden else 'warning')
+    return redirect(url_for('team_detail', team_id=team.id))
+
+
 @app.route('/teams/<team_id>/captain', methods=['POST'])
 @login_required
 @owner_required
@@ -1202,7 +1224,7 @@ def delete_player(player_id):
 def create_match(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     # Only allow scheduling matches between active teams
-    teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
+    teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
     
     form = MatchForm()
     form.home_team_id.choices = [(t.id, t.name) for t in teams]
@@ -2293,7 +2315,7 @@ def run_auto_migration():
                 except Exception as e:
                     print(f"Auto-Migration Error (is_suspended): {e}")
 
-            # Teams Soft Delete
+            # Teams Soft Delete & Hidden
             if 'is_deleted' not in [c['name'] for c in inspector.get_columns('teams')]:
                 try:
                     conn.execute(text("ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE"))
@@ -2301,6 +2323,14 @@ def run_auto_migration():
                     print("Auto-Migration: is_deleted added to teams via app.py")
                 except Exception as e:
                     print(f"Auto-Migration Error (teams.is_deleted): {e}")
+
+            if 'is_hidden' not in [c['name'] for c in inspector.get_columns('teams')]:
+                try:
+                    conn.execute(text("ALTER TABLE teams ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE"))
+                    conn.commit()
+                    print("Auto-Migration: is_hidden added to teams via app.py")
+                except Exception as e:
+                    print(f"Auto-Migration Error (teams.is_hidden): {e}")
 
             # Courts Table
             if not inspector.has_table("courts"):

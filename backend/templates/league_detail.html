@@ -315,7 +315,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for team in teams %}
                 <a href="{{ url_for('team_detail', team_id=team.id) }}"
-                    class="card hover:border-white/20 transition-colors">
+                    class="card hover:border-white/20 transition-colors {% if team.is_hidden %}opacity-50{% endif %}">
                     <div class="flex items-center gap-4 mb-4">
                         {% if team.shield_url %}
                         <img src="{{ team.shield_url }}" class="w-16 h-16 rounded object-cover">
@@ -325,7 +325,13 @@
                         </div>
                         {% endif %}
                         <div>
-                            <h3 class="text-xl font-bold">{{ team.name }}</h3>
+                            <h3 class="text-xl font-bold">
+                                {{ team.name }}
+                                {% if team.is_hidden %}
+                                <span
+                                    class="bg-orange-500/20 text-orange-400 text-xs px-2 py-0.5 rounded ml-2">OCULTO</span>
+                                {% endif %}
+                            </h3>
                             {% if team.captain_name %}
                             <p class="text-white/60 text-sm">Cap: {{ team.captain_name }}</p>
                             {% endif %}
