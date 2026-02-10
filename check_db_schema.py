@@ -2,15 +2,15 @@ import sqlite3
 import os
 
 # Use absolute path to ensure we hit the right DB
-# Based on project structure, db is likely in backend/instance/ligapro.db or root ligapro.db
+# Based on project structure, db is likely in ligapro_manager/instance/ligapro.db or root ligapro.db
 # We'll check both locations or the one defined in app.py
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 # Try common locations
 paths = [
-    os.path.join(base_dir, "backend", "instance", "ligapro.db"),
+    os.path.join(base_dir, "ligapro_manager", "instance", "ligapro.db"),
     os.path.join(base_dir, "ligapro.db"),
-    os.path.join(base_dir, "backend", "ligapro.db")
+    os.path.join(base_dir, "ligapro_manager", "ligapro.db")
 ]
 
 db_path = None

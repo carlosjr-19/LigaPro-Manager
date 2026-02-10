@@ -1,0 +1,26 @@
+from extensions import db
+from datetime import datetime, timezone
+import uuid
+
+class League(db.Model):
+    __tablename__ = 'leagues'
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = db.Column(db.String(100), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    max_teams = db.Column(db.Integer, default=10)
+    win_points = db.Column(db.Integer, default=3)
+    draw_points = db.Column(db.Integer, default=1)
+    loss_points = db.Column(db.Integer, default=0)
+    playoff_mode = db.Column(db.String(20), nullable=True)
+    playoff_bye_teams = db.Column(db.Text, nullable=True)  # JSON string of team IDs
+    show_stats = db.Column(db.Boolean, default=True)
+    logo_url = db.Column(db.Text, nullable=True) # Premium only
+    slogan = db.Column(db.String(255), nullable=True) # Premium only
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    teams = db.relationship('Team', backref='league', lazy=True, cascade='all, delete-orphan')
+    matches = db.relationship('Match', backref='league', lazy=True, cascade='all, delete-orphan')
+    courts = db.relationship('Court', backref='league', lazy=True, cascade='all, delete-orphan')
+    playoff_type = db.Column(db.String(20), default='single') # 'single' or 'double'

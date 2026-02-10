@@ -19,8 +19,8 @@ Sistema completo de gestión de ligas de fútbol desarrollado con Python y Flask
 
 ## 🛠️ Tecnologías
 
-*   **Backend:** Python 3, Flask, SQLAlchemy.
-*   **Base de Datos:** SQLite (persistente en `backend/instance/ligapro.db`).
+*   **ligapro_manager:** Python 3, Flask, SQLAlchemy.
+*   **Base de Datos:** SQLite (persistente en `ligapro_manager/instance/ligapro.db`).
 *   **Frontend:** HTML5, Jinja2 Templates, Tailwind CSS (CDN).
 *   **Autenticación:** Flask-Login, Flask-Bcrypt.
 
@@ -36,9 +36,9 @@ Sistema completo de gestión de ligas de fútbol desarrollado con Python y Flask
     ```
 
 3.  **Iniciar el servidor:**
-    Asegúrate de estar en la carpeta raíz del proyecto o en `backend`:
+    Asegúrate de estar en la carpeta raíz del proyecto o en `ligapro_manager`:
     ```bash
-    cd backend
+    cd ligapro_manager
     python server.py
     ```
 
@@ -47,11 +47,11 @@ Sistema completo de gestión de ligas de fútbol desarrollado con Python y Flask
 
 ## 📂 Estructura del Proyecto
 
-*   `backend/app.py`: Lógica principal, modelos de BD y rutas.
-*   `backend/server.py`: Punto de entrada del servidor.
-*   `backend/templates/`: Vistas HTML (Login, Dashboard, Detalles de Liga, etc.).
-*   `backend/static/`: Archivos estáticos (Imágenes, Iconos).
-*   `backend/instance/`: Base de datos SQLite.
+*   `ligapro_manager/app.py`: Lógica principal, modelos de BD y rutas.
+*   `ligapro_manager/server.py`: Punto de entrada del servidor.
+*   `ligapro_manager/templates/`: Vistas HTML (Login, Dashboard, Detalles de Liga, etc.).
+*   `ligapro_manager/static/`: Archivos estáticos (Imágenes, Iconos).
+*   `ligapro_manager/instance/`: Base de datos SQLite.
 
 ## 💎 Características Premium
 

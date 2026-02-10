@@ -1,1 +1,1 @@
-web: python backend/migrate_db.py && python backend/server.py
+web: python ligapro_manager/migrate_db.py && python ligapro_manager/server.py

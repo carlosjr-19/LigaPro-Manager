@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Partido - LigaPro Manager{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-2xl mx-auto px-6 py-4">
+            <a href="{{ url_for('league.league_detail', league_id=league.id) }}#matches"
+                class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+                <i class="fas fa-arrow-left"></i> Volver a {{ league.name }}
+            </a>
+            <h1 class="text-2xl font-bold">{{ title }}</h1>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-6 py-8">
+        <div class="card">
+            <form method="POST" class="space-y-6">
+                {{ form.hidden_tag() }}
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Equipo Local *
+                    </label>
+                    {{ form.home_team_id(class="input-field") }}
+                    {% for error in form.home_team_id.errors %}
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                    <div id="home_history" class="text-xs text-white/40 mt-2 font-mono"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Equipo Visitante *
+                    </label>
+                    {{ form.away_team_id(class="input-field") }}
+                    {% for error in form.away_team_id.errors %}
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                    <div id="away_history" class="text-xs text-white/40 mt-2 font-mono"></div>
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Cancha *
+                    </label>
+                    {{ form.court_id(class="input-field") }}
+                    {% for error in form.court_id.errors %}
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Fecha y Hora *
+                    </label>
+                    {{ form.match_date(class="input-field", type="datetime-local") }}
+                    {% for error in form.match_date.errors %}
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i class="fas fa-calendar-plus mr-2"></i>Programar Partido
+                    </button>
+                    <a href="{{ url_for('league.league_detail', league_id=league.id) }}#matches"
+                        class="btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+    const teamsHistory = {{ teams_history| tojson }};
+    const teamsMap = {{ teams_map| tojson }};
+
+    function updateHistory(selectId, outputId) {
+        const select = document.getElementById(selectId);
+        const output = document.getElementById(outputId);
+        const teamId = select.value;
+
+        // In JS object keys are always strings. So teamsHistory['1'] works even if key was 1.
+
+        if (!teamId) {
+            output.textContent = '';
+            return;
+        }
+
+        const history = teamsHistory[teamId];
+        if (!history || Object.keys(history).length === 0) {
+            output.textContent = 'Sin partidos previos.';
+            return;
+        }
+
+        const opponents = [];
+        for (const [oppId, count] of Object.entries(history)) {
+            const name = teamsMap[oppId] || 'Desconocido';
+            const countStr = count > 1 ? ` x${count}` : '';
+            opponents.push(`${name}${countStr}`);
+        }
+
+        output.textContent = 'Ya jugó contra: ' + opponents.join(', ');
+    }
+
+    document.getElementById('home_team_id').addEventListener('change', () => updateHistory('home_team_id', 'home_history'));
+    document.getElementById('away_team_id').addEventListener('change', () => updateHistory('away_team_id', 'away_history'));
+
+    // Initial update
+    updateHistory('home_team_id', 'home_history');
+    updateHistory('away_team_id', 'away_history');
+</script>
+{% endblock %}

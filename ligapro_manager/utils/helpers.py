@@ -1,0 +1,68 @@
+from models import League, Team, Match
+
+def calculate_standings(league_id, include_playoffs=False):
+    """Calculate standings for a league"""
+    league = League.query.get_or_404(league_id)
+    # Only show active teams in standings
+    # Only show active (visible) teams in standings
+    teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
+    
+    # Get completed matches (only regular season by default)
+    if include_playoffs:
+        matches = Match.query.filter_by(league_id=league_id, is_completed=True).all()
+    else:
+        matches = Match.query.filter(
+            Match.league_id == league_id,
+            Match.is_completed == True,
+            Match.stage.in_(['regular', None])
+        ).all()
+    
+    standings = []
+    for team in teams:
+        stats = {
+            'team': team,
+            'played': 0,
+            'won': 0,
+            'drawn': 0,
+            'lost': 0,
+            'goals_for': 0,
+            'goals_against': 0,
+            'goal_difference': 0,
+            'points': 0
+        }
+        
+        for match in matches:
+            if match.home_team_id == team.id:
+                stats['played'] += 1
+                stats['goals_for'] += match.home_score or 0
+                stats['goals_against'] += match.away_score or 0
+                
+                if match.home_score > match.away_score:
+                    stats['won'] += 1
+                    stats['points'] += league.win_points
+                elif match.home_score == match.away_score:
+                    stats['drawn'] += 1
+                    stats['points'] += league.draw_points
+                else:
+                    stats['lost'] += 1
+                    
+            elif match.away_team_id == team.id:
+                stats['played'] += 1
+                stats['goals_for'] += match.away_score or 0
+                stats['goals_against'] += match.home_score or 0
+                
+                if match.away_score > match.home_score:
+                    stats['won'] += 1
+                    stats['points'] += league.win_points
+                elif match.away_score == match.home_score:
+                    stats['drawn'] += 1
+                    stats['points'] += league.draw_points
+                else:
+                    stats['lost'] += 1
+        
+        stats['goal_difference'] = stats['goals_for'] - stats['goals_against']
+        standings.append(stats)
+    
+    # Sort by points, goal difference, goals for
+    standings.sort(key=lambda x: (x['points'], x['goal_difference'], x['goals_for']), reverse=True)
+    return standings

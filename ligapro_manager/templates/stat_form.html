@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Editar Estadística - LigaPro Manager{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center p-6">
+    <div class="card max-w-lg w-full">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold">Editar Estadística</h1>
+            <p class="text-white/60">
+                {% if stat.stat_type == 'goals' %}
+                Goles de {{ stat.player_name }}
+                {% else %}
+                Goles Concedidos por {{ stat.player_name }}
+                {% endif %}
+            </p>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            {{ form.hidden_tag() }}
+
+            <div>
+                <label class="block text-sm text-white/60 mb-2">Jugador</label>
+                {{ form.player_name(class="input-field w-full", disabled="disabled") }}
+                <style>
+                    .input-field:disabled {
+                        background-color: #252525;
+                        color: #cdcdcd;
+                    }
+                </style>
+            </div>
+
+            <div>
+                <label class="block text-sm text-white/60 mb-2">Equipo</label>
+                {{ form.team_id(class="input-field w-full", disabled="disabled") }}
+            </div>
+
+            <div>
+                <label class="block text-sm text-white/60 mb-2">
+                    {% if stat.stat_type == 'goals' %}Cantidad de Goles{% else %}Goles Concedidos{% endif %}
+                </label>
+                {{ form.value(class="input-field w-full text-lg font-bold") }}
+            </div>
+
+            <!-- Hidden Fields -->
+            <div class="hidden">
+                {{ form.stat_type() }}
+            </div>
+
+            <div class="flex gap-4 pt-4">
+                <a href="{{ url_for('league.league_detail', league_id=league.id) }}"
+                    class="btn-secondary flex-1 text-center">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn-primary flex-1">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

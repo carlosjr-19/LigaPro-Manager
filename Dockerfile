@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copiamos el archivo de requerimientos
-COPY backend/requirements.txt requirements.txt
+COPY ligapro_manager/requirements.txt requirements.txt
 
 # Instalamos las dependencias de Python sin cache para ahorrar espacio
 RUN pip install --no-cache-dir -r requirements.txt
@@ -22,13 +22,13 @@ COPY . .
 
 # Variables de entorno predeterminadas
 ENV PORT=5000
-# Importante: Agregamos el directorio actual al PYTHONPATH para que Python encuentre 'backend'
+# Importante: Agregamos el directorio actual al PYTHONPATH para que Python encuentre 'ligapro_manager'
 ENV PYTHONPATH=/app
 
 # Exponemos el puerto
 EXPOSE $PORT
 
 # Comando de inicio:
-# Entramos a la carpeta 'backend' y ejecutamos gunicorn apuntando al servidor
-# server:flask_app se refiere a backend/server.py -> objeto flask_app
-CMD cd backend && gunicorn --bind 0.0.0.0:$PORT server:flask_app
+# Entramos a la carpeta 'ligapro_manager' y ejecutamos gunicorn apuntando al servidor
+# server:flask_app se refiere a ligapro_manager/server.py -> objeto flask_app
+CMD cd ligapro_manager && gunicorn --bind 0.0.0.0:$PORT server:flask_app

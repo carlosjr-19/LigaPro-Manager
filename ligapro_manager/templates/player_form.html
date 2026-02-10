@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - LigaPro Manager{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-2xl mx-auto px-6 py-4">
+            <a href="{{ url_for('team.team_detail', team_id=team.id) }}"
+                class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+                <i class="fas fa-arrow-left"></i> Volver a {{ team.name }}
+            </a>
+            <h1 class="text-2xl font-bold">{{ title }}</h1>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto px-6 py-8">
+        <div class="card">
+            <form method="POST" class="space-y-6">
+                {{ form.hidden_tag() }}
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Nombre del Jugador *
+                    </label>
+                    {{ form.name(class="input-field", placeholder="Nombre completo") }}
+                    {% for error in form.name.errors %}
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Número / Dorsal (opcional)
+                    </label>
+                    {{ form.number(class="input-field", placeholder="Ej: 10", type="number") }}
+                    {% for error in form.number.errors %}
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        CURP (opcional)
+                    </label>
+                    {{ form.curp(class="input-field", placeholder="CURP del jugador") }}
+                </div>
+
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        URL de Foto (opcional)
+                    </label>
+                    {{ form.photo_url(class="input-field", placeholder="https://ejemplo.com/foto.jpg") }}
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i class="fas fa-save mr-2"></i>
+                        {% if player %}Guardar Cambios{% else %}Añadir Jugador{% endif %}
+                    </button>
+                    <a href="{{ url_for('team.team_detail', team_id=team.id) }}" class="btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
