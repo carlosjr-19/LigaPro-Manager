@@ -31,4 +31,4 @@ EXPOSE $PORT
 # Comando de inicio:
 # Entramos a la carpeta 'ligapro_manager' y ejecutamos gunicorn apuntando al servidor
 # server:flask_app se refiere a ligapro_manager/server.py -> objeto flask_app
-CMD cd ligapro_manager && gunicorn --bind 0.0.0.0:$PORT server:flask_app
+CMD cd ligapro_manager && gunicorn --bind 0.0.0.0:$PORT ligapro_manager:app
