@@ -17,4 +17,5 @@ class Config:
     STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
     STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
     STRIPE_PRICE_ID = os.environ.get('STRIPE_PRICE_ID')
+    STRIPE_PRICE_ANUAL_ID = os.environ.get('STRIPE_PRICE_ANUAL_ID')
     STRIPE_CAPTAIN_PRICE_ID = os.environ.get('STRIPE_CAPTAIN_PRICE_ID')

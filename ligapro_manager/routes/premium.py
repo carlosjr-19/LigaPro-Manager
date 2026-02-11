@@ -28,6 +28,9 @@ def create_checkout_session():
         if plan_type == 'captain':
              price_id = current_app.config['STRIPE_CAPTAIN_PRICE_ID']
              mode = 'payment'
+        elif plan_type == 'annual':
+             price_id = current_app.config['STRIPE_PRICE_ANUAL_ID']
+             mode = 'payment'
         else:
              price_id = current_app.config['STRIPE_PRICE_ID']
              mode = 'subscription'

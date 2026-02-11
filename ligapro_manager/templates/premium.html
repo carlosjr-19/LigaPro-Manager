@@ -14,7 +14,7 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-6 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <!-- Free Plan -->
             <div class="card">
                 <div class="text-center mb-6">
@@ -22,7 +22,7 @@
                         <i class="fas fa-user text-2xl text-white/40"></i>
                     </div>
                     <h3 class="text-2xl font-bold">Plan Gratuito</h3>
-                    <p class="text-white/60">Actual</p>
+                    <p class="text-white/60">Básico</p>
                 </div>
                 <ul class="space-y-3 mb-6">
                     <li class="flex items-center gap-3 text-white/60">
@@ -46,20 +46,20 @@
                         <span>Generación de registros</span>
                     </li>
                 </ul>
-                <div class="text-center">
+                <div class="text-center mt-auto">
                     <p class="text-3xl font-bold mb-2">$0</p>
                     <p class="text-white/40">Siempre gratis</p>
                 </div>
             </div>
 
-            <!-- Premium Plan -->
-            <div class="card border-warning/50 bg-warning/5">
+            <!-- Premium Plan (Monthly) -->
+            <div class="card border-white/10">
                 <div class="text-center mb-6">
-                    <div class="w-16 h-16 bg-warning/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-crown text-2xl text-warning"></i>
+                    <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-star text-2xl text-white"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-warning">Plan Premium</h3>
-                    <p class="text-white/60">Recomendado</p>
+                    <h3 class="text-2xl font-bold">Plan Mensual</h3>
+                    <p class="text-white/60">Flexible</p>
                 </div>
                 <ul class="space-y-3 mb-6">
                     <li class="flex items-center gap-3">
@@ -82,13 +82,9 @@
                         <i class="fas fa-check text-success"></i>
                         <span>Generación de registros</span>
                     </li>
-                    <li class="flex items-center gap-3">
-                        <i class="fas fa-check text-success"></i>
-                        <span>Soporte prioritario</span>
-                    </li>
                 </ul>
-                <div class="text-center mb-6">
-                    <p class="text-3xl font-bold mb-2 text-warning">$200 MXN</p>
+                <div class="text-center mb-6 mt-auto">
+                    <p class="text-3xl font-bold mb-2">$200 MXN</p>
                     <p class="text-white/40">Al mes</p>
                 </div>
 
@@ -98,13 +94,65 @@
                 </button>
                 {% else %}
                 <form method="POST" action="{{ url_for('premium.create_checkout_session') }}">
+                    <button type="submit" class="w-full btn-secondary font-bold py-3 px-4 rounded transition-colors">
+                        Suscribirse Mensual
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            <!-- Premium Plan (Annual) -->
+            <div
+                class="card border-warning/50 bg-warning/5 relative overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                <div class="absolute top-0 right-0 bg-warning text-black text-xs font-bold px-3 py-1 rounded-bl-lg">
+                    ¡2 MESES GRATIS!
+                </div>
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-warning/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-crown text-2xl text-warning"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-warning">Plan Anual</h3>
+                    <p class="text-white/60">Mejor Valor</p>
+                </div>
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Todas las funciones Premium</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Soporte Prioritario</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-success"></i>
+                        <span>Acceso anticipado a funciones</span>
+                    </li>
+                    <li class="flex items-center gap-3 text-warning">
+                        <i class="fas fa-gift"></i>
+                        <span>Ahorras $400 MXN al año</span>
+                    </li>
+                </ul>
+                <div class="text-center mb-6 mt-auto">
+                    <div class="flex items-center justify-center gap-2 mb-1">
+                        <span class="text-white/40 line-through text-lg">$2,400</span>
+                        <span class="text-3xl font-bold text-warning">$2,000 MXN</span>
+                    </div>
+                    <p class="text-white/40">Al año</p>
+                </div>
+
+                {% if current_user.is_premium %}
+                <button disabled class="btn-secondary w-full cursor-not-allowed opacity-50">
+                    <i class="fas fa-check mr-2"></i>Ya eres Premium
+                </button>
+                {% else %}
+                <form method="POST" action="{{ url_for('premium.create_checkout_session', plan='annual') }}">
                     <button type="submit"
-                        class="w-full bg-warning hover:bg-yellow-600 text-black font-bold py-3 px-4 rounded transition-colors">
-                        <i class="fas fa-crown mr-2"></i>Suscribirse con Stripe
+                        class="w-full bg-warning hover:bg-yellow-600 text-black font-bold py-3 px-4 rounded transition-colors shadow-lg shadow-warning/20">
+                        <i class="fas fa-crown mr-2"></i>Mejorar Ahora
                     </button>
                 </form>
                 <p class="text-white/40 text-xs text-center mt-3">
-                    * Serás redirigido a la pasarela de pago segura de Stripe
+                    Pago único anual
                 </p>
                 {% endif %}
             </div>
