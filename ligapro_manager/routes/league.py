@@ -68,7 +68,7 @@ def league_detail(league_id):
         league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     
     # Show only active teams in the list, but keep deleted teams for historical match references if needed
-    active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
+    active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
     all_teams = Team.query.filter_by(league_id=league_id).all() # Need all for matches history lookup
     
     standings = calculate_standings(league_id)
@@ -82,6 +82,43 @@ def league_detail(league_id):
     
     matches = matches_pagination.items 
 
+    # Matrix View Data
+    match_matrix = {}
+    for home in active_teams:
+        match_matrix[home.id] = {}
+        for away in active_teams:
+            if home.id == away.id:
+                 match_matrix[home.id][away.id] = {'status': 'cnt_play'} 
+            else:
+                 match_matrix[home.id][away.id] = {'status': 'empty', 'home_id': home.id, 'away_id': away.id}
+
+    # Fetch ALL regular matches
+    all_regular_matches = Match.query.filter(
+        Match.league_id == league_id,
+        or_(Match.stage == 'regular', Match.stage == None, Match.stage == '')
+    ).all()
+    
+    for m in all_regular_matches:
+        if m.home_team_id in match_matrix and m.away_team_id in match_matrix[m.home_team_id]:
+             # We found a match for this cell
+             match_matrix[m.home_team_id][m.away_team_id] = {
+                 'status': 'scheduled',
+                 'match': {
+                     'id': m.id,
+                     'home_score': m.home_score,
+                     'away_score': m.away_score,
+                     'match_date_iso': m.match_date.isoformat(),
+                     'match_date_display': m.match_date.strftime('%d-%b'),
+                     'match_time_display': m.match_date.strftime('%I:%M %p'),
+                     'court_id': m.court_id,
+                     'is_completed': m.is_completed
+                 },
+                 'home_id': m.home_team_id,
+                 'away_id': m.away_team_id
+             }
+             if m.is_completed:
+                  match_matrix[m.home_team_id][m.away_team_id]['status'] = 'completed'
+
     playoff_matches = {
         'repechaje': Match.query.filter_by(league_id=league_id, stage='repechaje').all(),
         'quarterfinal': Match.query.filter_by(league_id=league_id, stage='quarterfinal').all(),
@@ -91,6 +128,9 @@ def league_detail(league_id):
     has_playoffs = any(len(m) > 0 for m in playoff_matches.values())
     
     teams_dict = {t.id: t for t in all_teams}
+    
+    # Teams Data for JS (Matrix View)
+    teams_js = {t.id: {'name': t.name, 'shield_url': t.shield_url} for t in active_teams}
     
     # Pass players by team for JS dropdown
     players_by_team = {}
@@ -127,6 +167,7 @@ def league_detail(league_id):
                           courts=league.courts,
                           standings=standings,
                           matches=matches,
+                          match_matrix=match_matrix,
                           playoff_matches=playoff_matches,
                           has_playoffs=has_playoffs,
                           teams_dict=teams_dict,
@@ -137,6 +178,7 @@ def league_detail(league_id):
                           players_by_team=players_by_team,
                           stat_form=stat_form,
                           matches_pagination=matches_pagination,
+                          teams_js=teams_js,
                           form=form)
 
 

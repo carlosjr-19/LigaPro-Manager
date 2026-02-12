@@ -355,140 +355,250 @@
         <!-- Matches Tab -->
         <div id="matches" class="tab-content">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 md:gap-0">
-                <h2 class="text-2xl font-bold">Partidos</h2>
+                <div class="flex items-center gap-4">
+                    <h2 class="text-2xl font-bold">Partidos</h2>
+                    <!-- View Toggles -->
+                    <div class="flex bg-white/5 rounded-lg p-1 border border-white/10">
+                        <button onclick="toggleMatchView('list')" id="btn-view-list"
+                            class="px-3 py-1 rounded text-sm font-medium transition-colors bg-primary text-white">
+                            <i class="fas fa-list mr-2"></i>Lista
+                        </button>
+                        <button onclick="toggleMatchView('matrix')" id="btn-view-matrix"
+                            class="px-3 py-1 rounded text-sm font-medium transition-colors text-white/60 hover:text-white">
+                            <i class="fas fa-th mr-2"></i>Cuadro
+                        </button>
+                    </div>
+                </div>
+
                 <a href="{{ url_for('match.create_match', league_id=league.id) }}" class="btn-primary">
                     <i class="fas fa-plus mr-2"></i>Programar Partido
                 </a>
             </div>
 
-            {% if matches_pagination and matches_pagination.items %}
-            <div class="space-y-4">
-                {% for match in matches_pagination.items %}
-                <div class="card">
-                    <div class="flex flex-col md:flex-row md:items-center gap-4">
-                        <div class="flex-1">
-                            <p class="text-white/60 text-sm mb-4">
-                                {{ match.match_date.strftime('%d/%m/%Y %I:%M %p') }}
-                                {% if match.court %}
-                                <span class="ml-2 text-blue-400 font-medium"><i
-                                        class="fas fa-map-marker-alt mr-1"></i>{{ match.court.name }}</span>
-                                {% endif %}
-                            </p>
-                            <div class="flex items-center justify-between gap-4">
-                                <div class="flex items-center gap-3 flex-1 justify-end">
-                                    <span class="font-bold text-right">
-                                        {{ teams_dict[match.home_team_id].name }}
-                                        {% if teams_dict[match.home_team_id].is_deleted %}<span
-                                            class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
-                                    </span>
-                                    {% if teams_dict[match.home_team_id].shield_url %}
-                                    <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                        class="w-8 h-8 rounded object-cover bg-white/5">
-                                    {% else %}
-                                    <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
-                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
-                                    </div>
-                                    {% endif %}
-                                </div>
+            <div id="matches-list-view">
 
-                                <div class="flex items-center gap-2 min-w-[80px] justify-center">
-                                    {% if match.is_completed %}
-                                    <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
-                                    <span class="text-white/40">-</span>
-                                    <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
-                                    {% else %}
-                                    <span class="text-white/40 text-sm">vs</span>
+                {% if matches_pagination and matches_pagination.items %}
+                <div class="space-y-4">
+                    {% for match in matches_pagination.items %}
+                    <div class="card">
+                        <div class="flex flex-col md:flex-row md:items-center gap-4">
+                            <div class="flex-1">
+                                <p class="text-white/60 text-sm mb-4">
+                                    {{ match.match_date.strftime('%d/%m/%Y %I:%M %p') }}
+                                    {% if match.court %}
+                                    <span class="ml-2 text-blue-400 font-medium"><i
+                                            class="fas fa-map-marker-alt mr-1"></i>{{ match.court.name }}</span>
                                     {% endif %}
-                                </div>
-
-                                <div class="flex items-center gap-3 flex-1">
-                                    {% if teams_dict[match.away_team_id].shield_url %}
-                                    <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                        class="w-8 h-8 rounded object-cover bg-white/5">
-                                    {% else %}
-                                    <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
-                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                </p>
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3 flex-1 justify-end">
+                                        <span class="font-bold text-right">
+                                            {{ teams_dict[match.home_team_id].name }}
+                                            {% if teams_dict[match.home_team_id].is_deleted %}<span
+                                                class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                        </span>
+                                        {% if teams_dict[match.home_team_id].shield_url %}
+                                        <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                            class="w-8 h-8 rounded object-cover bg-white/5">
+                                        {% else %}
+                                        <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
+                                            <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                        </div>
+                                        {% endif %}
                                     </div>
-                                    {% endif %}
-                                    <span class="font-bold">
-                                        {{ teams_dict[match.away_team_id].name }}
-                                        {% if teams_dict[match.away_team_id].is_deleted %}<span
-                                            class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
-                                    </span>
+
+                                    <div class="flex items-center gap-2 min-w-[80px] justify-center">
+                                        {% if match.is_completed %}
+                                        <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
+                                        <span class="text-white/40">-</span>
+                                        <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
+                                        {% else %}
+                                        <span class="text-white/40 text-sm">vs</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="flex items-center gap-3 flex-1">
+                                        {% if teams_dict[match.away_team_id].shield_url %}
+                                        <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                            class="w-8 h-8 rounded object-cover bg-white/5">
+                                        {% else %}
+                                        <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
+                                            <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                        </div>
+                                        {% endif %}
+                                        <span class="font-bold">
+                                            {{ teams_dict[match.away_team_id].name }}
+                                            {% if teams_dict[match.away_team_id].is_deleted %}<span
+                                                class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
+                            <div class="flex items-center gap-2">
+                                {% if match.is_completed %}
+                                <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded text-xs">Finalizado</span>
+                                <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
+                                    class="text-blue-400 hover:text-blue-300 text-sm p-2" title="Editar Resultado">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('match.edit_match', match_id=match.id) }}"
+                                    class="text-white/40 hover:text-white transition-colors p-2"
+                                    title="Editar Detalles">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                                <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
+                                    class="btn-secondary text-sm">
+                                    Registrar Resultado
+                                </a>
+                                <form method="POST" action="{{ url_for('match.delete_match', match_id=match.id) }}"
+                                    class="inline"
+                                    onsubmit="return confirm('¿Estás seguro de eliminar este partido?');">
+                                    <button type="submit" class="text-white/40 hover:text-red-500 transition-colors p-2"
+                                        title="Eliminar Partido">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            {% if match.is_completed %}
-                            <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded text-xs">Finalizado</span>
-                            <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
-                                class="text-blue-400 hover:text-blue-300 text-sm p-2" title="Editar Resultado">
-                                <i class="fas fa-pencil-alt"></i>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Pagination Controls -->
+                    <div class="flex justify-between items-center mt-6 pt-4 border-t border-white/10">
+                        <div>
+                            {% if matches_pagination.has_prev %}
+                            <a href="{{ url_for('league.league_detail', league_id=league.id, page=matches_pagination.prev_num, _anchor='matches') }}"
+                                class="btn-secondary text-sm">
+                                <i class="fas fa-chevron-left mr-2"></i>Anterior
                             </a>
                             {% else %}
-                            <a href="{{ url_for('match.edit_match', match_id=match.id) }}"
-                                class="text-white/40 hover:text-white transition-colors p-2" title="Editar Detalles">
-                                <i class="fas fa-pencil-alt"></i>
-                            </a>
-                            <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
+                            <span class="btn-secondary text-white/20 cursor-not-allowed text-sm">
+                                <i class="fas fa-chevron-left mr-2"></i>Anterior
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <span class="text-white/40 text-sm">
+                            Página {{ matches_pagination.page }} de {{ matches_pagination.pages }}
+                        </span>
+
+                        <div>
+                            {% if matches_pagination.has_next %}
+                            <a href="{{ url_for('league.league_detail', league_id=league.id, page=matches_pagination.next_num, _anchor='matches') }}"
                                 class="btn-secondary text-sm">
-                                Registrar Resultado
+                                Siguiente<i class="fas fa-chevron-right ml-2"></i>
                             </a>
-                            <form method="POST" action="{{ url_for('match.delete_match', match_id=match.id) }}"
-                                class="inline" onsubmit="return confirm('¿Estás seguro de eliminar este partido?');">
-                                <button type="submit" class="text-white/40 hover:text-red-500 transition-colors p-2"
-                                    title="Eliminar Partido">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            {% else %}
+                            <span class="btn-secondary text-white/20 cursor-not-allowed text-sm">
+                                Siguiente<i class="fas fa-chevron-right ml-2"></i>
+                            </span>
                             {% endif %}
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-
-                <!-- Pagination Controls -->
-                <div class="flex justify-between items-center mt-6 pt-4 border-t border-white/10">
-                    <div>
-                        {% if matches_pagination.has_prev %}
-                        <a href="{{ url_for('league.league_detail', league_id=league.id, page=matches_pagination.prev_num, _anchor='matches') }}"
-                            class="btn-secondary text-sm">
-                            <i class="fas fa-chevron-left mr-2"></i>Anterior
-                        </a>
-                        {% else %}
-                        <span class="btn-secondary text-white/20 cursor-not-allowed text-sm">
-                            <i class="fas fa-chevron-left mr-2"></i>Anterior
-                        </span>
-                        {% endif %}
-                    </div>
-
-                    <span class="text-white/40 text-sm">
-                        Página {{ matches_pagination.page }} de {{ matches_pagination.pages }}
-                    </span>
-
-                    <div>
-                        {% if matches_pagination.has_next %}
-                        <a href="{{ url_for('league.league_detail', league_id=league.id, page=matches_pagination.next_num, _anchor='matches') }}"
-                            class="btn-secondary text-sm">
-                            Siguiente<i class="fas fa-chevron-right ml-2"></i>
-                        </a>
-                        {% else %}
-                        <span class="btn-secondary text-white/20 cursor-not-allowed text-sm">
-                            Siguiente<i class="fas fa-chevron-right ml-2"></i>
-                        </span>
-                        {% endif %}
-                    </div>
+                {% else %}
+                <div class="card text-center py-12">
+                    <i class="fas fa-calendar text-4xl text-white/20 mb-4"></i>
+                    <p class="text-white/60 mb-4">No hay partidos programados</p>
+                    <a href="{{ url_for('match.create_match', league_id=league.id) }}" class="btn-primary">
+                        Programar primer partido
+                    </a>
                 </div>
+                {% endif %}
+            </div> <!-- End matches-list-view -->
+
+            <!-- Matrix View -->
+            <div id="matches-matrix-view" class="hidden overflow-x-auto pb-4">
+                {% if teams %}
+                <table class="w-full border-collapse min-w-[800px]">
+                    <thead>
+                        <tr>
+                            <th class="p-2 border border-white/10 bg-white/5 sticky left-0 z-10 w-40"></th>
+                            {% for team in teams %}
+                            <th class="p-2 border border-white/10 bg-white/5 text-center min-w-[120px]">
+                                <div class="flex flex-col items-center">
+                                    {% if team.shield_url %}
+                                    <img src="{{ team.shield_url }}" class="w-8 h-8 rounded object-cover mb-1">
+                                    {% else %}
+                                    <div class="w-8 h-8 bg-white/10 rounded flex items-center justify-center mb-1">
+                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span
+                                        class="text-xs font-bold whitespace-nowrap overflow-hidden text-ellipsis max-w-[110px]">{{
+                                        team.name }}</span>
+                                </div>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for home in teams %}
+                        <tr>
+                            <th
+                                class="p-2 border border-white/10 bg-white/5 text-left min-w-[150px] sticky left-0 z-10">
+                                <div class="flex items-center gap-2">
+                                    {% if home.shield_url %}
+                                    <img src="{{ home.shield_url }}" class="w-6 h-6 rounded object-cover">
+                                    {% else %}
+                                    <div class="w-6 h-6 bg-white/10 rounded flex items-center justify-center">
+                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span
+                                        class="text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{{
+                                        home.name }}</span>
+                                </div>
+                            </th>
+                            {% for away in teams %}
+                            {% set cell = match_matrix[home.id][away.id] %}
+                            <td
+                                class="p-0 border border-white/10 text-center relative hover:bg-white/5 transition-colors h-20">
+                                {% if cell.status == 'cnt_play' %}
+                                <div class="w-full h-full bg-white/5 flex items-center justify-center">
+                                    <div class="w-full h-px bg-white/10 rotate-45 transform scale-150"></div>
+                                </div>
+                                {% else %}
+                                <button type="button" onclick='openMatrixModal({{ cell | tojson | safe }})'
+                                    class="w-full h-full flex flex-col items-center justify-center p-1 group">
+
+                                    {% if cell.status == 'completed' %}
+                                    <span
+                                        class="font-bold text-lg text-primary group-hover:scale-110 transition-transform">{{
+                                        cell.match.home_score }} - {{ cell.match.away_score }}</span>
+                                    {% if cell.match.is_completed %}
+                                    <span class="text-[10px] text-green-400">Finalizado</span>
+                                    {% endif %}
+                                    <span class="text-[10px] text-white/40">{{ cell.match.match_date_display }}</span>
+                                    {% elif cell.status == 'scheduled' %}
+                                    <span class="text-sm text-blue-400 font-bold group-hover:text-blue-300">{{
+                                        cell.match.match_date_display }}</span>
+                                    {% if cell.match.match_time_display and '00:00' not in cell.match.match_time_display
+                                    %}
+                                    <span class="text-[10px] text-white/40">{{ cell.match.match_time_display }}</span>
+                                    {% endif %}
+                                    <i
+                                        class="fas fa-pencil-alt text-[10px] text-white/0 group-hover:text-white/40 mt-1 transition-colors"></i>
+                                    {% else %}
+                                    <span
+                                        class="text-white/20 text-2xl group-hover:text-white/60 transition-colors">-</span>
+                                    {% endif %}
+                                </button>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-12 text-white/40">
+                    <p>No hay suficientes equipos para mostrar el cuadro.</p>
+                </div>
+                {% endif %}
             </div>
-            {% else %}
-            <div class="card text-center py-12">
-                <i class="fas fa-calendar text-4xl text-white/20 mb-4"></i>
-                <p class="text-white/60 mb-4">No hay partidos programados</p>
-                <a href="{{ url_for('match.create_match', league_id=league.id) }}" class="btn-primary">
-                    Programar primer partido
-                </a>
-            </div>
-            {% endif %}
         </div>
 
         <!-- Stats Tab -->
@@ -1225,5 +1335,226 @@
             inputs.classList.add('hidden');
         }
     }
+</script>
+<!-- Matrix Match Modal -->
+<div id="matrixMatchModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
+    <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative">
+        <button onclick="closeMatrixModal()" class="absolute top-4 right-4 text-white/40 hover:text-white">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <form action="{{ url_for('match_matrix.save_match_matrix') }}" method="POST" class="p-6">
+            <input type="hidden" name="match_id" id="matrix_match_id">
+            <input type="hidden" name="league_id" value="{{ league.id }}">
+            <input type="hidden" name="home_team_id" id="matrix_home_team_id">
+            <input type="hidden" name="away_team_id" id="matrix_away_team_id">
+
+            <h3 class="text-xl font-bold mb-6 flex items-center justify-center gap-4">
+                <div class="flex flex-col items-center gap-2 w-1/3">
+                    <img id="matrix_home_shield" src="" class="w-12 h-12 rounded object-cover bg-white/5">
+                    <span id="matrix_home_name" class="text-xs text-center leading-tight">Home</span>
+                </div>
+                <div class="text-2xl font-bold text-white/40">VS</div>
+                <div class="flex flex-col items-center gap-2 w-1/3">
+                    <img id="matrix_away_shield" src="" class="w-12 h-12 rounded object-cover bg-white/5">
+                    <span id="matrix_away_name" class="text-xs text-center leading-tight">Away</span>
+                </div>
+            </h3>
+
+            <!-- Schedule -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-white/40 text-xs mb-1 uppercase">Fecha</label>
+                    <input type="date" name="match_date" id="matrix_match_date" class="input-field">
+                </div>
+                <div>
+                    <label class="block text-white/40 text-xs mb-1 uppercase">Hora</label>
+                    <input type="time" name="match_time" id="matrix_match_time" class="input-field">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-white/40 text-xs mb-1 uppercase">Cancha</label>
+                <select name="court_id" id="matrix_court_id" class="input-field">
+                    <option value="">-- Sin Cancha --</option>
+                    {% for court in courts %}
+                    <option value="{{ court.id }}">{{ court.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Scores -->
+            <div class="grid grid-cols-2 gap-8 mb-6 bg-white/5 p-4 rounded-lg border border-white/5">
+                <div class="text-center">
+                    <label class="block text-white/40 text-xs mb-2 uppercase">Goles Local</label>
+                    <input type="number" name="home_score" id="matrix_home_score"
+                        class="input-field text-center text-2xl font-bold" min="0">
+                </div>
+                <div class="text-center">
+                    <label class="block text-white/40 text-xs mb-2 uppercase">Goles Visitante</label>
+                    <input type="number" name="away_score" id="matrix_away_score"
+                        class="input-field text-center text-2xl font-bold" min="0">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" id="btn-delete-matrix-match"
+                    class="mr-auto text-red-400 hover:text-red-300 text-sm px-3 py-2 hidden">
+                    <i class="fas fa-trash mr-1"></i> Eliminar
+                </button>
+                <button type="button" onclick="closeMatrixModal()"
+                    class="px-4 py-2 text-white/60 hover:text-white transition-colors">Cancelar</button>
+                <button type="submit" class="btn-primary px-6 py-2">
+                    <i class="fas fa-save mr-2"></i>Guardar
+                </button>
+            </div>
+        </form>
+
+        <!-- Hidden Delete Form -->
+        <form id="deleteMatrixForm" action="{{ url_for('match_matrix.delete_match_matrix') }}" method="POST"
+            onsubmit="return confirm('¿Eliminar este partido?');">
+            <input type="hidden" name="match_id" id="delete_matrix_match_id">
+            <input type="hidden" name="league_id" value="{{ league.id }}">
+        </form>
+    </div>
+</div>
+
+<script>
+    const teamsData = {{ teams_js | tojson | safe }};
+
+    function toggleMatchView(view) {
+        const listView = document.getElementById('matches-list-view');
+        const matrixView = document.getElementById('matches-matrix-view');
+        const btnList = document.getElementById('btn-view-list');
+        const btnMatrix = document.getElementById('btn-view-matrix');
+
+        if (view === 'list') {
+            listView.classList.remove('hidden');
+            matrixView.classList.add('hidden');
+
+            btnList.classList.remove('text-white/60', 'hover:text-white');
+            btnList.classList.add('bg-primary', 'text-white');
+
+            btnMatrix.classList.remove('bg-primary', 'text-white');
+            btnMatrix.classList.add('text-white/60', 'hover:text-white');
+
+            // Save preference
+            localStorage.setItem('matchView', 'list');
+        } else {
+            listView.classList.add('hidden');
+            matrixView.classList.remove('hidden');
+
+            btnMatrix.classList.remove('text-white/60', 'hover:text-white');
+            btnMatrix.classList.add('bg-primary', 'text-white');
+
+            btnList.classList.remove('bg-primary', 'text-white');
+            btnList.classList.add('text-white/60', 'hover:text-white');
+
+            // Save preference
+            localStorage.setItem('matchView', 'matrix');
+        }
+    }
+
+    // Restore preference on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const pref = localStorage.getItem('matchView');
+        if (pref === 'matrix') {
+            toggleMatchView('matrix');
+        }
+    });
+
+    function openMatrixModal(cellData) {
+        const modal = document.getElementById('matrixMatchModal');
+        const home = teamsData[cellData.home_id];
+        const away = teamsData[cellData.away_id];
+
+        // Populate Header
+        document.getElementById('matrix_home_name').textContent = home.name;
+        document.getElementById('matrix_away_name').textContent = away.name;
+
+        const homeShieldEl = document.getElementById('matrix_home_shield');
+        const awayShieldEl = document.getElementById('matrix_away_shield');
+
+        if (home.shield_url) {
+            homeShieldEl.src = home.shield_url;
+            homeShieldEl.classList.remove('hidden');
+            if (homeShieldEl.parentElement.querySelector('div')) homeShieldEl.parentElement.querySelector('div').remove();
+        } else {
+            homeShieldEl.classList.add('hidden');
+            // Add placeholder if not exists
+            if (!homeShieldEl.parentElement.querySelector('div')) {
+                const ph = document.createElement('div');
+                ph.className = 'w-12 h-12 bg-white/10 rounded flex items-center justify-center';
+                ph.innerHTML = '<i class="fas fa-shield-alt text-white/40"></i>';
+                homeShieldEl.parentElement.insertBefore(ph, homeShieldEl);
+            }
+        }
+
+        if (away.shield_url) {
+            awayShieldEl.src = away.shield_url;
+            awayShieldEl.classList.remove('hidden');
+            if (awayShieldEl.parentElement.querySelector('div')) awayShieldEl.parentElement.querySelector('div').remove();
+        } else {
+            awayShieldEl.classList.add('hidden');
+            if (!awayShieldEl.parentElement.querySelector('div')) {
+                const ph = document.createElement('div');
+                ph.className = 'w-12 h-12 bg-white/10 rounded flex items-center justify-center';
+                ph.innerHTML = '<i class="fas fa-shield-alt text-white/40"></i>';
+                awayShieldEl.parentElement.insertBefore(ph, awayShieldEl);
+            }
+        }
+
+        document.getElementById('matrix_home_team_id').value = cellData.home_id;
+        document.getElementById('matrix_away_team_id').value = cellData.away_id;
+
+        const deleteBtn = document.getElementById('btn-delete-matrix-match');
+
+        if (cellData.match) {
+            // Edit Mode
+            document.getElementById('matrix_match_id').value = cellData.match.id;
+
+            // Format Date
+            if (cellData.match.match_date_iso) {
+                // ISO string is YYYY-MM-DDTHH:MM:SS
+                // Split it simple
+                const parts = cellData.match.match_date_iso.split('T');
+                if (parts.length > 0) document.getElementById('matrix_match_date').value = parts[0];
+                if (parts.length > 1) document.getElementById('matrix_match_time').value = parts[1].substring(0, 5); // HH:MM
+            }
+
+            document.getElementById('matrix_court_id').value = cellData.match.court_id || '';
+            document.getElementById('matrix_home_score').value = cellData.match.home_score;
+            document.getElementById('matrix_away_score').value = cellData.match.away_score;
+
+            deleteBtn.classList.remove('hidden');
+        } else {
+            // Create Mode
+            document.getElementById('matrix_match_id').value = '';
+            document.getElementById('matrix_match_date').value = '';
+            document.getElementById('matrix_match_time').value = '';
+            document.getElementById('matrix_court_id').value = '';
+            document.getElementById('matrix_home_score').value = '';
+            document.getElementById('matrix_away_score').value = '';
+
+            deleteBtn.classList.add('hidden');
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeMatrixModal() {
+        document.getElementById('matrixMatchModal').classList.add('hidden');
+        document.getElementById('matrixMatchModal').classList.remove('flex');
+    }
+
+    // Wire up Delete Button
+    document.getElementById('btn-delete-matrix-match').addEventListener('click', function () {
+        const matchId = document.getElementById('matrix_match_id').value;
+        if (matchId) {
+            document.getElementById('delete_matrix_match_id').value = matchId;
+            document.getElementById('deleteMatrixForm').submit();
+        }
+    });
 </script>
 {% endblock %}

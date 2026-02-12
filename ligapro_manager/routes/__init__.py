@@ -7,6 +7,7 @@ from routes.match import match_bp
 from routes.stats import stats_bp
 from routes.premium import premium_bp
 from routes.admin import admin_bp
+from routes.match_matrix import match_matrix_bp
 
 def register_blueprints(app):
     app.register_blueprint(auth_bp)
@@ -18,3 +19,4 @@ def register_blueprints(app):
     app.register_blueprint(stats_bp)
     app.register_blueprint(premium_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(match_matrix_bp)
