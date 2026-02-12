@@ -535,7 +535,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for home in teams %}
+                        {% for home in scheduling_teams %}
                         <tr>
                             <th
                                 class="p-2 border border-white/10 bg-white/5 text-left min-w-[150px] sticky left-0 z-10">
@@ -552,7 +552,7 @@
                                         home.name }}</span>
                                 </div>
                             </th>
-                            {% for away in teams %}
+                            {% for away in scheduling_teams %}
                             {% set cell = match_matrix[home.id][away.id] %}
                             <td
                                 class="p-0 border border-white/10 text-center relative hover:bg-white/5 transition-colors h-20">
@@ -627,7 +627,7 @@
                             </div>
                             <div class="flex-1">
                                 <label class="block text-xs uppercase text-white/40 mb-1">Jugador</label>
-                                <!-- Use dynamic select for player, name matches form field to carry ID -->
+                                <!-- Use dynamic select -->
                                 <select name="player_name" id="player-select-goals" class="input-field text-sm"
                                     required>
                                     <option value="">Selecciona un equipo primero</option>

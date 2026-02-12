@@ -68,10 +68,19 @@ def league_detail(league_id):
         league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     
     # Show only active teams in the list, but keep deleted teams for historical match references if needed
-    active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
+    # Show only active teams in the list, but keep deleted teams for historical match references if needed
+    active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
+    # Scheduling Teams (Exclude Hidden)
+    scheduling_teams = [t for t in active_teams if not t.is_hidden]
     all_teams = Team.query.filter_by(league_id=league_id).all() # Need all for matches history lookup
     
     standings = calculate_standings(league_id)
+
+    # Form for editing league settings (embedded)
+    form = LeagueForm(obj=league)
+    
+    # Update Form Choices to use scheduling_teams
+    # Removed incorrect form fields assignments as LeagueForm does not have home_team/away_team
     
     # Matches Paging
     page = request.args.get('page', 1, type=int)
@@ -83,10 +92,11 @@ def league_detail(league_id):
     matches = matches_pagination.items 
 
     # Matrix View Data
+    # Use scheduling_teams for Matrix
     match_matrix = {}
-    for home in active_teams:
+    for home in scheduling_teams:
         match_matrix[home.id] = {}
-        for away in active_teams:
+        for away in scheduling_teams:
             if home.id == away.id:
                  match_matrix[home.id][away.id] = {'status': 'cnt_play'} 
             else:
@@ -129,8 +139,8 @@ def league_detail(league_id):
     
     teams_dict = {t.id: t for t in all_teams}
     
-    # Teams Data for JS (Matrix View)
-    teams_js = {t.id: {'name': t.name, 'shield_url': t.shield_url} for t in active_teams}
+    # Teams Data for JS (Matrix View) use scheduling_teams
+    teams_js = {t.id: {'name': t.name, 'shield_url': t.shield_url} for t in scheduling_teams}
     
     # Pass players by team for JS dropdown
     players_by_team = {}
@@ -158,9 +168,6 @@ def league_detail(league_id):
     if current_user.role == 'owner' or current_user.role == 'admin':
         stat_form.team_id.choices = [(t.id, t.name) for t in active_teams]
     
-    # Form for editing league settings (embedded)
-    form = LeagueForm(obj=league)
-
     return render_template('league_detail.html', 
                           league=league, 
                           teams=active_teams,
@@ -179,6 +186,7 @@ def league_detail(league_id):
                           stat_form=stat_form,
                           matches_pagination=matches_pagination,
                           teams_js=teams_js,
+                          scheduling_teams=scheduling_teams,
                           form=form)
 
 
