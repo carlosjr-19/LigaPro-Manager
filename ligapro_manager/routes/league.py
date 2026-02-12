@@ -71,7 +71,9 @@ def league_detail(league_id):
     # Show only active teams in the list, but keep deleted teams for historical match references if needed
     active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
     # Scheduling Teams (Exclude Hidden)
+    print("DEBUG: Active Teams:", [(t.name, t.is_hidden) for t in active_teams])
     scheduling_teams = [t for t in active_teams if not t.is_hidden]
+    print("DEBUG: Scheduling Teams:", [t.name for t in scheduling_teams])
     all_teams = Team.query.filter_by(league_id=league_id).all() # Need all for matches history lookup
     
     standings = calculate_standings(league_id)
