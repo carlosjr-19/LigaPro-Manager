@@ -312,14 +312,16 @@ def delete_court(court_id):
 def generate_share_report(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     
-    # Get form data
-    include_standings = request.values.get('include_standings') == 'on'
-    include_recent = request.values.get('include_recent') == 'on'
+    # Get form data - Checkboxes send their value (e.g., 'on') only if checked. 
+    # If unchecked, they are missing from request.values.
+    # We check for presence (is not None) to handle 'on', 'true', etc.
+    include_standings = request.values.get('include_standings') is not None
+    include_recent = request.values.get('include_recent') is not None
     date_start_str = request.values.get('date_start')
     date_end_str = request.values.get('date_end')
-    include_upcoming = request.values.get('include_upcoming') == 'on'
-    include_scorers = request.values.get('include_scorers') == 'on'
-    include_keepers = request.values.get('include_keepers') == 'on'
+    include_upcoming = request.values.get('include_upcoming') is not None
+    include_scorers = request.values.get('include_scorers') is not None
+    include_keepers = request.values.get('include_keepers') is not None
     
     # Data containers
     standings = []

@@ -1235,7 +1235,7 @@
             <div class="space-y-4">
                 <!-- Standings -->
                 <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
-                    <input type="checkbox" name="include_standings" checked
+                    <input type="checkbox" name="include_standings" value="on" checked
                         class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                     <span class="flex-1">Tabla de Posiciones</span>
                 </label>
@@ -1243,7 +1243,8 @@
                 <!-- Recent -->
                 <div class="border border-white/10 rounded p-3">
                     <label class="flex items-center gap-3 mb-3 cursor-pointer">
-                        <input type="checkbox" name="include_recent" id="check_recent" onchange="toggleDateInputs()"
+                        <input type="checkbox" name="include_recent" value="on" id="check_recent"
+                            onchange="toggleDateInputs()"
                             class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                         <span class="flex-1">Resultados Recientes</span>
                     </label>
@@ -1264,8 +1265,9 @@
                 <!-- Upcoming -->
                 <label
                     class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer {% if not upcoming_matches %}opacity-50 pointer-events-none{% endif %}">
-                    <input type="checkbox" name="include_upcoming" {% if upcoming_matches %}checked{% else %}disabled{%
-                        endif %} class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                    <input type="checkbox" name="include_upcoming" value="on" {% if upcoming_matches %}checked{% else
+                        %}disabled{% endif %}
+                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                     <span class="flex-1">Próximos Partidos</span>
                     {% if not upcoming_matches %}<span class="text-xs text-red-400">Sin datos</span>{% endif %}
                 </label>
@@ -1275,8 +1277,8 @@
                     <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
                         {% if not current_user.is_premium %}opacity-50{% endif %} 
                         {% if not top_scorers %}pointer-events-none opacity-30{% endif %}">
-                        <input type="checkbox" name="include_scorers" {% if current_user.is_premium %}checked{% else
-                            %}disabled{% endif %}
+                        <input type="checkbox" name="include_scorers" value="on" {% if current_user.is_premium
+                            %}checked{% else %}disabled{% endif %}
                             class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                         <div class="flex flex-col">
                             <span class="flex-1">Goleadores</span>
@@ -1289,8 +1291,8 @@
                     <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
                         {% if not current_user.is_premium %}opacity-50{% endif %} 
                         {% if not top_goalkeepers %}pointer-events-none opacity-30{% endif %}">
-                        <input type="checkbox" name="include_keepers" {% if current_user.is_premium %}checked{% else
-                            %}disabled{% endif %}
+                        <input type="checkbox" name="include_keepers" value="on" {% if current_user.is_premium
+                            %}checked{% else %}disabled{% endif %}
                             class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                         <div class="flex flex-col">
                             <span class="flex-1">Arqueros</span>
