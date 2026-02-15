@@ -306,20 +306,20 @@ def delete_court(court_id):
     return redirect(url_for('league.league_detail', league_id=league.id, _anchor='settings'))
 
 
-@league_bp.route('/leagues/<league_id>/share', methods=['POST'])
+@league_bp.route('/leagues/<league_id>/share', methods=['GET', 'POST'])
 @login_required
 @owner_required
 def generate_share_report(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     
     # Get form data
-    include_standings = request.form.get('include_standings') == 'on'
-    include_recent = request.form.get('include_recent') == 'on'
-    date_start_str = request.form.get('date_start')
-    date_end_str = request.form.get('date_end')
-    include_upcoming = request.form.get('include_upcoming') == 'on'
-    include_scorers = request.form.get('include_scorers') == 'on'
-    include_keepers = request.form.get('include_keepers') == 'on'
+    include_standings = request.values.get('include_standings') == 'on'
+    include_recent = request.values.get('include_recent') == 'on'
+    date_start_str = request.values.get('date_start')
+    date_end_str = request.values.get('date_end')
+    include_upcoming = request.values.get('include_upcoming') == 'on'
+    include_scorers = request.values.get('include_scorers') == 'on'
+    include_keepers = request.values.get('include_keepers') == 'on'
     
     # Data containers
     standings = []
