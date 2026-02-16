@@ -18,6 +18,7 @@ class League(db.Model):
     show_stats = db.Column(db.Boolean, default=True)
     logo_url = db.Column(db.Text, nullable=True) # Premium only
     slogan = db.Column(db.String(255), nullable=True) # Premium only
+    credential_color = db.Column(db.String(10), default='#dc2626') # Premium only
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships
