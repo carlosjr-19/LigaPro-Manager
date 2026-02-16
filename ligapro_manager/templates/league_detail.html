@@ -835,10 +835,11 @@
                                     <span>Partido Único</span>
                                 </label>
                                 <label
-                                    class="flex items-center gap-2 {% if current_user.is_premium %}cursor-pointer{% else %}opacity-50 cursor-not-allowed{% endif %}"
-                                    title="{% if not current_user.is_premium %}Premium requerido{% endif %}">
+                                    class="flex items-center gap-2 {% if current_user.is_active_premium %}cursor-pointer{% else %}opacity-50 cursor-not-allowed{% endif %}"
+                                    title="{% if not current_user.is_active_premium %}Premium requerido{% endif %}">
                                     <input type="radio" name="playoff_type" value="double" {% if not
-                                        current_user.is_premium %}disabled{% endif %} class="form-radio text-primary">
+                                        current_user.is_active_premium %}disabled{% endif %}
+                                        class="form-radio text-primary">
                                     <span>Ida y Vuelta (Premium)</span>
                                 </label>
                             </div>
@@ -960,7 +961,7 @@
 
                     <!-- Gameplay Settings (Points & Max Teams - Premium to Edit) -->
                     <div class="mb-6 p-4 rounded-xl border border-white/10 relative overflow-hidden bg-white/5">
-                        {% if not current_user.is_premium %}
+                        {% if not current_user.is_active_premium %}
                         <div
                             class="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
                             <div class="text-center">
@@ -980,26 +981,28 @@
                             <i class="fas fa-gamepad text-blue-400"></i> Configuración de Juego
                         </h3>
 
-                        <div class="mb-4 {% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                        <div
+                            class="mb-4 {% if not current_user.is_active_premium %}opacity-50 pointer-events-none{% endif %}">
                             <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Máximo de
                                 Equipos</label>
                             {{ form.max_teams(class="input-field", placeholder="Ej: 10") }}
-                            {% if not current_user.is_premium %}
+                            {% if not current_user.is_active_premium %}
                             <p class="text-xs text-white/40 mt-1">Límite gratuito: 10 equipos</p>
                             {% endif %}
                         </div>
 
-                        <div class="mb-4 {% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                        <div
+                            class="mb-4 {% if not current_user.is_active_premium %}opacity-50 pointer-events-none{% endif %}">
                             <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Número de Vueltas
                                 (1-5)</label>
                             {{ form.num_vueltas(class="input-field", type="number", min="1", max="5") }}
-                            {% if not current_user.is_premium %}
+                            {% if not current_user.is_active_premium %}
                             <p class="text-xs text-white/40 mt-1">Límite gratuito: 1 Vuelta</p>
                             {% endif %}
                         </div>
 
                         <div
-                            class="grid grid-cols-1 md:grid-cols-2 gap-4 {% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                            class="grid grid-cols-1 md:grid-cols-2 gap-4 {% if not current_user.is_active_premium %}opacity-50 pointer-events-none{% endif %}">
                             <div>
                                 <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Pts
                                     Victoria</label>
@@ -1051,7 +1054,7 @@
                 </div>
 
                 {% if current_user.role == 'owner' %}
-                {% if current_user.is_premium %}
+                {% if current_user.is_active_premium %}
                 {% if courts|length < 3 %} <form method="POST"
                     action="{{ url_for('league.add_court', league_id=league.id) }}" class="flex gap-2 items-center">
                     <input type="text" name="court_name" class="input-field text-sm py-1.5"
@@ -1082,7 +1085,7 @@
 
             <!-- Visual Settings (Premium Only) -->
             <div class="mb-8 p-4 rounded-xl border border-white/10 relative overflow-hidden bg-white/5">
-                {% if not current_user.is_premium %}
+                {% if not current_user.is_active_premium %}
                 <div class="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex items-center justify-center">
                     <div class="text-center">
                         <i class="fas fa-crown text-yellow-500 text-2xl mb-2"></i>
@@ -1100,7 +1103,7 @@
                     <i class="fas fa-paint-brush"></i> Personalización Visual
                 </h3>
 
-                <div class="{% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                <div class="{% if not current_user.is_active_premium %}opacity-50 pointer-events-none{% endif %}">
                     <div class="mb-4">
                         <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Logo de la Liga
                             (URL)</label>
@@ -1144,7 +1147,7 @@
                     <p class="text-white/60 mb-4 text-sm">Reinicia todos los partidos y puntos. Mantiene equipos y
                         jugadores.</p>
 
-                    {% if current_user.is_premium %}
+                    {% if current_user.is_active_premium %}
                     <form method="POST" action="{{ url_for('match.reset_season', league_id=league.id) }}"
                         onsubmit="return confirm('¡ADVERTENCIA!\n\nEsta acción borrará TODOS los partidos, resultados y puntos de la temporada actual.\n\nNO se borrarán los equipos ni jugadores.\n\n¿Estás absolutamente seguro de continuar?')">
                         <button type="submit"
@@ -1302,28 +1305,28 @@
                 <!-- Stats -->
                 <div class="grid grid-cols-2 gap-4">
                     <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
-                        {% if not current_user.is_premium %}opacity-50{% endif %} 
+                        {% if not current_user.is_active_premium %}opacity-50{% endif %} 
                         {% if not top_scorers %}pointer-events-none opacity-30{% endif %}">
-                        <input type="checkbox" name="include_scorers" value="on" {% if current_user.is_premium
+                        <input type="checkbox" name="include_scorers" value="on" {% if current_user.is_active_premium
                             %}checked{% else %}disabled{% endif %}
                             class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                         <div class="flex flex-col">
                             <span class="flex-1">Goleadores</span>
-                            {% if not current_user.is_premium %}
+                            {% if not current_user.is_active_premium %}
                             <span class="text-xs text-yellow-500 font-bold"><i
                                     class="fas fa-crown text-[10px] mr-1"></i>Premium</span>
                             {% endif %}
                         </div>
                     </label>
                     <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
-                        {% if not current_user.is_premium %}opacity-50{% endif %} 
+                        {% if not current_user.is_active_premium %}opacity-50{% endif %} 
                         {% if not top_goalkeepers %}pointer-events-none opacity-30{% endif %}">
-                        <input type="checkbox" name="include_keepers" value="on" {% if current_user.is_premium
+                        <input type="checkbox" name="include_keepers" value="on" {% if current_user.is_active_premium
                             %}checked{% else %}disabled{% endif %}
                             class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                         <div class="flex flex-col">
                             <span class="flex-1">Arqueros</span>
-                            {% if not current_user.is_premium %}
+                            {% if not current_user.is_active_premium %}
                             <span class="text-xs text-yellow-500 font-bold"><i
                                     class="fas fa-crown text-[10px] mr-1"></i>Premium</span>
                             {% endif %}

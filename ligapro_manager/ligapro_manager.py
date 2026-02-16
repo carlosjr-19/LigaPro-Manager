@@ -49,6 +49,9 @@ def init_database():
         # Create tables
         db.create_all()
         
+        # Run Migrations FIRST to ensure schema is up to date
+        run_migrations()
+        
         # Create default admin if not exists
         existing = User.query.filter_by(email='delegado@ligapro.com').first()
         if not existing:
@@ -66,8 +69,6 @@ def init_database():
         else:
             print('Admin user already exists')
             
-        # Run Migrations
-        run_migrations()
         print('Database initialized!')
 
 def run_migrations():
@@ -83,7 +84,11 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN slogan VARCHAR(255)",
                     "ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE teams ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE",
-                    "ALTER TABLE leagues ADD COLUMN num_vueltas INTEGER DEFAULT 1"
+                    "ALTER TABLE teams ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE leagues ADD COLUMN num_vueltas INTEGER DEFAULT 1",
+                    "ALTER TABLE users ADD COLUMN color_win VARCHAR(7) DEFAULT '#22c55e'",
+                    "ALTER TABLE users ADD COLUMN color_loss VARCHAR(7) DEFAULT '#ef4444'",
+                    "ALTER TABLE users ADD COLUMN highlight_mode VARCHAR(20) DEFAULT 'simple'"
                 ]
                 
                 for migration in migrations:

@@ -97,7 +97,7 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                {% if current_user.is_premium %}
+                                {% if current_user.is_active_premium %}
                                 <a href="{{ url_for('player.edit_player', player_id=player.id) }}"
                                     class="text-white/40 hover:text-white">
                                     <i class="fas fa-edit"></i>
@@ -132,8 +132,14 @@
                             </p>
                             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div class="flex items-center gap-3 flex-1 justify-end w-full sm:w-auto">
-                                    <span
-                                        class="font-medium {% if match.home_team_id == team.id %}text-primary{% endif %} text-right">
+                                    <span class="font-medium text-right" style="{% if match.is_completed %}
+                                            {% if league.owner.highlight_mode == 'full' or match.home_team_id == team.id %}
+                                                {% if match.home_score > match.away_score %}color: {{ league.owner.color_win or '#22c55e' }};
+                                                {% elif match.home_score < match.away_score %}color: {{ league.owner.color_loss or '#ef4444' }};
+                                                {% elif match.home_team_id == team.id %}color: var(--primary);
+                                                {% endif %}
+                                            {% endif %}
+                                        {% elif match.home_team_id == team.id %}color: var(--primary);{% endif %}">
                                         {{ teams_dict[match.home_team_id].name }}
                                     </span>
                                     {% if teams_dict[match.home_team_id].shield_url %}
@@ -164,8 +170,14 @@
                                         <i class="fas fa-shield-alt text-xs text-white/40"></i>
                                     </div>
                                     {% endif %}
-                                    <span
-                                        class="font-medium {% if match.away_team_id == team.id %}text-primary{% endif %}">
+                                    <span class="font-medium" style="{% if match.is_completed %}
+                                            {% if league.owner.highlight_mode == 'full' or match.away_team_id == team.id %}
+                                                {% if match.away_score > match.home_score %}color: {{ league.owner.color_win or '#22c55e' }};
+                                                {% elif match.away_score < match.home_score %}color: {{ league.owner.color_loss or '#ef4444' }};
+                                                {% elif match.away_team_id == team.id %}color: var(--primary);
+                                                {% endif %}
+                                            {% endif %}
+                                        {% elif match.away_team_id == team.id %}color: var(--primary);{% endif %}">
                                         {{ teams_dict[match.away_team_id].name }}
                                     </span>
                                 </div>

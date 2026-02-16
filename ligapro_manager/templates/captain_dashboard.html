@@ -171,7 +171,7 @@
                         <span>Herramientas de Capitán</span>
                     </h3>
 
-                    {% if current_user.is_premium %}
+                    {% if current_user.is_active_premium %}
                     <a href="{{ url_for('team.generate_credentials', team_id=team.id) }}"
                         class="btn-primary w-full text-center block bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 border-0">
                         <i class="fas fa-id-card mr-2"></i>Generar Registros

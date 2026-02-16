@@ -45,7 +45,7 @@
                     <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
                         Máximo de Equipos
                     </label>
-                    {% if current_user.is_premium %}
+                    {% if current_user.is_active_premium %}
                     {{ form.max_teams(class="input-field", type="number", min="4", max="32") }}
                     {% else %}
                     {{ form.max_teams(class="input-field opacity-50 cursor-not-allowed", readonly=True, value=10) }}
@@ -61,7 +61,7 @@
                         <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
                             Puntos Victoria
                         </label>
-                        {% if current_user.is_premium %}
+                        {% if current_user.is_active_premium %}
                         {{ form.win_points(class="input-field", type="number", min="0") }}
                         {% else %}
                         {{ form.win_points(class="input-field opacity-50 cursor-not-allowed", readonly=True, value=3) }}
@@ -71,7 +71,7 @@
                         <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
                             Puntos Empate
                         </label>
-                        {% if current_user.is_premium %}
+                        {% if current_user.is_active_premium %}
                         {{ form.draw_points(class="input-field", type="number", min="0") }}
                         {% else %}
                         {{ form.draw_points(class="input-field opacity-50 cursor-not-allowed", readonly=True, value=1)
@@ -81,7 +81,7 @@
                 </div>
 
                 <div class="card bg-white/5 border-white/10 p-4 space-y-4 relative overflow-hidden">
-                    {% if not current_user.is_premium %}
+                    {% if not current_user.is_active_premium %}
                     <!-- Premium Overlay -->
                     <div
                         class="absolute inset-0 bg-black/60 backdrop-blur-[1px] z-10 flex flex-col items-center justify-center text-center p-6 border border-yellow-500/30 rounded-xl">
@@ -103,23 +103,23 @@
                     </h3>
 
                     <div
-                        class="{% if not current_user.is_premium %}opacity-50 pointer-events-none filter blur-[1px]{% endif %}">
+                        class="{% if not current_user.is_active_premium %}opacity-50 pointer-events-none filter blur-[1px]{% endif %}">
                         <div class="mb-4">
                             <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Logo de la
                                 Liga</label>
                             {{ form.logo_url(class="input-field", placeholder="URL de la imagen del logo", disabled=not
-                            current_user.is_premium) }}
+                            current_user.is_active_premium) }}
                         </div>
 
                         <div class="mb-4">
                             <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Slogan</label>
                             {{ form.slogan(class="input-field", placeholder="Ej: Pasión por el fútbol", disabled=not
-                            current_user.is_premium) }}
+                            current_user.is_active_premium) }}
                         </div>
 
                         <div class="border-t border-white/10 pt-4 flex items-center gap-3">
                             {{ form.show_stats(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary
-                            focus:ring-primary", disabled=not current_user.is_premium) }}
+                            focus:ring-primary", disabled=not current_user.is_active_premium) }}
                             <div>
                                 <label class="block text-sm font-bold text-white mb-1">
                                     {{ form.show_stats.label.text }}

@@ -52,6 +52,11 @@ def delete_user(user_id):
 def toggle_premium(user_id):
     user = User.query.get_or_404(user_id)
     user.is_premium = not user.is_premium
+    
+    # Al cambiar el estado manual, limpiamos cualquier fecha de expiración
+    # para evitar estados inconsistentes (ej: desactivar manual pero que siga activo por fecha)
+    user.premium_expires_at = None
+        
     db.session.commit()
     status = "PREMIUM" if user.is_premium else "GRATUITO"
     flash(f'Usuario {user.email} es ahora {status}.', 'success')
@@ -135,3 +140,24 @@ def login_as(user_id):
     login_user(user)
     flash(f'Has iniciado sesión como {user.name}.', 'info')
     return redirect(url_for('main.dashboard'))
+
+@admin_bp.route('/admin/users/<user_id>/colors', methods=['POST'])
+@login_required
+@admin_required
+def update_user_colors(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    color_win = request.form.get('color_win')
+    color_loss = request.form.get('color_loss')
+    highlight_mode = request.form.get('highlight_mode', 'simple')
+    
+    if color_win and color_loss:
+        user.color_win = color_win
+        user.color_loss = color_loss
+        user.highlight_mode = highlight_mode
+        db.session.commit()
+        flash(f'Colores actualizados para {user.name}.', 'success')
+    else:
+        flash('Ambos colores son requeridos.', 'warning')
+        
+    return redirect(url_for('admin.users', page=request.args.get('page', 1), search=request.args.get('search', ''), role=request.args.get('role', '')))

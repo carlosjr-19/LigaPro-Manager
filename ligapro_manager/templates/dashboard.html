@@ -16,7 +16,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    {% if current_user.is_premium %}
+                    {% if current_user.is_active_premium %}
                     <span class="bg-warning/20 text-warning px-3 py-1 rounded text-sm">
                         <i class="fas fa-crown mr-1"></i> Premium
                     </span>
@@ -87,7 +87,7 @@
         {% endif %}
 
         <!-- Stats -->
-        {% if not current_user.is_premium %}
+        {% if not current_user.is_active_premium %}
         <div class="mt-8 card bg-white/5 border-warning/30">
             <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
                 <div class="w-12 h-12 bg-warning/20 rounded-lg flex items-center justify-center shrink-0">

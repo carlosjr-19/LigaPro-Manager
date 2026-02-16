@@ -44,7 +44,7 @@ def create_checkout_session():
             ],
             mode=mode,
             success_url=url_for('premium.success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('premium.premium', _external=True) if plan_type == 'owner' else url_for('premium.captain_premium', _external=True),
+            cancel_url=url_for('premium.premium', _external=True) if plan_type in ['owner', 'annual'] else url_for('premium.captain_premium', _external=True),
             customer_email=current_user.email,
             client_reference_id=current_user.id,
         )

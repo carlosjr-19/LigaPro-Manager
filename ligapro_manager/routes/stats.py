@@ -20,7 +20,7 @@ def add_stat(league_id):
     
     if form.validate_on_submit():
         # Check limit for non-premium users
-        if not current_user.is_premium:
+        if not current_user.is_active_premium:
             current_count = SeasonStat.query.filter_by(
                 league_id=league_id, 
                 stat_type=form.stat_type.data

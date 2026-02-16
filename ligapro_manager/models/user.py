@@ -13,6 +13,9 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), default='owner')  # owner or captain
     is_premium = db.Column(db.Boolean, default=False)
     is_suspended = db.Column(db.Boolean, default=False)
+    color_win = db.Column(db.String(7), default='#22c55e') # Green-500
+    color_loss = db.Column(db.String(7), default='#ef4444') # Red-500
+    highlight_mode = db.Column(db.String(20), default='simple') # 'simple' or 'full'
     premium_expires_at = db.Column(db.DateTime, nullable=True)
     team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

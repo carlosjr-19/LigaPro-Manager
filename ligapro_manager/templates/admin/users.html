@@ -43,6 +43,7 @@
                         <th class="py-4 px-6 text-white/60">Usuario</th>
                         <th class="py-4 px-6 text-white/60">Info</th>
                         <th class="py-4 px-6 text-white/60">Premium</th>
+                        <th class="py-4 px-6 text-white/60">Colores (G/P)</th>
                         <th class="py-4 px-6 text-white/60">Acciones</th>
                     </tr>
                 </thead>
@@ -81,6 +82,37 @@
                             {% endif %}
                             {% else %}
                             <span class="text-white/40">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6">
+                            {% if user.role == 'owner' %}
+                            <form action="{{ url_for('admin.update_user_colors', user_id=user.id) }}" method="POST"
+                                class="flex items-center gap-2">
+                                <input type="hidden" name="page" value="{{ users.page }}">
+                                <input type="hidden" name="search" value="{{ search }}">
+                                <input type="hidden" name="role" value="{{ current_role }}">
+
+                                <div class="flex flex-col gap-1">
+                                    <input type="color" name="color_win" value="{{ user.color_win or '#22c55e' }}"
+                                        class="w-8 h-6 rounded cursor-pointer" title="Color Ganador">
+                                    <input type="color" name="color_loss" value="{{ user.color_loss or '#ef4444' }}"
+                                        class="w-8 h-6 rounded cursor-pointer" title="Color Perdedor">
+                                    <select name="highlight_mode"
+                                        class="h-6 text-xs bg-white/10 border-none rounded text-white focus:ring-0 w-20"
+                                        title="Modo de Resaltado">
+                                        <option value="simple" {% if user.highlight_mode=='simple' %}selected{% endif
+                                            %}>Simple</option>
+                                        <option value="full" {% if user.highlight_mode=='full' %}selected{% endif %}>
+                                            Completo</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn-icon bg-white/10 hover:bg-white/20"
+                                    title="Guardar Colores">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-white/40">-</span>
                             {% endif %}
                         </td>
                         <td class="py-4 px-6">

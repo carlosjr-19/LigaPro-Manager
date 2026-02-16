@@ -16,7 +16,7 @@ league_bp = Blueprint('league', __name__)
 @owner_required
 def create_league():
     # Check league limit for non-premium users
-    if not current_user.is_premium:
+    if not current_user.is_active_premium:
         league_count = League.query.filter_by(user_id=current_user.id).count()
         if league_count >= 3:
             flash('Usuarios gratuitos pueden crear máximo 3 ligas. Actualiza a Premium.', 'warning')
@@ -29,7 +29,7 @@ def create_league():
         draw_points = form.draw_points.data
         
         # Enforce Free Tier Limits (Override even if client bypassed disabled inputs)
-        if not current_user.is_premium:
+        if not current_user.is_active_premium:
             max_teams = 10
             win_points = 3
             draw_points = 1
@@ -253,7 +253,7 @@ def edit_league(league_id):
         league.name = form.name.data
         
         # Premium/Restricted Features: Max Teams, Points, Visuals
-        if current_user.is_premium:
+        if current_user.is_active_premium:
             league.max_teams = form.max_teams.data
             league.win_points = form.win_points.data
             league.draw_points = form.draw_points.data

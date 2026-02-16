@@ -14,8 +14,9 @@ def create_team(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     
     # Check team limit
+    # Check team limit
     team_count = Team.query.filter_by(league_id=league_id, is_deleted=False).count()
-    if not current_user.is_premium and team_count >= 12:
+    if not current_user.is_active_premium and team_count >= 12:
         flash('Límite de 12 equipos para usuarios gratuitos.', 'warning')
         return redirect(url_for('league.league_detail', league_id=league_id))
     

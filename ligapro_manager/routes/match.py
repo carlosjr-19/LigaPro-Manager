@@ -250,7 +250,7 @@ def generate_playoffs(league_id):
     playoff_type = request.form.get('playoff_type', 'single')
 
     # Premium check for double leg
-    if playoff_type == 'double' and not current_user.is_premium:
+    if playoff_type == 'double' and not current_user.is_active_premium:
         flash('La modalidad Ida y Vuelta es exclusiva para Premium.', 'warning')
         return redirect(url_for('premium.premium'))
     
