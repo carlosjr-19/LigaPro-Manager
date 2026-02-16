@@ -92,6 +92,7 @@ def run_migrations():
                         conn.commit()
                         print(f"Executed migration: {migration}")
                     except Exception as e:
+                        conn.rollback()
                         # Only ignore if column already exists (DuplicateColumn)
                         if 'DuplicateColumn' in str(e) or 'already exists' in str(e):
                             print(f"Column already exists: {migration}")
