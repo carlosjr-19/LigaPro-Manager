@@ -110,7 +110,6 @@ def init_db_command():
     print("Initialized the database.")
 
 # Initialize on startup
-init_database()
-
 if __name__ == '__main__':
+    init_database()
     app.run(host='0.0.0.0', port=8001, debug=True)
