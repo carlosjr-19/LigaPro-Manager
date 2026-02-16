@@ -8,6 +8,6 @@ class MatchForm(FlaskForm):
     court_id = SelectField('Cancha', validators=[DataRequired()])
     match_date = DateTimeField('Fecha y Hora', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
 
-class MatchResultForm(FlaskForm):
+class MatchResultForm(MatchForm):
     home_score = IntegerField('Goles Local', validators=[InputRequired(), NumberRange(min=0)])
     away_score = IntegerField('Goles Visitante', validators=[InputRequired(), NumberRange(min=0)])

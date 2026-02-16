@@ -60,6 +60,26 @@
             <form method="POST" class="space-y-6">
                 {{ form.hidden_tag() }}
 
+                <!-- Details Section (New) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 p-4 rounded-lg border border-white/5 mb-6">
+                    <div>
+                        <label class="block text-sm text-white/60 mb-2">Fecha y Hora</label>
+                        {{ form.match_date(class="input-field", type="datetime-local") }}
+                    </div>
+                    <div>
+                        <label class="block text-sm text-white/60 mb-2">Cancha</label>
+                        {{ form.court_id(class="input-field") }}
+                    </div>
+                    <div>
+                        <label class="block text-sm text-white/60 mb-2">Equipo Local</label>
+                        {{ form.home_team_id(class="input-field") }}
+                    </div>
+                    <div>
+                        <label class="block text-sm text-white/60 mb-2">Equipo Visitante</label>
+                        {{ form.away_team_id(class="input-field") }}
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-8">
                     <div>
                         <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide text-center">
@@ -75,14 +95,32 @@
                     </div>
                 </div>
 
-                <div class="flex gap-4">
-                    <button type="submit" class="btn-primary flex-1">
-                        <i class="fas fa-check mr-2"></i>Guardar Resultado
+                <div class="flex flex-col md:flex-row gap-4 mt-8">
+                    <button type="submit" class="btn-primary flex-1 py-3">
+                        <i class="fas fa-check mr-2"></i>Guardar Cambios
                     </button>
+
+                    <button type="button" onclick="confirmDelete()"
+                        class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded font-bold transition-colors">
+                        <i class="fas fa-trash mr-2"></i>Eliminar
+                    </button>
+
                     <a href="{{ url_for('league.league_detail', league_id=league.id) }}#{% if match.stage not in ['regular', None] %}playoff{% else %}matches{% endif %}"
-                        class="btn-secondary">Cancelar</a>
+                        class="btn-secondary py-3 text-center">Cancelar</a>
                 </div>
             </form>
+
+            <form id="deleteMatchForm" action="{{ url_for('match.delete_match', match_id=match.id) }}" method="POST"
+                class="hidden">
+            </form>
+
+            <script>
+                function confirmDelete() {
+                    if (confirm('¿Estás seguro de eliminar este partido? Se eliminarán los puntos otorgados.')) {
+                        document.getElementById('deleteMatchForm').submit();
+                    }
+                }
+            </script>
         </div>
     </main>
 </div>

@@ -5,6 +5,7 @@ from wtforms.validators import DataRequired, Length, NumberRange, Optional
 class LeagueForm(FlaskForm):
     name = StringField('Nombre de la Liga', validators=[DataRequired(), Length(min=2, max=100)])
     max_teams = IntegerField('Máximo de Equipos', validators=[DataRequired(), NumberRange(min=4, max=32)], default=10)
+    num_vueltas = IntegerField('Número de Vueltas (Premium)', validators=[DataRequired(), NumberRange(min=1, max=5)], default=1)
     win_points = IntegerField('Puntos por Victoria', validators=[DataRequired()], default=3)
     draw_points = IntegerField('Puntos por Empate', validators=[DataRequired()], default=1)
     # Field handles by template conditional, but need it in form

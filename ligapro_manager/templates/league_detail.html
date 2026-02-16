@@ -512,87 +512,105 @@
             <!-- Matrix View -->
             <div id="matches-matrix-view" class="hidden overflow-x-auto pb-4">
                 {% if teams %}
-                <table class="w-full border-collapse min-w-[800px]">
-                    <thead>
-                        <tr>
-                            <th class="p-2 border border-white/10 bg-white/5 sticky left-0 z-10 w-40"></th>
-                            {% for team in scheduling_teams %}
-                            <th class="p-2 border border-white/10 bg-white/5 text-center min-w-[120px]">
-                                <div class="flex flex-col items-center">
-                                    {% if team.shield_url %}
-                                    <img src="{{ team.shield_url }}" class="w-8 h-8 rounded object-cover mb-1">
-                                    {% else %}
-                                    <div class="w-8 h-8 bg-white/10 rounded flex items-center justify-center mb-1">
-                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
-                                    </div>
-                                    {% endif %}
-                                    <span
-                                        class="text-xs font-bold whitespace-nowrap overflow-hidden text-ellipsis max-w-[110px]">{{
-                                        team.name }}</span>
-                                </div>
-                            </th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for home in scheduling_teams %}
-                        <tr>
-                            <th
-                                class="p-2 border border-white/10 bg-white/5 text-left min-w-[150px] sticky left-0 z-10">
-                                <div class="flex items-center gap-2">
-                                    {% if home.shield_url %}
-                                    <img src="{{ home.shield_url }}" class="w-6 h-6 rounded object-cover">
-                                    {% else %}
-                                    <div class="w-6 h-6 bg-white/10 rounded flex items-center justify-center">
-                                        <i class="fas fa-shield-alt text-xs text-white/40"></i>
-                                    </div>
-                                    {% endif %}
-                                    <span
-                                        class="text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{{
-                                        home.name }}</span>
-                                </div>
-                            </th>
-                            {% for away in scheduling_teams %}
-                            {% set cell = match_matrix[home.id][away.id] %}
-                            <td
-                                class="p-0 border border-white/10 text-center relative hover:bg-white/5 transition-colors h-20">
-                                {% if cell.status == 'cnt_play' %}
-                                <div class="w-full h-full bg-white/5 flex items-center justify-center">
-                                    <div class="w-full h-px bg-white/10 rotate-45 transform scale-150"></div>
-                                </div>
-                                {% else %}
-                                <button type="button" onclick='openMatrixModal({{ cell | tojson | safe }})'
-                                    class="w-full h-full flex flex-col items-center justify-center p-1 group">
+                {% if num_vueltas > 1 %}
+                <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+                    {% for r in range(1, num_vueltas + 1) %}
+                    <button onclick="showMatrixRound({{ r }})" id="btn-matrix-round-{{ r }}"
+                        class="px-4 py-2 rounded-full text-sm font-bold border border-white/10 transition-colors {% if r == 1 %}bg-primary text-white{% else %}bg-white/5 text-white/60 hover:bg-white/10{% endif %} whitespace-nowrap">
+                        Vuelta {{ r }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
-                                    {% if cell.status == 'completed' %}
-                                    <span
-                                        class="font-bold text-lg text-primary group-hover:scale-110 transition-transform">{{
-                                        cell.match.home_score }} - {{ cell.match.away_score }}</span>
-                                    {% if cell.match.is_completed %}
-                                    <span class="text-[10px] text-green-400">Finalizado</span>
-                                    {% endif %}
-                                    <span class="text-[10px] text-white/40">{{ cell.match.match_date_display }}</span>
-                                    {% elif cell.status == 'scheduled' %}
-                                    <span class="text-sm text-blue-400 font-bold group-hover:text-blue-300">{{
-                                        cell.match.match_date_display }}</span>
-                                    {% if cell.match.match_time_display and '00:00' not in cell.match.match_time_display
-                                    %}
-                                    <span class="text-[10px] text-white/40">{{ cell.match.match_time_display }}</span>
-                                    {% endif %}
-                                    <i
-                                        class="fas fa-pencil-alt text-[10px] text-white/0 group-hover:text-white/40 mt-1 transition-colors"></i>
+                {% for r in range(1, num_vueltas + 1) %}
+                <div id="matrix-round-{{ r }}" class="matrix-round-container {% if r != 1 %}hidden{% endif %}">
+                    <table class="w-full border-collapse min-w-[800px]">
+                        <thead>
+                            <tr>
+                                <th class="p-2 border border-white/10 bg-white/5 sticky left-0 z-10 w-40"></th>
+                                {% for team in scheduling_teams %}
+                                <th class="p-2 border border-white/10 bg-white/5 text-center min-w-[120px]">
+                                    <div class="flex flex-col items-center">
+                                        {% if team.shield_url %}
+                                        <img src="{{ team.shield_url }}" class="w-8 h-8 rounded object-cover mb-1">
+                                        {% else %}
+                                        <div class="w-8 h-8 bg-white/10 rounded flex items-center justify-center mb-1">
+                                            <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                        </div>
+                                        {% endif %}
+                                        <span
+                                            class="text-xs font-bold whitespace-nowrap overflow-hidden text-ellipsis max-w-[110px]">{{
+                                            team.name }}</span>
+                                    </div>
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for home in scheduling_teams %}
+                            <tr>
+                                <th
+                                    class="p-2 border border-white/10 bg-white/5 text-left min-w-[150px] sticky left-0 z-10">
+                                    <div class="flex items-center gap-2">
+                                        {% if home.shield_url %}
+                                        <img src="{{ home.shield_url }}" class="w-6 h-6 rounded object-cover">
+                                        {% else %}
+                                        <div class="w-6 h-6 bg-white/10 rounded flex items-center justify-center">
+                                            <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                        </div>
+                                        {% endif %}
+                                        <span
+                                            class="text-sm font-bold whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">{{
+                                            home.name }}</span>
+                                    </div>
+                                </th>
+                                {% for away in scheduling_teams %}
+                                {% set cell = round_matrices[r][home.id][away.id] %}
+                                <td
+                                    class="p-0 border border-white/10 text-center relative hover:bg-white/5 transition-colors h-20">
+                                    {% if cell.status == 'cnt_play' %}
+                                    <div class="w-full h-full bg-white/5 flex items-center justify-center">
+                                        <div class="w-full h-px bg-white/10 rotate-45 transform scale-150"></div>
+                                    </div>
                                     {% else %}
-                                    <span
-                                        class="text-white/20 text-2xl group-hover:text-white/60 transition-colors">-</span>
+                                    <button type="button" onclick='openMatrixModal({{ cell | tojson | safe }})'
+                                        class="w-full h-full flex flex-col items-center justify-center p-1 group">
+
+                                        {% if cell.status == 'completed' %}
+                                        <span
+                                            class="font-bold text-lg text-primary group-hover:scale-110 transition-transform">{{
+                                            cell.match.home_score }} - {{ cell.match.away_score }}</span>
+                                        {% if cell.match.is_completed %}
+                                        <span class="text-[10px] text-green-400">Finalizado</span>
+                                        {% endif %}
+                                        <span class="text-xs text-white/40 mt-1">{{ cell.match.match_date_display
+                                            }}</span>
+                                        {% elif cell.status == 'scheduled' %}
+                                        <span class="text-sm text-blue-400 font-bold group-hover:text-blue-300">{{
+                                            cell.match.match_date_display }}</span>
+                                        {% if cell.match.match_time_display and '00:00' not in
+                                        cell.match.match_time_display
+                                        %}
+                                        <span class="text-[10px] text-white/40">{{ cell.match.match_time_display
+                                            }}</span>
+                                        {% endif %}
+                                        <i
+                                            class="fas fa-pencil-alt text-[10px] text-white/0 group-hover:text-white/40 mt-1 transition-colors"></i>
+                                        {% else %}
+                                        <span
+                                            class="text-white/20 text-2xl group-hover:text-white/60 transition-colors">-</span>
+                                        {% endif %}
+                                    </button>
                                     {% endif %}
-                                </button>
-                                {% endif %}
-                            </td>
+                                </td>
+                                {% endfor %}
+                            </tr>
                             {% endfor %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
+                {% endfor %}
                 {% else %}
                 <div class="text-center py-12 text-white/40">
                     <p>No hay suficientes equipos para mostrar el cuadro.</p>
@@ -968,6 +986,15 @@
                             {{ form.max_teams(class="input-field", placeholder="Ej: 10") }}
                             {% if not current_user.is_premium %}
                             <p class="text-xs text-white/40 mt-1">Límite gratuito: 10 equipos</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4 {% if not current_user.is_premium %}opacity-50 pointer-events-none{% endif %}">
+                            <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Número de Vueltas
+                                (1-5)</label>
+                            {{ form.num_vueltas(class="input-field", type="number", min="1", max="5") }}
+                            {% if not current_user.is_premium %}
+                            <p class="text-xs text-white/40 mt-1">Límite gratuito: 1 Vuelta</p>
                             {% endif %}
                         </div>
 
@@ -1558,5 +1585,29 @@
             document.getElementById('deleteMatrixForm').submit();
         }
     });
+
+    function showMatrixRound(round) {
+        // Hide all rounds
+        document.querySelectorAll('.matrix-round-container').forEach(el => el.classList.add('hidden'));
+
+        // Show selected
+        const selected = document.getElementById(`matrix-round-${round}`);
+        if (selected) selected.classList.remove('hidden');
+
+        // Update buttons
+        // Reset all
+        const allBtns = document.querySelectorAll('[id^="btn-matrix-round-"]');
+        allBtns.forEach(btn => {
+            btn.classList.remove('bg-primary', 'text-white');
+            btn.classList.add('bg-white/5', 'text-white/60', 'hover:bg-white/10');
+        });
+
+        // Activate selected
+        const activeBtn = document.getElementById(`btn-matrix-round-${round}`);
+        if (activeBtn) {
+            activeBtn.classList.remove('bg-white/5', 'text-white/60', 'hover:bg-white/10');
+            activeBtn.classList.add('bg-primary', 'text-white');
+        }
+    }
 </script>
 {% endblock %}

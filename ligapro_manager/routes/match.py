@@ -73,13 +73,46 @@ def update_match_result(match_id):
         return redirect(url_for('main.dashboard'))
     
     form = MatchResultForm(obj=match)
+    
+    # Populate Choice Fields (inherited from MatchForm)
+    # Include all teams (even deleted ones if they are already part of the match, or just active ones)
+    # Ideally should match create_match logic but maybe allow keeping existing if deleted
+    teams = Team.query.filter_by(league_id=league.id).all() 
+    # Use active_teams for dropdowns usually, but if this match involves a deleted team, we should probably include it or handle it.
+    # For simplicity, let's load active teams.
+    active_teams = Team.query.filter_by(league_id=league.id, is_deleted=False).all()
+    form.home_team_id.choices = [(t.id, t.name) for t in active_teams]
+    form.away_team_id.choices = [(t.id, t.name) for t in active_teams]
+    
+    # Ensure current teams are in choices even if deleted (so validation passes)
+    current_home_in_choices = any(str(t.id) == str(match.home_team_id) for t in active_teams)
+    if not current_home_in_choices:
+        home_t = Team.query.get(match.home_team_id)
+        if home_t: form.home_team_id.choices.append((home_t.id, home_t.name))
+        
+    current_away_in_choices = any(str(t.id) == str(match.away_team_id) for t in active_teams)
+    if not current_away_in_choices:
+        away_t = Team.query.get(match.away_team_id)
+        if away_t: form.away_team_id.choices.append((away_t.id, away_t.name))
+        
+    courts = Court.query.filter_by(league_id=league.id).all()
+    form.court_id.choices = [(c.id, c.name) for c in courts]
+    
     if form.validate_on_submit():
+        # Update Match Details
+        match.home_team_id = form.home_team_id.data
+        match.away_team_id = form.away_team_id.data
+        match.court_id = form.court_id.data
+        match.match_date = form.match_date.data
+        
+        # Update Scores
         match.home_score = form.home_score.data
         match.away_score = form.away_score.data
         match.is_completed = True
+        
         db.session.commit()
-        flash('Resultado registrado.', 'success')
-        anchor = 'playoff' if match.stage != 'regular' and match.stage is not None else 'matches'
+        flash('Partido actualizado (Resultados y Detalles).', 'success')
+        anchor = 'playoff' if match.stage not in ['regular', None] else 'matches'
         return redirect(url_for('league.league_detail', league_id=league.id, _anchor=anchor))
     
     home_team = Team.query.get(match.home_team_id)
@@ -100,9 +133,7 @@ def delete_match(match_id):
         flash('No tienes acceso.', 'danger')
         return redirect(url_for('main.dashboard'))
         
-    if match.is_completed:
-        flash('No se pueden eliminar partidos que ya tienen resultado.', 'warning')
-        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+    # Removed check for is_completed to allow deleting finalized matches
         
     db.session.delete(match)
     db.session.commit()

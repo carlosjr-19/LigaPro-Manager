@@ -39,7 +39,8 @@ def create_league():
             user_id=current_user.id,
             max_teams=max_teams,
             win_points=win_points,
-            draw_points=draw_points
+            draw_points=draw_points,
+            num_vueltas=1 # Default
         )
         db.session.add(league)
         db.session.flush() # Get ID
@@ -71,9 +72,7 @@ def league_detail(league_id):
     # Show only active teams in the list, but keep deleted teams for historical match references if needed
     active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
     # Scheduling Teams (Exclude Hidden)
-    print("DEBUG: Active Teams:", [(t.name, t.is_hidden) for t in active_teams])
     scheduling_teams = [t for t in active_teams if not t.is_hidden]
-    print("DEBUG: Scheduling Teams:", [t.name for t in scheduling_teams])
     all_teams = Team.query.filter_by(league_id=league_id).all() # Need all for matches history lookup
     
     standings = calculate_standings(league_id)
@@ -93,43 +92,90 @@ def league_detail(league_id):
     
     matches = matches_pagination.items 
 
-    # Matrix View Data
+    # Matrix View Data (Multi-Round)
     # Use scheduling_teams for Matrix
-    match_matrix = {}
-    for home in scheduling_teams:
-        match_matrix[home.id] = {}
-        for away in scheduling_teams:
-            if home.id == away.id:
-                 match_matrix[home.id][away.id] = {'status': 'cnt_play'} 
-            else:
-                 match_matrix[home.id][away.id] = {'status': 'empty', 'home_id': home.id, 'away_id': away.id}
+    num_vueltas = league.num_vueltas if league.num_vueltas else 1
+    
+    # helper to init a blank matrix
+    def init_matrix():
+        m = {}
+        for home in scheduling_teams:
+            m[home.id] = {}
+            for away in scheduling_teams:
+                if home.id == away.id:
+                     m[home.id][away.id] = {'status': 'cnt_play'} 
+                else:
+                     m[home.id][away.id] = {'status': 'empty', 'home_id': home.id, 'away_id': away.id}
+        return m
+
+    # Initialize matrices for each round
+    round_matrices = {r: init_matrix() for r in range(1, num_vueltas + 1)}
 
     # Fetch ALL regular matches
     all_regular_matches = Match.query.filter(
         Match.league_id == league_id,
         or_(Match.stage == 'regular', Match.stage == None, Match.stage == '')
-    ).all()
+    ).order_by(Match.match_date).all()
+    
+    # Group matches by pair to assign rounds
+    # pair key: sorted tuple of ids
+    matches_by_pair = {}
     
     for m in all_regular_matches:
-        if m.home_team_id in match_matrix and m.away_team_id in match_matrix[m.home_team_id]:
-             # We found a match for this cell
-             match_matrix[m.home_team_id][m.away_team_id] = {
-                 'status': 'scheduled',
-                 'match': {
-                     'id': m.id,
-                     'home_score': m.home_score,
-                     'away_score': m.away_score,
-                     'match_date_iso': m.match_date.isoformat(),
-                     'match_date_display': m.match_date.strftime('%d-%b'),
-                     'match_time_display': m.match_date.strftime('%I:%M %p'),
-                     'court_id': m.court_id,
-                     'is_completed': m.is_completed
-                 },
-                 'home_id': m.home_team_id,
-                 'away_id': m.away_team_id
-             }
-             if m.is_completed:
-                  match_matrix[m.home_team_id][m.away_team_id]['status'] = 'completed'
+        pair = tuple(sorted([m.home_team_id, m.away_team_id]))
+        if pair not in matches_by_pair:
+            matches_by_pair[pair] = []
+        matches_by_pair[pair].append(m)
+        
+    # Assign matches to appropriate matrix
+    for pair, matches in matches_by_pair.items():
+        for i, m in enumerate(matches):
+            round_num = i + 1
+            if round_num <= num_vueltas:
+                target_matrix = round_matrices[round_num]
+                
+                # Check if cell exists (in case team was hidden/deleted but match exists)
+                if m.home_team_id in target_matrix and m.away_team_id in target_matrix[m.home_team_id]:
+                    # Populate Actual
+                    target_matrix[m.home_team_id][m.away_team_id] = {
+                        'status': 'scheduled',
+                        'match': {
+                            'id': m.id,
+                            'home_score': m.home_score,
+                            'away_score': m.away_score,
+                            'match_date_iso': m.match_date.isoformat(),
+                            'match_date_display': m.match_date.strftime('%d-%b'),
+                            'match_time_display': m.match_date.strftime('%I:%M %p'),
+                            'court_id': m.court_id,
+                            'is_completed': m.is_completed
+                        },
+                        'home_id': m.home_team_id,
+                        'away_id': m.away_team_id
+                    }
+                    if m.is_completed:
+                        target_matrix[m.home_team_id][m.away_team_id]['status'] = 'completed'
+                        
+                # Check Mirror
+                if m.away_team_id in target_matrix and m.home_team_id in target_matrix[m.away_team_id]:
+                    symmetric_cell = target_matrix[m.away_team_id][m.home_team_id]
+                    if symmetric_cell['status'] == 'empty':
+                         target_matrix[m.away_team_id][m.home_team_id] = {
+                             'status': 'scheduled',
+                             'match': {
+                                 'id': m.id,
+                                 'home_score': m.away_score, # Swapped
+                                 'away_score': m.home_score, # Swapped
+                                 'match_date_iso': m.match_date.isoformat(),
+                                 'match_date_display': m.match_date.strftime('%d-%b'),
+                                 'match_time_display': m.match_date.strftime('%I:%M %p'),
+                                 'court_id': m.court_id,
+                                 'is_completed': m.is_completed
+                             },
+                             'home_id': m.away_team_id,
+                             'away_id': m.home_team_id
+                         }
+                         if m.is_completed:
+                              target_matrix[m.away_team_id][m.home_team_id]['status'] = 'completed'
 
     playoff_matches = {
         'repechaje': Match.query.filter_by(league_id=league_id, stage='repechaje').all(),
@@ -176,7 +222,8 @@ def league_detail(league_id):
                           courts=league.courts,
                           standings=standings,
                           matches=matches,
-                          match_matrix=match_matrix,
+                          round_matrices=round_matrices,
+                          num_vueltas=num_vueltas,
                           playoff_matches=playoff_matches,
                           has_playoffs=has_playoffs,
                           teams_dict=teams_dict,
@@ -210,6 +257,7 @@ def edit_league(league_id):
             league.max_teams = form.max_teams.data
             league.win_points = form.win_points.data
             league.draw_points = form.draw_points.data
+            league.num_vueltas = form.num_vueltas.data
             league.show_stats = form.show_stats.data
             league.logo_url = form.logo_url.data
             league.slogan = form.slogan.data
