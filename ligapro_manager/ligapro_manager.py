@@ -90,11 +90,17 @@ def run_migrations():
                     try:
                         conn.execute(text(migration))
                         conn.commit()
-                    except Exception:
-                        pass # Ignore if column exists
+                        print(f"Executed migration: {migration}")
+                    except Exception as e:
+                        # Only ignore if column already exists (DuplicateColumn)
+                        if 'DuplicateColumn' in str(e) or 'already exists' in str(e):
+                            print(f"Column already exists: {migration}")
+                        else:
+                            print(f"Migration Error for '{migration}': {e}")
+                            # Optional: Fail if critical? For now just log.
 
     except Exception as e:
-        print(f"Migration Error: {e}")
+        print(f"Migration Setup Error: {e}")
 
 # CLI Commands
 @app.cli.command("init-db")
