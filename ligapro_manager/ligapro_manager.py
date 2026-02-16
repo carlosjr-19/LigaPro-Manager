@@ -82,7 +82,8 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN logo_url TEXT",
                     "ALTER TABLE leagues ADD COLUMN slogan VARCHAR(255)",
                     "ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE",
-                    "ALTER TABLE teams ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE"
+                    "ALTER TABLE teams ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE leagues ADD COLUMN num_vueltas INTEGER DEFAULT 1"
                 ]
                 
                 for migration in migrations:

@@ -12,6 +12,7 @@ class League(db.Model):
     win_points = db.Column(db.Integer, default=3)
     draw_points = db.Column(db.Integer, default=1)
     loss_points = db.Column(db.Integer, default=0)
+    num_vueltas = db.Column(db.Integer, default=1) # Premium feature: 1-5 rounds
     playoff_mode = db.Column(db.String(20), nullable=True)
     playoff_bye_teams = db.Column(db.Text, nullable=True)  # JSON string of team IDs
     show_stats = db.Column(db.Boolean, default=True)

@@ -84,8 +84,23 @@ def save_match_matrix():
     if court_id:
         match.court_id = court_id
         
-    match.home_score = home_score
-    match.away_score = away_score
+    # Update Fields
+    if match_datetime:
+        match.match_date = match_datetime
+    
+    if court_id:
+        match.court_id = court_id
+        
+    # Check for symmetric edit (Swap Detection)
+    # If the match's home team is the form's away team, we are editing from the mirrored side.
+    if str(match.home_team_id) == str(away_team_id) and str(match.away_team_id) == str(home_team_id):
+        # Swap scores to match the real database alignment
+        match.home_score = away_score
+        match.away_score = home_score
+    else:
+        # Standard edit
+        match.home_score = home_score
+        match.away_score = away_score
     
     # Auto-complete if scores are present
     if home_score is not None and away_score is not None:
