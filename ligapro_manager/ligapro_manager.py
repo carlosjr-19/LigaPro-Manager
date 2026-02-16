@@ -88,7 +88,8 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN num_vueltas INTEGER DEFAULT 1",
                     "ALTER TABLE users ADD COLUMN color_win VARCHAR(7) DEFAULT '#22c55e'",
                     "ALTER TABLE users ADD COLUMN color_loss VARCHAR(7) DEFAULT '#ef4444'",
-                    "ALTER TABLE users ADD COLUMN highlight_mode VARCHAR(20) DEFAULT 'simple'"
+                    "ALTER TABLE users ADD COLUMN highlight_mode VARCHAR(20) DEFAULT 'simple'",
+                    "ALTER TABLE leagues ADD COLUMN credential_color VARCHAR(10) DEFAULT '#dc2626'"
                 ]
                 
                 for migration in migrations:
