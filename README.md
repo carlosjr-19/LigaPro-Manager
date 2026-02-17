@@ -1,68 +1,87 @@
 # LigaPro Manager
 
-Sistema completo de gestión de ligas de fútbol desarrollado con Python y Flask. Permite a los administradores crear ligas, gestionar equipos y jugadores, programar partidos, registrar resultados y generar liguillas (playoffs) automáticamente.
+Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Flask. Diseñado para simplificar la administración de torneos, desde la creación de equipos hasta la generación de reportes y credenciales.
 
 ## 🚀 Características Principales
 
-*   **Gestión de Ligas:** Crea y administra múltiples torneos de fútbol.
-*   **Equipos y Jugadores:** Registro detallado con estadísticas.
-*   **Calendario y Resultados:** Programación de partidos y actualización de marcadores en tiempo real.
-*   **Tablas de Posiciones:** Cálculo automático de puntos, diferencia de goles, etc.
-*   **Liguilla Automática:**
-    *   Generación de cruces (Cuartos, Semifinales, Final) basado en la tabla.
-    *   Soporte para Repechaje.
-    *   Avance de rondas automático.
-*   **Funciones Premium:**
-    *   Insignia de usuario Premium.
-    *   **Restablecer Temporada:** Opción destructiva para reiniciar una liga manteniendo los equipos (Solo Premium).
-*   **Diseño Moderno:** Interfaz responsiva con Tailwind CSS y Glassmorphism.
+### 🏆 Gestión Deportiva
+*   **Ligas y Torneos:** Crea y administra múltiples ligas con configuraciones personalizadas.
+*   **Equipos y Jugadores:** Registro completo con fotos, estadísticas y perfiles detallados.
+*   **Canchas:** Asignación de canchas específicas para los encuentros.
+
+### 📅 Competencia
+*   **Calendario Inteligente:** Vista de matriz para programación rápida de partidos.
+*   **Resultados en Vivo:** Actualización de marcadores y cálculo automático de tablas de posiciones.
+*   **Liguilla (Playoffs):** Generación automática de cruces (Cuartos, Semis, Final) y repechajes.
+
+### 📊 Reportes y Credenciales
+*   **Reportes Compartibles:** Genera imágenes descargables de la tabla general, resultados recientes y próximos partidos (con soporte para logos de equipos).
+*   **Credenciales de Jugador:** Generación de credenciales imprimibles (PDF/Imagen) con foto y datos del jugador.
+
+### 👥 Roles de Usuario
+*   **Gratuito:** Creación de hasta 3 ligas con límites básicos.
+*   **Premium (Dueño):**
+    *   Ligas ilimitadas y más equipos.
+    *   Personalización completa (Logos, Slogans, Colores).
+    *   Estadísticas avanzadas (Goleadores, Arqueros).
+    *   **Zona de Peligro:** Reinicio de temporadas y borrado de datos.
+*   **Capitán:** Gestión de su propio equipo y generación de credenciales (si la liga lo permite).
 
 ## 🛠️ Tecnologías
 
-*   **ligapro_manager:** Python 3, Flask, SQLAlchemy.
-*   **Base de Datos:** SQLite (persistente en `ligapro_manager/instance/ligapro.db`).
-*   **Frontend:** HTML5, Jinja2 Templates, Tailwind CSS (CDN).
-*   **Autenticación:** Flask-Login, Flask-Bcrypt.
+*   **Backend:** Python 3, Flask, SQLAlchemy.
+*   **Frontend:** HTML5, Jinja2, Tailwind CSS (Diseño moderno "Glassmorphism").
+*   **Herramientas:** `html2canvas` (Generación de imágenes), `requests` (Proxy de imágenes).
+*   **Base de Datos:** SQLite (Desarrollo), PostgreSQL (Producción).
 
 ## ⚙️ Instalación y Ejecución
 
-1.  **Requisitos:**
-    *   Python 3.8 o superior.
-    *   Pip (gestor de paquetes).
-
-2.  **Instalar dependencias:**
+1.  **Clonar el repositorio:**
     ```bash
-    pip install flask flask-sqlalchemy flask-login flask-bcrypt flask-cors flask-wtf email_validator
+    git clone https://github.com/carlosjr-19/LigaPro-Manager.git
+    cd LigaPro-Manager
     ```
 
-3.  **Iniciar el servidor:**
-    Asegúrate de estar en la carpeta raíz del proyecto o en `ligapro_manager`:
+2.  **Crear entorno virtual (Recomendado):**
     ```bash
-    cd ligapro_manager
-    python server.py
+    python -m venv .venv
+    # Windows
+    .venv\Scripts\activate
+    # Mac/Linux
+    source .venv/bin/activate
     ```
 
-4.  **Acceso:**
-    Abre tu navegador en `http://localhost:5000`.
+3.  **Instalar dependencias:**
+    ```bash
+    pip install -r ligapro_manager/requirements.txt
+    ```
+
+4.  **Iniciar la aplicación:**
+    ```bash
+    python ligapro_manager/ligapro_manager.py
+    ```
+
+5.  **Acceso:**
+    *   Abre tu navegador en `http://localhost:8001`
+    *   Usuario Admin por defecto (si se inicializa): `delegado@ligapro.com` / `password123`
 
 ## 📂 Estructura del Proyecto
 
-*   `ligapro_manager/app.py`: Lógica principal, modelos de BD y rutas.
-*   `ligapro_manager/server.py`: Punto de entrada del servidor.
-*   `ligapro_manager/templates/`: Vistas HTML (Login, Dashboard, Detalles de Liga, etc.).
-*   `ligapro_manager/static/`: Archivos estáticos (Imágenes, Iconos).
-*   `ligapro_manager/instance/`: Base de datos SQLite.
+*   `ligapro_manager/`: Paquete principal de la aplicación.
+    *   `ligapro_manager.py`: Punto de entrada del servidor.
+    *   `models/`: Modelos de base de datos (League, Team, Match, User).
+    *   `routes/`: Lógica de las rutas (Blueprint).
+    *   `templates/`: Archivos HTML con Jinja2.
+    *   `static/`: Archivos CSS, JS e imágenes.
+    *   `instance/`: Base de datos SQLite local.
+*   `CHANGELOG.md`: Registro de cambios y versiones.
+*   `VERSION`: Archivo de control de versión actual.
 
-## 💎 Características Premium
+## 🔄 Últimas Actualizaciones (v0.9.0)
 
-El sistema incluye un simulador de suscripción Premium.
-*   Al activar Premium, obtienes acceso a herramientas avanzadas de configuración.
-*   Editar Jugadores de equipos
-*   Tener ligas ilimitadas
-*   Añadir más de 12 equipos a una liga
-*   Poder establecer cantidad de puntos por vicoria o empate
-*   **Zona de Peligro:** Permite borrar ligas o reiniciar temporadas completas manteniendo los equipos registrados.
+*   **Reportes Mejorados:** Solucionado problema de descarga de imágenes con logos externos mediante proxy backend.
+*   **Limpieza:** Eliminación de scripts de mantenimiento obsoletos (`check_db_schema.py`, etc.).
+*   **Documentación:** Actualización de README y CHANGELOG.
 
 ---
-Desarrollado para la gestión profesional de torneos deportivos.
-&copy; 2026 LigaPro Manager - CarlosJr19
+Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager
