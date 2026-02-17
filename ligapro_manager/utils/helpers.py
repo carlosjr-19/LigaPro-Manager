@@ -66,3 +66,29 @@ def calculate_standings(league_id, include_playoffs=False):
     # Sort by points, goal difference, goals for
     standings.sort(key=lambda x: (x['points'], x['goal_difference'], x['goals_for']), reverse=True)
     return standings
+
+def is_league_accessible(user_id, league_id):
+    """
+    Check if a user can access a specific league based on their plan limits.
+    Free plan: Max 3 leagues (oldest 3).
+    Premium: Unlimited.
+    """
+    from models import User
+    
+    user = User.query.get(user_id)
+    if not user:
+        return False
+        
+    if user.is_active_premium:
+        return True
+        
+    # Get all leagues for user sorted by creation date
+    leagues = League.query.filter_by(user_id=user_id).order_by(League.created_at.asc()).all()
+    
+    if len(leagues) <= 3:
+        return True
+        
+    # Get IDs of the first 3 leagues
+    allowed_ids = [l.id for l in leagues[:3]]
+    
+    return league_id in allowed_ids

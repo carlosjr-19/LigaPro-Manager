@@ -49,29 +49,40 @@
         {% if leagues %}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for league in leagues %}
-            <a href="{{ url_for('league.league_detail', league_id=league.id) }}"
-                class="card hover:border-primary/50 transition-colors group">
-                <div class="flex items-center gap-4 mb-4">
-                    {% if league.logo_url %}
-                    <img src="{{ league.logo_url }}" alt="Logo {{ league.name }}"
-                        class="w-12 h-12 rounded-lg object-contain bg-white/5 p-1 group-hover:bg-white/10 transition-colors">
-                    {% else %}
+            <div class="relative group">
+                {% set is_allowed = league.id in allowed_league_ids %}
+                <a href="{{ url_for('league.league_detail', league_id=league.id) }}"
+                    class="card block transition-all relative overflow-hidden {{ 'hover:border-primary/50' if is_allowed else 'opacity-60 grayscale cursor-not-allowed border-red-500/30' }}">
+
+                    {% if not is_allowed %}
                     <div
-                        class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-                        <i class="fas fa-futbol text-2xl text-primary"></i>
+                        class="absolute inset-x-0 top-0 bg-red-600/80 text-white text-xs text-center py-1 z-20 font-bold uppercase tracking-wide">
+                        <i class="fas fa-lock mr-1"></i> Acceso Restringido
                     </div>
                     {% endif %}
-                    <div>
-                        <h3 class="text-xl font-bold">{{ league.name }}</h3>
-                        <p class="text-white/60 text-sm">{{ league.active_teams_count }} / {{ league.max_teams }}
-                            equipos</p>
+
+                    <div class="flex items-center gap-4 mb-4">
+                        {% if league.logo_url %}
+                        <img src="{{ league.logo_url }}" alt="Logo {{ league.name }}"
+                            class="w-12 h-12 rounded-lg object-contain bg-white/5 p-1 {{ 'group-hover:bg-white/10' if is_allowed }} transition-colors">
+                        {% else %}
+                        <div
+                            class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center {{ 'group-hover:bg-primary/30' if is_allowed }} transition-colors">
+                            <i class="fas fa-futbol text-2xl text-primary"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="text-xl font-bold">{{ league.name }}</h3>
+                            <p class="text-white/60 text-sm">{{ league.active_teams_count }} / {{ league.max_teams }}
+                                equipos</p>
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-center gap-4 text-sm text-white/40">
-                    <span><i class="fas fa-calendar mr-1"></i> {{ league.created_at.strftime('%d/%m/%Y') }}</span>
-                    <span><i class="fas fa-users mr-1"></i> {{ league.active_teams_count }} equipos</span>
-                </div>
-            </a>
+                    <div class="flex items-center gap-4 text-sm text-white/40">
+                        <span><i class="fas fa-calendar mr-1"></i> {{ league.created_at.strftime('%d/%m/%Y') }}</span>
+                        <span><i class="fas fa-users mr-1"></i> {{ league.active_teams_count }} equipos</span>
+                    </div>
+                </a>
+            </div>
             {% endfor %}
         </div>
         {% else %}

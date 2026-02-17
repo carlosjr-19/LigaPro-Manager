@@ -22,8 +22,13 @@ def index():
 @login_required
 @owner_required
 def dashboard():
-    leagues = League.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', leagues=leagues)
+    leagues = League.query.filter_by(user_id=current_user.id).order_by(League.created_at.asc()).all()
+    
+    allowed_league_ids = [l.id for l in leagues]
+    if not current_user.is_active_premium and len(leagues) > 3:
+        allowed_league_ids = [l.id for l in leagues[:3]]
+        
+    return render_template('dashboard.html', leagues=leagues, allowed_league_ids=allowed_league_ids)
 
 
 @main_bp.route('/captain')

@@ -67,6 +67,12 @@ def league_detail(league_id):
         league = League.query.get_or_404(league_id)
     else:
         league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+        
+    # Check Access Limit for downgraded users
+    from utils.helpers import is_league_accessible
+    if not is_league_accessible(current_user.id, league.id):
+        flash('Has excedido tu límite de ligas gratuitas. Actualiza a Premium para acceder a esta liga.', 'warning')
+        return redirect(url_for('premium.premium'))
     
     # Show only active teams in the list, but keep deleted teams for historical match references if needed
     # Show only active teams in the list, but keep deleted teams for historical match references if needed
@@ -247,6 +253,13 @@ def edit_league(league_id):
         league = League.query.get_or_404(league_id)
     else:
         league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    # Check Access Limit for downgraded users
+    from utils.helpers import is_league_accessible
+    if not is_league_accessible(current_user.id, league.id):
+        flash('Has excedido tu límite de ligas gratuitas. Actualiza a Premium para gestionar esta liga.', 'warning')
+        return redirect(url_for('premium.premium'))
+
     form = LeagueForm(obj=league)
     
     if form.validate_on_submit():
@@ -278,6 +291,13 @@ def delete_league(league_id):
         league = League.query.get_or_404(league_id)
     else:
         league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    # Check Access Limit for downgraded users
+    from utils.helpers import is_league_accessible
+    if not is_league_accessible(current_user.id, league.id):
+        flash('Has excedido tu límite de ligas gratuitas. Actualiza a Premium para eliminar esta liga.', 'warning')
+        return redirect(url_for('premium.premium'))
+
     db.session.delete(league)
     db.session.commit()
     flash('Liga eliminada.', 'success')
@@ -290,6 +310,12 @@ def delete_league(league_id):
 @premium_required
 def add_court(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    # Check Access Limit for downgraded users
+    from utils.helpers import is_league_accessible
+    if not is_league_accessible(current_user.id, league.id):
+        flash('Has excedido tu límite de ligas gratuitas.', 'warning')
+        return redirect(url_for('premium.premium'))
     
     # Check limit (premium only, max 3)
     court_count = Court.query.filter_by(league_id=league_id).count()
