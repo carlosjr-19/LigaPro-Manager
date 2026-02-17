@@ -8,6 +8,8 @@ from utils.helpers import calculate_standings
 from sqlalchemy import or_
 from datetime import datetime
 import json
+import requests
+from flask import Response, stream_with_context
 
 league_bp = Blueprint('league', __name__)
 
@@ -473,3 +475,25 @@ def generate_share_report(league_id):
                           date_start=date_start_str if date_start_str else 'Inicio',
                           date_end=date_end_str if date_end_str else 'Actualidad')
 
+
+
+
+@league_bp.route('/proxy-image')
+def proxy_image():
+    url = request.args.get('url')
+    if not url:
+        return "URL required", 400
+    
+    try:
+        # User Agent to avoid being blocked by some servers
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        req = requests.get(url, stream=True, timeout=10, headers=headers)
+        
+        resp = Response(stream_with_context(req.iter_content(chunk_size=1024)),
+                        content_type=req.headers.get('content-type'))
+        # Add CORS headers just in case
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
+    except Exception as e:
+        print(f"Proxy Error: {e}")
+        return str(e), 500

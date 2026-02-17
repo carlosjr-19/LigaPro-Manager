@@ -53,21 +53,23 @@
         </div>
 
         <!-- Header -->
-        <div class="text-center mb-8 relative z-10">
+        <div class="flex items-center gap-6 mb-8 relative z-10 px-4">
             {% if league.logo_url %}
             <img src="{{ league.logo_url }}"
-                class="w-20 h-20 object-contain mx-auto mb-4 rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
+                class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
             {% endif %}
 
-            <h1 class="text-3xl font-bold mb-2">{{ league.name }}</h1>
+            <div class="text-left">
+                <h1 class="text-4xl font-bold mb-1">{{ league.name }}</h1>
 
-            {% if league.slogan %}
-            <p class="text-white/60 text-sm uppercase tracking-widest">{{ league.slogan }}</p>
-            {% else %}
-            <p class="text-white/60 text-sm uppercase tracking-widest">Reporte Oficial</p>
-            {% endif %}
+                {% if league.slogan %}
+                <p class="text-white/60 text-lg uppercase tracking-widest font-medium">{{ league.slogan }}</p>
+                {% else %}
+                <p class="text-white/60 text-lg uppercase tracking-widest font-medium">Reporte Oficial</p>
+                {% endif %}
 
-            <p class="text-white/40 text-xs mt-1">{{ today }}</p>
+                <p class="text-white/40 text-sm mt-2 font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}</p>
+            </div>
         </div>
 
         <div class="space-y-6 relative z-10">
@@ -119,6 +121,89 @@
             </div>
             {% endif %}
 
+            {% if include_upcoming and upcoming_matches %}
+            <!-- Upcoming Matches -->
+            <div class="glass rounded-lg p-6">
+                <h3
+                    class="font-bold mb-6 text-xl text-orange-400 flex items-center gap-2 border-b border-white/10 pb-3">
+                    <i class="fas fa-calendar-alt"></i> Próximos Partidos
+                </h3>
+                <div class="space-y-8">
+                    {% for court_name, matches in matches_by_court.items() %}
+                    <div>
+                        <h4
+                            class="font-bold text-white/60 uppercase tracking-widest text-sm mb-4 flex items-center gap-2">
+                            <i class="fas fa-map-marker-alt text-blue-400"></i>{{ court_name }}
+                        </h4>
+                        <div class="grid grid-cols-1 gap-4">
+                            {% for match in matches %}
+                            <div class="bg-white/5 p-4 rounded-lg border border-white/5 relative overflow-hidden group">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-orange-500/50"></div>
+
+                                {% if match.stage != 'regular' %}
+                                <div class="mb-3 flex justify-center">
+                                    <span
+                                        class="bg-yellow-500/20 text-yellow-400 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                                        {% if match.stage == 'quarterfinal' %}Cuartos de Final
+                                        {% elif match.stage == 'repechaje' %}Repechaje
+                                        {% elif match.stage == 'semifinal' %}Semifinal
+                                        {% elif match.stage == 'final' %}Gran Final
+                                        {% else %}{{ match.stage }}{% endif %}
+                                    </span>
+                                </div>
+                                {% endif %}
+
+                                <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
+                                    <div class="flex items-center gap-2 text-white/90 font-mono text-lg font-bold">
+                                        <i class="far fa-clock text-orange-400"></i>
+                                        {{ match.match_date.strftime('%I:%M %p') }}
+                                    </div>
+                                    <div class="text-white/60 text-sm font-medium">
+                                        {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
+                                        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday':
+                                        'Domingo'} %}
+                                        {% set months = {'January': 'Enero', 'February': 'Febrero', 'March': 'Marzo',
+                                        'April': 'Abril', 'May': 'Mayo', 'June': 'Junio', 'July': 'Julio', 'August':
+                                        'Agosto', 'September': 'Septiembre', 'October': 'Octubre', 'November':
+                                        'Noviembre', 'December': 'Diciembre'} %}
+                                        {{ days[match.match_date.strftime('%A')] }} {{ match.match_date.strftime('%d')
+                                        }} de {{ months[match.match_date.strftime('%B')] }}
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center">
+                                    <!-- Home -->
+                                    <div class="flex items-center gap-3 flex-1">
+                                        {% if league.show_team_logos and teams_dict[match.home_team_id].shield_url %}
+                                        <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                            class="w-10 h-10 object-contain drop-shadow-md">
+                                        {% endif %}
+                                        <span class="text-xl font-bold leading-tight">{{
+                                            teams_dict[match.home_team_id].name }}</span>
+                                    </div>
+
+                                    <span
+                                        class="text-white/20 text-sm font-bold mx-4 uppercase tracking-widest">VS</span>
+
+                                    <!-- Away -->
+                                    <div class="flex items-center justify-end gap-3 flex-1 text-right">
+                                        <span class="text-xl font-bold leading-tight">{{
+                                            teams_dict[match.away_team_id].name }}</span>
+                                        {% if league.show_team_logos and teams_dict[match.away_team_id].shield_url %}
+                                        <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                            class="w-10 h-10 object-contain drop-shadow-md">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             {% if include_recent and recent_matches %}
             <!-- Recent Matches -->
             <div class="glass rounded-lg p-5">
@@ -130,72 +215,21 @@
                     <div class="bg-white/5 p-3 rounded flex justify-between items-center text-sm border border-white/5">
                         <div class="flex items-center justify-end gap-2 flex-1 text-right">
                             {% if league.show_team_logos and teams_dict[match.home_team_id].shield_url %}
-                            <img src="{{ teams_dict[match.home_team_id].shield_url }}" class="w-4 h-4 object-contain">
+                            <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                class="w-5 h-5 object-contain flex-shrink-0">
                             {% endif %}
-                            <span class="font-medium truncate">{{ teams_dict[match.home_team_id].name }}</span>
+                            <span class="font-medium leading-tight">{{ teams_dict[match.home_team_id].name }}</span>
                         </div>
-                        <span class="bg-black/40 px-3 py-1 rounded font-bold mx-2 text-white whitespace-nowrap">
+                        <span
+                            class="bg-black/40 px-3 py-1 rounded font-bold mx-2 text-white whitespace-nowrap flex-shrink-0">
                             {{ match.home_score }} - {{ match.away_score }}
                         </span>
                         <div class="flex items-center justify-start gap-2 flex-1 text-left">
-                            <span class="font-medium truncate">{{ teams_dict[match.away_team_id].name }}</span>
+                            <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name }}</span>
                             {% if league.show_team_logos and teams_dict[match.away_team_id].shield_url %}
-                            <img src="{{ teams_dict[match.away_team_id].shield_url }}" class="w-4 h-4 object-contain">
+                            <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                class="w-5 h-5 object-contain flex-shrink-0">
                             {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if include_upcoming and upcoming_matches %}
-            <!-- Upcoming Matches -->
-            <div class="glass rounded-lg p-5">
-                <h3 class="font-bold mb-4 text-orange-400 flex items-center gap-2">
-                    <i class="fas fa-calendar-alt"></i> Próximos Partidos
-                </h3>
-                <div class="space-y-6">
-                    {% for court_name, matches in matches_by_court.items() %}
-                    <div class="glass rounded-lg p-5">
-                        <h4
-                            class="font-bold text-white/80 uppercase tracking-widest text-xs mb-3 border-b border-white/10 pb-2">
-                            <i class="fas fa-map-marker-alt mr-2 text-blue-400"></i>{{ court_name }}
-                        </h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            {% for match in matches %}
-                            <div class="bg-white/5 p-3 rounded text-sm border border-white/5">
-                                {% if match.stage != 'regular' %}
-                                <p
-                                    class="text-yellow-400 text-[10px] font-bold uppercase tracking-widest text-center mb-1">
-                                    {% if match.stage == 'quarterfinal' %}Cuartos de Final
-                                    {% elif match.stage == 'repechaje' %}Repechaje
-                                    {% elif match.stage == 'semifinal' %}Semifinal
-                                    {% elif match.stage == 'final' %}Gran Final
-                                    {% else %}{{ match.stage }}{% endif %}
-                                </p>
-                                {% endif %}
-                                <p class="text-white/40 text-xs mb-2 text-center">{{ match.match_date.strftime('%d/%m
-                                    %I:%M %p') }}</p>
-                                <div class="flex justify-between items-center font-medium">
-                                    <div class="flex items-center justify-end gap-2 flex-1 text-right">
-                                        {% if league.show_team_logos and teams_dict[match.home_team_id].shield_url %}
-                                        <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                            class="w-4 h-4 object-contain">
-                                        {% endif %}
-                                        <span class="truncate">{{ teams_dict[match.home_team_id].name }}</span>
-                                    </div>
-                                    <span class="text-white/40 text-xs mx-2">vs</span>
-                                    <div class="flex items-center justify-start gap-2 flex-1 text-left">
-                                        <span class="truncate">{{ teams_dict[match.away_team_id].name }}</span>
-                                        {% if league.show_team_logos and teams_dict[match.away_team_id].shield_url %}
-                                        <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                            class="w-4 h-4 object-contain">
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
                         </div>
                     </div>
                     {% endfor %}
@@ -255,19 +289,24 @@
     </div>
 
     <script>
-        function downloadImage() {
+        async function downloadImage() {
             const target = document.getElementById('capture-target');
             const btn = document.querySelector('button');
 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
             btn.disabled = true;
 
-            html2canvas(target, {
-                backgroundColor: '#0f172a',
-                scale: 2, // High resolution
-                useCORS: true,
-                allowTaint: true
-            }).then(canvas => {
+            try {
+                // Preload images as Base64 to avoid CORS issues
+                await preloadImages(target);
+
+                const canvas = await html2canvas(target, {
+                    backgroundColor: '#0f172a',
+                    scale: 2, // High resolution
+                    useCORS: true,
+                    allowTaint: true
+                });
+
                 const link = document.createElement('a');
                 link.download = 'reporte-{{ league.name|lower|replace(" ", "-") }}.png';
                 link.href = canvas.toDataURL();
@@ -275,12 +314,50 @@
 
                 btn.innerHTML = '<i class="fas fa-download mr-2"></i>Descargar Imagen';
                 btn.disabled = false;
-            }).catch(err => {
+
+            } catch (err) {
                 console.error(err);
-                alert('Error al generar la imagen');
+                alert('Error al generar la imagen: ' + err.message);
                 btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Error';
                 btn.disabled = false;
+            }
+        }
+
+        async function preloadImages(element) {
+            const images = element.querySelectorAll('img');
+            const promises = Array.from(images).map(img => {
+                if (img.src.startsWith('data:')) return Promise.resolve();
+
+                let fetchUrl = img.src;
+                // Check if image is external and needs proxy
+                if (img.src.startsWith('http') && !img.src.includes(window.location.origin)) {
+                    fetchUrl = "{{ url_for('league.proxy_image') }}?url=" + encodeURIComponent(img.src);
+                }
+
+                return fetch(fetchUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                img.dataset.originalSrc = img.src; // Backup original src
+                                img.src = reader.result; // Replace with Base64
+                                resolve();
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(blob);
+                        });
+                    })
+                    .catch(err => {
+                        console.warn('Could not load image as Base64:', img.src, err);
+                        // If it fails (e.g. CORS block), we leave it as is and hope html2canvas can handle it or just skip it
+                        return Promise.resolve();
+                    });
             });
+            await Promise.all(promises);
         }
     </script>
 </body>
