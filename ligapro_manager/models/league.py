@@ -26,3 +26,7 @@ class League(db.Model):
     matches = db.relationship('Match', backref='league', lazy=True, cascade='all, delete-orphan')
     courts = db.relationship('Court', backref='league', lazy=True, cascade='all, delete-orphan')
     playoff_type = db.Column(db.String(20), default='single') # 'single' or 'double'
+
+    @property
+    def active_teams_count(self):
+        return sum(1 for t in self.teams if not t.is_deleted and not t.is_hidden)

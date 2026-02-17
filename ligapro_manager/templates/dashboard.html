@@ -63,12 +63,13 @@
                     {% endif %}
                     <div>
                         <h3 class="text-xl font-bold">{{ league.name }}</h3>
-                        <p class="text-white/60 text-sm">{{ league.teams|length }} / {{ league.max_teams }} equipos</p>
+                        <p class="text-white/60 text-sm">{{ league.active_teams_count }} / {{ league.max_teams }}
+                            equipos</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4 text-sm text-white/40">
                     <span><i class="fas fa-calendar mr-1"></i> {{ league.created_at.strftime('%d/%m/%Y') }}</span>
-                    <span><i class="fas fa-users mr-1"></i> {{ league.teams|length }} equipos</span>
+                    <span><i class="fas fa-users mr-1"></i> {{ league.active_teams_count }} equipos</span>
                 </div>
             </a>
             {% endfor %}
