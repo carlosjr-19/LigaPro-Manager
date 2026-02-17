@@ -275,6 +275,7 @@ def edit_league(league_id):
             league.logo_url = form.logo_url.data
             league.slogan = form.slogan.data
             league.credential_color = form.credential_color.data
+            league.show_team_logos = form.show_team_logos.data
         
         db.session.commit()
         flash('Liga actualizada.', 'success')

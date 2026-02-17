@@ -1138,6 +1138,20 @@
                             </p>
                         </div>
                     </div>
+
+                    <div class="flex items-center gap-3 pt-4 border-t border-white/10">
+                        {{ form.show_team_logos(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary
+                        focus:ring-primary", form="leagueSettingsForm") }}
+                        <div>
+                            <label class="block text-sm font-bold text-white mb-1">
+                                {{ form.show_team_logos.label.text }}
+                            </label>
+                            <p class="text-xs text-white/50">
+                                Muestra los escudos de los equipos en las secciones de Resultados y Próximos Partidos
+                                del reporte.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

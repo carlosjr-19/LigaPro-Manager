@@ -13,3 +13,4 @@ class LeagueForm(FlaskForm):
     logo_url = StringField('URL del Logo (Premium)', validators=[Optional()])
     slogan = StringField('Slogan de la Liga (Premium)', validators=[Optional(), Length(max=255)])
     credential_color = StringField('Color de Credencial (Hex)', validators=[Optional(), Length(max=10)], default='#dc2626')
+    show_team_logos = BooleanField('Mostrar Logos de Equipos en Reportes', default=False)

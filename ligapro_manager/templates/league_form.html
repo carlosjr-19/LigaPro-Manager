@@ -129,19 +129,33 @@
                                 </p>
                             </div>
                         </div>
+                        <div class="flex items-center gap-3 pt-2">
+                            {{ form.show_team_logos(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary
+                            focus:ring-primary", disabled=not current_user.is_active_premium) }}
+                            <div>
+                                <label class="block text-sm font-bold text-white mb-1">
+                                    {{ form.show_team_logos.label.text }}
+                                </label>
+                                <p class="text-xs text-white/50">
+                                    Muestra los escudos de los equipos en las secciones de Resultados y Próximos
+                                    Partidos del reporte.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="flex gap-4">
-                    <button type="submit" class="btn-primary flex-1">
-                        <i class="fas fa-save mr-2"></i>
-                        {% if league %}Guardar Cambios{% else %}Crear Liga{% endif %}
-                    </button>
-                    <a href="{{ url_for('league.league_detail', league_id=league.id, _anchor='settings') if league else url_for('main.dashboard') }}"
-                        class="btn-secondary">Cancelar</a>
-                </div>
-            </form>
         </div>
-    </main>
+
+        <div class="flex gap-4">
+            <button type="submit" class="btn-primary flex-1">
+                <i class="fas fa-save mr-2"></i>
+                {% if league %}Guardar Cambios{% else %}Crear Liga{% endif %}
+            </button>
+            <a href="{{ url_for('league.league_detail', league_id=league.id, _anchor='settings') if league else url_for('main.dashboard') }}"
+                class="btn-secondary">Cancelar</a>
+        </div>
+        </form>
+</div>
+</main>
 </div>
 {% endblock %}
