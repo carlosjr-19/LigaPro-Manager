@@ -77,11 +77,11 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.9.0)
+## 🔄 Últimas Actualizaciones (v0.9.1)
 
-*   **Reportes Mejorados:** Solucionado problema de descarga de imágenes con logos externos mediante proxy backend.
-*   **Limpieza:** Eliminación de scripts de mantenimiento obsoletos (`check_db_schema.py`, etc.).
-*   **Documentación:** Actualización de README y CHANGELOG.
+*   **Reportes Mejorados:** Tabla de posiciones en reporte de liga mejorada con mayor tamaño de logos de equipos, nombres y estadisticas. Nombre de las canchas más resaltantes
+* **Registros de jugadores:** Registros de jugadores mejorados con el logo de la liga de mayor tamaño y centrado. 
+*   **Documentación:** Actualización de README, CHANGELOG y VERSION.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

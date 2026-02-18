@@ -80,9 +80,9 @@
                 <h3 class="font-bold mb-4 text-blue-400 flex items-center gap-2">
                     <i class="fas fa-trophy"></i> Tabla General
                 </h3>
-                <table class="w-full text-sm">
+                <table class="w-full text-lg">
                     <thead>
-                        <tr class="text-white/40 text-xs uppercase border-b border-white/10">
+                        <tr class="text-white/40 text-sm uppercase border-b border-white/10">
                             <th class="text-left pb-2">#</th>
                             <th class="text-left pb-2">Equipo</th>
                             <th class="text-center pb-2">PJ</th>
@@ -100,9 +100,9 @@
                         <tr class="border-b border-white/5 last:border-0 text-center">
                             <td class="py-2 text-left font-bold {% if loop.index <= 3 %}text-yellow-400{% endif %}">{{
                                 loop.index }}</td>
-                            <td class="py-2 text-left flex items-center gap-2">
+                            <td class="py-3 text-left flex items-center gap-3">
                                 {% if s.team.shield_url %}
-                                <img src="{{ s.team.shield_url }}" class="w-5 h-5 object-contain">
+                                <img src="{{ s.team.shield_url }}" class="w-8 h-8 object-contain">
                                 {% endif %}
                                 {{ s.team.name }}
                             </td>
@@ -113,7 +113,7 @@
                             <td class="py-2">{{ s.goals_for }}</td>
                             <td class="py-2">{{ s.goals_against }}</td>
                             <td class="py-2">{{ s.goal_difference }}</td>
-                            <td class="py-2 font-bold text-white text-base">{{ s.points }}</td>
+                            <td class="py-3 font-bold text-yellow-400 text-2xl">{{ s.points }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -132,8 +132,8 @@
                     {% for court_name, matches in matches_by_court.items() %}
                     <div>
                         <h4
-                            class="font-bold text-white/60 uppercase tracking-widest text-sm mb-4 flex items-center gap-2">
-                            <i class="fas fa-map-marker-alt text-blue-400"></i>{{ court_name }}
+                            class="font-bold text-cyan-400 uppercase tracking-widest text-xl mb-4 flex items-center gap-3">
+                            <i class="fas fa-map-marker-alt"></i>{{ court_name }}
                         </h4>
                         <div class="grid grid-cols-1 gap-4">
                             {% for match in matches %}

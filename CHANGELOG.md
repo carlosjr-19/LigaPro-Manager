@@ -1,3 +1,14 @@
+## 0.9.1
+
+##  Modificado
+
+* credentials.html 
+# se agrando el logo de la liga en los registros de los jugadores
+  
+* share_report.html
+# se agrando la tabla de posiciones en el reporte de partidos
+
+
 ## 0.9.0
 
 ##  Agregado
