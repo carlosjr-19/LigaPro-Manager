@@ -522,3 +522,183 @@ def export_global_summary():
     
     filename = f"Resumen_Global_{datetime.now().strftime('%Y-%m-%d')}.xlsx"
     return send_file(output, download_name=filename, as_attachment=True)
+
+@report_bp.route('/global-schedule/financials')
+@login_required
+def global_schedule_financials():
+    if not getattr(current_user, 'is_ultra', False):
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('report.index'))
+
+    # Filters
+    month = request.args.get('month', type=int, default=datetime.now().month)
+    year = request.args.get('year', type=int, default=datetime.now().year)
+
+    # Validate
+    if not 1 <= month <= 12: month = datetime.now().month
+    if year < 2000 or year > 2100: year = datetime.now().year
+
+    # Query Matches for the month
+    matches = Match.query.join(League).filter(
+        League.user_id == current_user.id,
+        func.extract('month', Match.match_date) == month,
+        func.extract('year', Match.match_date) == year
+    ).order_by(Match.match_date).all()
+
+    # Structure: dict[date_str] = { 'date_obj': date, 'courts': { 'court_name': { income, expense, profit } }, 'daily_total': 0 }
+    financial_data = {}
+    
+    def parse_cost(val):
+        if not val: return 0
+        if isinstance(val, str) and not val.isdigit(): return 0 
+        try: return int(val)
+        except: return 0
+
+    total_month_profit = 0
+
+    for match in matches:
+        date_key = match.match_date.strftime('%Y-%m-%d')
+        court_name = match.court.name if match.court else "Sin Cancha"
+        
+        income = parse_cost(match.referee_cost_home) + parse_cost(match.referee_cost_away)
+        expense = parse_cost(match.referee_cost)
+        profit = income - expense
+        
+        if date_key not in financial_data:
+            financial_data[date_key] = {
+                'date_obj': match.match_date,
+                'courts': {},
+                'daily_total': 0
+            }
+            
+        if court_name not in financial_data[date_key]['courts']:
+            financial_data[date_key]['courts'][court_name] = {'income': 0, 'expense': 0, 'profit': 0}
+            
+        financial_data[date_key]['courts'][court_name]['income'] += income
+        financial_data[date_key]['courts'][court_name]['expense'] += expense
+        financial_data[date_key]['courts'][court_name]['profit'] += profit
+        
+        financial_data[date_key]['daily_total'] += profit
+        total_month_profit += profit
+
+    # Convert to sorted list
+    sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
+    
+    # Months for selector
+    months_es = [
+        (1, "Enero"), (2, "Febrero"), (3, "Marzo"), (4, "Abril"), (5, "Mayo"), (6, "Junio"),
+        (7, "Julio"), (8, "Agosto"), (9, "Septiembre"), (10, "Octubre"), (11, "Noviembre"), (12, "Diciembre")
+    ]
+    
+    # Years logic (current year -1 to +1)
+    current_year = datetime.now().year
+    years = range(current_year - 1, current_year + 2)
+
+    return render_template('report/financials.html', 
+                         financial_data=sorted_data,
+                         total_month_profit=total_month_profit,
+                         selected_month=month,
+                         selected_year=year,
+                         months=months_es,
+                         years=years)
+
+@report_bp.route('/global-schedule/financials/export')
+@login_required
+def export_global_financials():
+    if not getattr(current_user, 'is_ultra', False):
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('report.index'))
+
+    month = request.args.get('month', type=int, default=datetime.now().month)
+    year = request.args.get('year', type=int, default=datetime.now().year)
+
+    matches = Match.query.join(League).filter(
+        League.user_id == current_user.id,
+        func.extract('month', Match.match_date) == month,
+        func.extract('year', Match.match_date) == year
+    ).order_by(Match.match_date).all()
+
+    financial_data = {}
+    def parse_cost(val):
+        if not val: return 0
+        if isinstance(val, str) and not val.isdigit(): return 0 
+        try: return int(val)
+        except: return 0
+
+    for match in matches:
+        date_key = match.match_date.strftime('%Y-%m-%d')
+        court_name = match.court.name if match.court else "Sin Cancha"
+        income = parse_cost(match.referee_cost_home) + parse_cost(match.referee_cost_away)
+        expense = parse_cost(match.referee_cost)
+        profit = income - expense
+        
+        if date_key not in financial_data:
+            financial_data[date_key] = {'date_obj': match.match_date, 'courts': {}}
+        if court_name not in financial_data[date_key]['courts']:
+            financial_data[date_key]['courts'][court_name] = {'income': 0, 'expense': 0, 'profit': 0}
+            
+        financial_data[date_key]['courts'][court_name]['income'] += income
+        financial_data[date_key]['courts'][court_name]['expense'] += expense
+        financial_data[date_key]['courts'][court_name]['profit'] += profit
+
+    sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
+
+    # Excel
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = f"Finanzas {month}-{year}"
+    
+    # Title
+    ws['A1'] = f"REPORTE FINANCIERO - {month}/{year}"
+    ws['A1'].font = Font(size=14, bold=True)
+    ws.merge_cells('A1:E1')
+    ws['A1'].alignment = Alignment(horizontal='center')
+    
+    current_row = 3
+    headers = ["Fecha", "Cancha", "Ingresos", "Egresos", "Ganancia"]
+    for col, h in enumerate(headers, 1):
+        ws.cell(row=current_row, column=col, value=h).font = Font(bold=True)
+    current_row += 1
+    
+    total_profit = 0
+    
+    for day in sorted_data:
+        date_str = day['date_obj'].strftime('%d/%m/%Y')
+        daily_profit = 0
+        
+        for court_name, stats in day['courts'].items():
+            ws.cell(row=current_row, column=1, value=date_str)
+            ws.cell(row=current_row, column=2, value=court_name)
+            ws.cell(row=current_row, column=3, value=stats['income'])
+            ws.cell(row=current_row, column=4, value=stats['expense'])
+            ws.cell(row=current_row, column=5, value=stats['profit'])
+            
+            # Color profit
+            color = "008000" if stats['profit'] >= 0 else "FF0000"
+            ws.cell(row=current_row, column=5).font = Font(color=color, bold=True)
+            
+            daily_profit += stats['profit']
+            current_row += 1
+            
+        # Daily Total Row
+        ws.cell(row=current_row, column=4, value="TOTAL DIA:").alignment = Alignment(horizontal='right')
+        ws.cell(row=current_row, column=4).font = Font(bold=True)
+        ws.cell(row=current_row, column=5, value=daily_profit).font = Font(bold=True)
+        ws.cell(row=current_row, column=5).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
+        current_row += 1
+        total_profit += daily_profit
+        
+    current_row += 1
+    ws.cell(row=current_row, column=4, value="GRAN TOTAL MES:").alignment = Alignment(horizontal='right')
+    ws.cell(row=current_row, column=5, value=total_profit).font = Font(bold=True, size=12)
+    
+    # Adjust widths
+    for i, col in enumerate(ws.columns, 1):
+        ws.column_dimensions[get_column_letter(i)].width = 15
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+    
+    filename = f"Finanzas_{month}_{year}.xlsx"
+    return send_file(output, download_name=filename, as_attachment=True)

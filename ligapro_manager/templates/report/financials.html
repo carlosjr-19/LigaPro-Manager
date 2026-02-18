@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}Finanzas Globales{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 pb-12">
+    <!-- Header -->
+    <header class="bg-card border-b border-white/10 print:hidden">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('report.global_schedule') }}" class="text-white/60 hover:text-white">
+                    <i class="fas fa-arrow-left"></i> Volver a Agenda
+                </a>
+                <h1 class="text-2xl font-bold text-white">
+                    <i class="fas fa-chart-line mr-2 text-green-400"></i>Finanzas Mensuales
+                </h1>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex bg-white/5 rounded-lg p-1">
+                <a href="{{ url_for('report.global_schedule') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Agenda</a>
+                <a href="{{ url_for('report.global_schedule_config') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Precios</a>
+                <a href="{{ url_for('report.global_schedule_history') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Historial</a>
+                <a href="{{ url_for('report.global_schedule_summary') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Resumen</a>
+                <a href="{{ url_for('report.global_schedule_financials') }}"
+                    class="px-4 py-2 rounded-md text-sm font-bold bg-green-600 text-white shadow">Finanzas</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- Controls -->
+        <div class="mb-8 flex flex-col md:flex-row items-center justify-between gap-4 print:hidden">
+            <form method="GET" class="flex gap-4 items-center bg-gray-800 p-2 rounded-lg border border-white/10">
+                <label class="text-white/60 text-sm font-bold ml-2">Periodo:</label>
+                <select name="month"
+                    class="bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
+                    {% for m_num, m_name in months %}
+                    <option value="{{ m_num }}" {% if selected_month==m_num %}selected{% endif %}>{{ m_name }}</option>
+                    {% endfor %}
+                </select>
+                <select name="year"
+                    class="bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
+                    {% for y in years %}
+                    <option value="{{ y }}" {% if selected_year==y %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit"
+                    class="bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded transition-colors">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+
+            <div class="flex gap-4">
+                <button onclick="window.print()"
+                    class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded border border-white/20 transition-colors">
+                    <i class="fas fa-print mr-2"></i>Imprimir
+                </button>
+                <a href="{{ url_for('report.export_global_financials', month=selected_month, year=selected_year) }}"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded border border-white/20 transition-colors">
+                    <i class="fas fa-file-excel mr-2"></i>Excel
+                </a>
+            </div>
+        </div>
+
+        <!-- Print Header -->
+        <div class="hidden print:block text-center mb-8 border-b-2 border-black pb-4 text-black">
+            <h1 class="text-3xl font-black">REPORTE FINANCIERO MENSUAL</h1>
+            <p class="text-lg">Mes: {{ selected_month }} / Año: {{ selected_year }}</p>
+        </div>
+
+        <!-- Dashboard Card -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 print:hidden">
+            <div class="bg-gray-800 border border-white/10 rounded-xl p-6 shadow-xl flex items-center justify-between">
+                <div>
+                    <p class="text-white/40 text-sm font-bold uppercase tracking-wider">Ganancia Neta del Mes</p>
+                    <h2
+                        class="text-3xl font-bold {{ 'text-green-400' if total_month_profit >= 0 else 'text-red-400' }}">
+                        ${{ total_month_profit }}
+                    </h2>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <i class="fas fa-dollar-sign text-green-400 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Print Total -->
+        <div class="hidden print:block mb-6 text-right">
+            <h2 class="text-2xl font-bold text-black border-b border-black inline-block">
+                Ganancia Total: ${{ total_month_profit }}
+            </h2>
+        </div>
+
+        <!-- Comparison Table -->
+        <div
+            class="card bg-gray-800 border border-white/10 rounded-xl overflow-hidden shadow-xl print:bg-white print:border-black print:shadow-none">
+            {% if not financial_data %}
+            <div class="p-12 text-center text-white/40 print:text-black">
+                <i class="fas fa-folder-open text-4xl mb-4 opacity-50"></i>
+                <p>No hay registros para este periodo.</p>
+            </div>
+            {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-black/20 text-white/60 uppercase text-xs print:text-black print:bg-gray-200">
+                        <tr>
+                            <th class="py-3 px-6">Fecha</th>
+                            <th class="py-3 px-6">Cancha</th>
+                            <th class="py-3 px-6 text-right text-blue-400 print:text-black">Ingresos (+)</th>
+                            <th class="py-3 px-6 text-right text-red-400 print:text-black">Egresos (-)</th>
+                            <th class="py-3 px-6 text-right font-bold text-white print:text-black">Ganancia (=)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 text-white/80 print:text-black print:divide-gray-300">
+                        {% for day in financial_data %}
+                        {% for court, stats in day.courts.items() %}
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <!-- Group Date only on first row of the day -->
+                            <td class="py-3 px-6 font-mono text-white/60 print:text-black">
+                                {{ day.date_obj.strftime('%d/%m/%Y') }}
+                            </td>
+                            <td class="py-3 px-6 font-bold uppercase">{{ court }}</td>
+                            <td class="py-3 px-6 text-right font-mono text-blue-300 print:text-black">${{ stats.income
+                                }}</td>
+                            <td class="py-3 px-6 text-right font-mono text-red-300 print:text-black">${{ stats.expense
+                                }}</td>
+                            <td
+                                class="py-3 px-6 text-right font-mono font-bold {{ 'text-green-400' if stats.profit >= 0 else 'text-red-400' }} print:text-black">
+                                ${{ stats.profit }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        <!-- Daily Total Row -->
+                        <tr class="bg-white/5 font-bold border-b border-white/10 print:bg-gray-100 print:border-black">
+                            <td colspan="4"
+                                class="py-2 px-6 text-right text-xs uppercase tracking-wider text-white/50 print:text-black">
+                                Total Día:</td>
+                            <td class="py-2 px-6 text-right font-mono text-white print:text-black">${{ day.daily_total
+                                }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+
+    </main>
+</div>
+
+<style>
+    @media print {
+        @page {
+            margin: 1cm;
+            size: auto;
+        }
+
+        /* Hide UI */
+        .print\:hidden,
+        header,
+        footer,
+        .btn,
+        form,
+        select {
+            display: none !important;
+        }
+
+        /* Show Print-only */
+        .print\:block {
+            display: block !important;
+        }
+
+        /* Reset Container Backgrounds */
+        body,
+        main,
+        .min-h-screen,
+        .card {
+            background-color: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            border: none !important;
+            min-height: auto !important;
+        }
+
+        /* Table Styling for Print */
+        table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border: 1px solid black !important;
+        }
+
+        th {
+            background-color: #f3f4f6 !important;
+            /* Light gray header */
+            color: black !important;
+            border: 1px solid black !important;
+            font-weight: bold !important;
+        }
+
+        td {
+            border: 1px solid black !important;
+            color: black !important;
+        }
+
+        /* Text Colors - Map dark mode text to black/darker colors */
+        .text-white,
+        .text-white\/60,
+        .text-white\/40,
+        .text-white\/80 {
+            color: black !important;
+        }
+
+        /* Readable Positive/Negative numbers */
+        .text-green-400 {
+            color: #15803d !important;
+            font-weight: bold !important;
+        }
+
+        .text-red-400 {
+            color: #b91c1c !important;
+            font-weight: bold !important;
+        }
+
+        .text-blue-300,
+        .text-blue-400 {
+            color: #1d4ed8 !important;
+        }
+
+        .text-red-300 {
+            color: #b91c1c !important;
+        }
+
+        /* Remove Dark Backgrounds */
+        .bg-gray-800,
+        .bg-gray-900,
+        .bg-black\/20 {
+            background: transparent !important;
+        }
+
+        /* Card Borders just for structure */
+        .card {
+            border: 1px solid #ddd !important;
+            margin-bottom: 20px;
+        }
+
+        /* Ensure Grid layouts flatten or work reasonably */
+        .grid {
+            display: block !important;
+        }
+
+        .md\:grid-cols-3>div {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+    }
+</style>
+{% endblock %}
