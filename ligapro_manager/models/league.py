@@ -27,6 +27,8 @@ class League(db.Model):
     matches = db.relationship('Match', backref='league', lazy=True, cascade='all, delete-orphan')
     courts = db.relationship('Court', backref='league', lazy=True, cascade='all, delete-orphan')
     playoff_type = db.Column(db.String(20), default='single') # 'single' or 'double'
+    price_per_match = db.Column(db.Integer, default=0) # Default cost for team per match
+    price_referee = db.Column(db.Integer, default=0) # Default payment to referee per match
 
     @property
     def active_teams_count(self):

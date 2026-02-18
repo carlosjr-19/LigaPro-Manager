@@ -78,6 +78,22 @@ def toggle_suspend(user_id):
     return redirect(url_for('admin.admin_dashboard'))
 
 
+@admin_bp.route('/admin/users/<user_id>/toggle_ultra', methods=['POST'])
+@login_required
+@admin_required
+def toggle_ultra(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.role == 'admin':
+        flash('No puedes modificar atributos de un administrador.', 'danger')
+        return redirect(url_for('admin.users'))
+        
+    user.is_ultra = not user.is_ultra
+    db.session.commit()
+    status = "ULTRA" if user.is_ultra else "ESTÁNDAR"
+    flash(f'Usuario {user.email} es ahora {status}.', 'success')
+    return redirect(url_for('admin.users'))
+
+
 @admin_bp.route('/admin/users')
 @login_required
 @admin_required

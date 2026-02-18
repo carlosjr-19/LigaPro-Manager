@@ -12,7 +12,9 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), default='owner')  # owner or captain
     is_premium = db.Column(db.Boolean, default=False)
+    is_premium = db.Column(db.Boolean, default=False)
     is_suspended = db.Column(db.Boolean, default=False)
+    is_ultra = db.Column(db.Boolean, default=False)
     color_win = db.Column(db.String(7), default='#22c55e') # Green-500
     color_loss = db.Column(db.String(7), default='#ef4444') # Red-500
     highlight_mode = db.Column(db.String(20), default='simple') # 'simple' or 'full'
