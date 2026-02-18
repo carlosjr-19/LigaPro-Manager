@@ -8,7 +8,7 @@
 * match_matrix.py
 * ligapro_manager.py
 
-# correción de bug en producción que sobrescribia los resultados del cuadro 2 en el cuadro 1 al agendar partidos
+### correción de bug en producción que sobrescribia los resultados del cuadro 2 en el cuadro 1 al agendar partidos
 
 
 
@@ -19,10 +19,10 @@
 ##  Modificado
 
 * credentials.html 
-# se agrando el logo de la liga en los registros de los jugadores
+### se agrando el logo de la liga en los registros de los jugadores
   
 * share_report.html
-# se agrando la tabla de posiciones en el reporte de partidos
+### se agrando la tabla de posiciones en el reporte de partidos
 
 
 ## 0.9.0
