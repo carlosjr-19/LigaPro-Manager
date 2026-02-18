@@ -15,5 +15,6 @@ class Match(db.Model):
     is_completed = db.Column(db.Boolean, default=False)
     stage = db.Column(db.String(20), default='regular')  # regular, repechaje, quarterfinal, semifinal, final
     match_date = db.Column(db.DateTime, nullable=False)
+    match_round = db.Column(db.Integer, default=1)
     match_name = db.Column(db.String(200), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

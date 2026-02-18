@@ -119,6 +119,12 @@ def league_detail(league_id):
     # Initialize matrices for each round
     round_matrices = {r: init_matrix() for r in range(1, num_vueltas + 1)}
 
+    # Inject Round Number into all empty cells
+    for r in round_matrices:
+        for h in round_matrices[r]:
+            for a in round_matrices[r][h]:
+                round_matrices[r][h][a]['round'] = r
+
     # Fetch ALL regular matches
     all_regular_matches = Match.query.filter(
         Match.league_id == league_id,

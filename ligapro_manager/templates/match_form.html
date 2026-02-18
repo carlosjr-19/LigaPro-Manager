@@ -54,7 +54,7 @@
                     <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
                         Fecha y Hora *
                     </label>
-                    {{ form.match_date(class="input-field", type="datetime-local") }}
+                    {{ form.match_date(class="input-field", type="datetime-local", required=True) }}
                     {% for error in form.match_date.errors %}
                     <p class="text-red-400 text-sm mt-1">{{ error }}</p>
                     {% endfor %}

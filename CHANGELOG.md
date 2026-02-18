@@ -1,3 +1,19 @@
+## 0.9.2
+
+## Modificado
+
+* league_detail.html
+* league.py
+* match.py
+* match_matrix.py
+* ligapro_manager.py
+
+# correción de bug en producción que sobrescribia los resultados del cuadro 2 en el cuadro 1 al agendar partidos
+
+
+
+
+
 ## 0.9.1
 
 ##  Modificado

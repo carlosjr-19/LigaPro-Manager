@@ -90,7 +90,8 @@ def run_migrations():
                     "ALTER TABLE users ADD COLUMN color_loss VARCHAR(7) DEFAULT '#ef4444'",
                     "ALTER TABLE users ADD COLUMN highlight_mode VARCHAR(20) DEFAULT 'simple'",
                     "ALTER TABLE leagues ADD COLUMN credential_color VARCHAR(10) DEFAULT '#dc2626'",
-                    "ALTER TABLE leagues ADD COLUMN show_team_logos BOOLEAN DEFAULT FALSE"
+                    "ALTER TABLE leagues ADD COLUMN show_team_logos BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE matches ADD COLUMN match_round INTEGER DEFAULT 1"
                 ]
                 
                 for migration in migrations:

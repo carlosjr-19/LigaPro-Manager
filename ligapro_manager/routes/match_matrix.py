@@ -15,6 +15,7 @@ def save_match_matrix():
     home_team_id = request.form.get('home_team_id')
     away_team_id = request.form.get('away_team_id')
     match_id = request.form.get('match_id')
+    match_round = request.form.get('match_round', 1, type=int)
 
     if not league_id or not home_team_id or not away_team_id:
         flash('Faltan datos requeridos.', 'danger')
@@ -62,18 +63,24 @@ def save_match_matrix():
             league_id=league_id,
             home_team_id=home_team_id,
             away_team_id=away_team_id,
-            stage='regular'
+            stage='regular',
+            match_round=match_round
         ).first()
         
         if existing:
             match = existing
         else:
+            if not match_datetime:
+                flash('Debes seleccionar una fecha y hora para programar el partido.', 'danger')
+                return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+
             match = Match(
                 league_id=league_id,
                 home_team_id=home_team_id,
                 away_team_id=away_team_id,
                 stage='regular',
-                match_name="Regular Match"
+                match_round=match_round,
+                match_name=f"Jornada {match_round}"
             )
             db.session.add(match)
 
