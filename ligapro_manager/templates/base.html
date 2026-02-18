@@ -83,6 +83,13 @@
                         class="fas fa-futbol mr-1"></i>Mi Equipo</a>
                 {% endif %}
 
+                {% if current_user.is_ultra %}
+                <a href="{{ url_for('report.index') }}"
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 font-bold hover:text-purple-300 transition-colors">
+                    <i class="fas fa-rocket mr-1 text-purple-400"></i>Reporte
+                </a>
+                {% endif %}
+
                 <div class="h-4 w-px bg-white/10 mx-2"></div>
 
                 <span class="text-white/40 text-sm">{{ current_user.name }}</span>

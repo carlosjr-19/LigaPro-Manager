@@ -12,6 +12,9 @@ class Match(db.Model):
     away_team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=False)
     home_score = db.Column(db.Integer, nullable=True)
     away_score = db.Column(db.Integer, nullable=True)
+    referee_cost = db.Column(db.String(50), default='0') # Total/Legacy
+    referee_cost_home = db.Column(db.String(50), default='0')
+    referee_cost_away = db.Column(db.String(50), default='0')
     is_completed = db.Column(db.Boolean, default=False)
     stage = db.Column(db.String(20), default='regular')  # regular, repechaje, quarterfinal, semifinal, final
     match_date = db.Column(db.DateTime, nullable=False)

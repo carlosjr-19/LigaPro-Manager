@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block title %}Agenda Global{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 pb-12">
+    <!-- Header / Controls (Hidden on Print) -->
+    <header class="bg-card border-b border-white/10 print:hidden">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('report.index') }}" class="text-white/60 hover:text-white">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+                <h1
+                    class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                    <i class="fas fa-calendar-alt mr-2"></i>Agenda Global
+                </h1>
+            </div>
+
+            <!-- Navigation Tabs (Screen only) -->
+            <div class="flex bg-white/5 rounded-lg p-1 print:hidden">
+                <a href="{{ url_for('report.global_schedule') }}"
+                    class="px-4 py-2 rounded-md text-sm font-bold bg-purple-600 text-white shadow">Agenda</a>
+                <a href="{{ url_for('report.global_schedule_config') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Precios</a>
+                <a href="{{ url_for('report.global_schedule_history') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Historial</a>
+                <a href="{{ url_for('report.global_schedule_summary') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Resumen</a>
+            </div>
+
+            <form action="{{ url_for('report.global_schedule') }}" method="GET" class="flex items-center gap-4">
+                <input type="date" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}"
+                    onchange="this.form.submit()"
+                    class="bg-white/10 border border-white/20 rounded px-4 py-2 text-white focus:outline-none focus:border-purple-500">
+
+                <button type="button" onclick="window.print()"
+                    class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded border border-white/20 transition-colors">
+                    <i class="fas fa-print mr-2"></i>Imprimir
+                </button>
+
+                <a href="{{ url_for('report.export_global_schedule', date=selected_date.strftime('%Y-%m-%d')) }}"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
+                    <i class="fas fa-file-excel mr-2"></i>Excel
+                </a>
+            </form>
+        </div>
+    </header>
+
+    <!-- Schedule Content -->
+    <main class="max-w-7xl mx-auto px-0 md:px-6 py-8">
+
+        <!-- Print Header (Visible only on Print) -->
+        <div class="hidden print:block text-center mb-8 border-b-2 border-black pb-4">
+            <h1 class="text-3xl font-black text-black">AGENDA DE PARTIDOS</h1>
+            <p class="text-lg font-bold text-gray-600 block">{{ selected_date.strftime('%d/%m/%Y') }}</p>
+        </div>
+
+        {% if not schedule %}
+        <div class="text-center py-20 print:hidden">
+            <div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-calendar-times text-2xl text-white/40"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white/60">No hay partidos programados</h3>
+            <p class="text-white/40">Selecciona otra fecha para ver la agenda.</p>
+        </div>
+        {% endif %}
+
+        <div class="space-y-8 print:space-y-8">
+            {% for court_name, data in schedule.items() %}
+            <div class="break-inside-avoid">
+                <!-- Court Header -->
+                <div
+                    class="bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 text-center font-bold text-xl uppercase tracking-wider print:bg-none print:bg-gray-200 print:text-black print:border-y-2 print:border-black">
+                    CANCHA: {{ court_name }}
+                </div>
+
+                <!-- Matches Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="bg-white/5 text-white/60 print:text-black print:bg-white print:border-b print:border-black">
+                                <th class="py-2 px-4 w-24 text-center font-bold whitespace-nowrap">HORA</th>
+                                <th class="py-2 px-4 font-bold">CATEGORÍA</th>
+                                <th class="py-2 px-4 font-bold text-right" style="width: 20%;">LOCAL</th>
+                                <th class="py-2 px-4 w-20 text-center text-white/20 print:text-black/20">$ LOCAL</th>
+                                <th class="py-2 px-4 w-8 text-center text-white/20 print:text-black/20">vs</th>
+                                <th class="py-2 px-4 w-20 text-center text-white/20 print:text-black/20">$ VISITA</th>
+                                <th class="py-2 px-4 font-bold text-left" style="width: 20%;">VISITANTE</th>
+                                <th class="py-2 px-4 w-24 text-center font-bold text-white/80 print:text-black">$
+                                    ARBITRO</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 print:divide-gray-300">
+                            {% for match in data.matches %}
+                            <tr class="hover:bg-white/5 print:hover:bg-transparent">
+                                <td
+                                    class="py-2 px-4 text-center font-mono font-bold text-white/80 print:text-black whitespace-nowrap">
+                                    {{ match.match_date.strftime('%I:%M %p') }}
+                                </td>
+                                <td class="py-2 px-4 text-white/60 print:text-black uppercase text-xs tracking-wide">
+                                    {{ match.league.name }}
+                                </td>
+                                <td class="py-2 px-4 text-right font-bold text-white print:text-black leading-tight">
+                                    {{ match.home_team.name }}
+                                </td>
+                                <td class="py-2 px-1 text-center">
+                                    <input type="text"
+                                        class="w-full bg-transparent text-center font-mono text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-red-400 print:text-black print:border-none uppercase"
+                                        value="{{ match.referee_cost_home if match.referee_cost_home != '0' else '' }}"
+                                        placeholder="-" data-field="referee_cost_home"
+                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost_home', this.value, '{{ court_name|replace(' ', '_') }}')">
+                                </td>
+                                <td class="py-2 px-4 text-center text-white/20 print:text-black/20 text-xs">-</td>
+                                <td class="py-2 px-1 text-center">
+                                    <input type="text"
+                                        class="w-full bg-transparent text-center font-mono text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-red-400 print:text-black print:border-none uppercase"
+                                        value="{{ match.referee_cost_away if match.referee_cost_away != '0' else '' }}"
+                                        placeholder="-" data-field="referee_cost_away"
+                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost_away', this.value, '{{ court_name|replace(' ', '_') }}')">
+                                </td>
+                                <td class="py-2 px-4 text-left font-bold text-white print:text-black leading-tight">
+                                    {{ match.away_team.name }}
+                                </td>
+                                <td class="py-2 px-1 text-center">
+                                    <input type="text"
+                                        class="w-full bg-transparent text-center font-mono text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-yellow-400 print:text-black print:border-none uppercase"
+                                        value="{{ match.referee_cost if match.referee_cost != '0' else '' }}"
+                                        placeholder="-" data-field="referee_cost"
+                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost', this.value, '{{ court_name|replace(' ', '_') }}')">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot id="footer-{{ court_name|replace(' ', '_') }}">
+                            <!-- Totals Row -->
+                            <tr
+                                class="bg-white/10 font-bold print:bg-gray-100 print:text-black border-t-2 border-white/20 print:border-black">
+                                <td colspan="3" class="py-2 px-4 text-right uppercase text-xs tracking-wider">Totales:
+                                </td>
+                                <td class="py-2 px-1 text-center font-mono text-green-400 print:text-black text-sm"
+                                    data-type="total-home">
+                                    ${{ data.total_cost_home }}
+                                </td>
+                                <td></td>
+                                <td class="py-2 px-1 text-center font-mono text-green-400 print:text-black text-sm"
+                                    data-type="total-away">
+                                    ${{ data.total_cost_away }}
+                                </td>
+                                <td></td>
+                                <td class="py-2 px-1 text-center font-mono text-yellow-400 print:text-black text-sm"
+                                    data-type="total-referee">
+                                    ${{ data.total_referee }}
+                                </td>
+                            </tr>
+                            <!-- Profit Row -->
+                            <tr
+                                class="bg-black/20 print:bg-gray-200 print:text-black border-t border-white/10 print:border-black">
+                                <td colspan="7" class="py-2 px-4 text-right uppercase text-xs tracking-wider">Ganancia
+                                    (Ingresos - Gastos):</td>
+                                <td class="py-2 px-1 text-center font-mono text-lg font-bold {{ 'text-green-400' if data.total_profit >= 0 else 'text-red-400' }} print:text-black"
+                                    data-type="total-profit">
+                                    ${{ data.total_profit }}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+
+<style>
+    @media print {
+        @page {
+            size: auto;
+            margin: 1cm;
+        }
+
+        body {
+            background: white !important;
+            color: black !important;
+        }
+
+        .min-h-screen {
+            min-height: 0 !important;
+            background: white !important;
+        }
+
+        .bg-card,
+        .btn-primary,
+        .btn-secondary {
+            display: none !important;
+        }
+
+        .print\:hidden {
+            display: none !important;
+        }
+
+        .print\:block {
+            display: block !important;
+        }
+
+        .print\:text-black {
+            color: black !important;
+        }
+
+        .print\:bg-white {
+            background: white !important;
+        }
+
+        .print\:bg-gray-200 {
+            background-color: #e5e7eb !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .print\:bg-gray-100 {
+            background-color: #f3f4f6 !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 4px 8px;
+        }
+
+        /* Ensure background colors print */
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        input {
+            border: none !important;
+            background: transparent !important;
+            color: black !important;
+            padding: 0 !important;
+        }
+
+        input::placeholder {
+            color: transparent !important;
+        }
+    }
+</style>
+
+<script>
+    function updateMatchCost(matchId, field, value, courtId) {
+        // Optimistic UI update for totals can be complex, for now we rely on explicit user input.
+        // We will just send the data and allow the user to see the value they typed.
+        // To update totals immediately, we can parse the DOM inputs for this table.
+        recalculateTotals(courtId);
+
+        fetch("{{ url_for('report.update_match_costs') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': "{{ csrf_token() if csrf_token else '' }}"
+            },
+            body: JSON.stringify({
+                match_id: matchId,
+                [field]: value
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    alert('Error al guardar: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function recalculateTotals(courtId) {
+        // Find the table body associated with this court (we need a way to scope it)
+        // Since we didn't add IDs to tbody, let's find the footer and go back to the table
+        const footer = document.getElementById('footer-' + courtId);
+        if (!footer) return;
+
+        const table = footer.closest('table');
+        if (!table) return;
+
+        let sumHome = 0;
+        let sumAway = 0;
+        let sumReferee = 0;
+
+        // Iterate rows
+        const inputs = table.querySelectorAll('input');
+        inputs.forEach(input => {
+            const val = parseValue(input.value);
+            const field = input.getAttribute('data-field');
+
+            if (field === 'referee_cost_home') sumHome += val;
+            if (field === 'referee_cost_away') sumAway += val;
+            if (field === 'referee_cost') sumReferee += val;
+        });
+
+        // Update Footer
+        const totalHomeEl = footer.querySelector('[data-type="total-home"]');
+        const totalAwayEl = footer.querySelector('[data-type="total-away"]');
+        const totalRefereeEl = footer.querySelector('[data-type="total-referee"]');
+        const profitEl = footer.querySelector('[data-type="total-profit"]');
+
+        if (totalHomeEl) totalHomeEl.textContent = '$' + sumHome;
+        if (totalAwayEl) totalAwayEl.textContent = '$' + sumAway;
+        if (totalRefereeEl) totalRefereeEl.textContent = '$' + sumReferee;
+
+        const profit = (sumHome + sumAway) - sumReferee;
+        if (profitEl) {
+            profitEl.textContent = '$' + profit;
+            profitEl.className = profitEl.className.replace(/text-(green|red)-400/, '');
+            profitEl.classList.add(profit >= 0 ? 'text-green-400' : 'text-red-400');
+        }
+    }
+
+    function parseValue(val) {
+        if (!val) return 0;
+        // Check for NSP
+        if (val.toUpperCase().includes('NSP')) return 0;
+        // Try parse
+        const num = parseInt(val);
+        return isNaN(num) ? 0 : num;
+    }
+</script>
+{% endblock %}

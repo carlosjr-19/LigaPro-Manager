@@ -91,7 +91,16 @@ def run_migrations():
                     "ALTER TABLE users ADD COLUMN highlight_mode VARCHAR(20) DEFAULT 'simple'",
                     "ALTER TABLE leagues ADD COLUMN credential_color VARCHAR(10) DEFAULT '#dc2626'",
                     "ALTER TABLE leagues ADD COLUMN show_team_logos BOOLEAN DEFAULT FALSE",
-                    "ALTER TABLE matches ADD COLUMN match_round INTEGER DEFAULT 1"
+                    "ALTER TABLE matches ADD COLUMN match_round INTEGER DEFAULT 1",
+                    "ALTER TABLE users ADD COLUMN is_ultra BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE matches ADD COLUMN referee_cost INTEGER DEFAULT 0",
+                    "ALTER TABLE matches ADD COLUMN referee_cost_home INTEGER DEFAULT 0",
+                    "ALTER TABLE matches ADD COLUMN referee_cost_away INTEGER DEFAULT 0",
+                    "ALTER TABLE matches ALTER COLUMN referee_cost TYPE VARCHAR(50)",
+                    "ALTER TABLE matches ALTER COLUMN referee_cost_home TYPE VARCHAR(50)",
+                    "ALTER TABLE matches ALTER COLUMN referee_cost_away TYPE VARCHAR(50)",
+                    "ALTER TABLE leagues ADD COLUMN price_per_match INTEGER DEFAULT 0",
+                    "ALTER TABLE leagues ADD COLUMN price_referee INTEGER DEFAULT 0"
                 ]
                 
                 for migration in migrations:

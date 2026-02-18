@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Historial de Pagos{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 pb-12">
+    <!-- Header -->
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('report.global_schedule') }}" class="text-white/60 hover:text-white">
+                    <i class="fas fa-arrow-left"></i> Volver a Agenda
+                </a>
+                <h1 class="text-2xl font-bold text-white">
+                    <i class="fas fa-history mr-2 text-blue-400"></i>Historial y Deudas
+                </h1>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex bg-white/5 rounded-lg p-1">
+                <a href="{{ url_for('report.global_schedule') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Agenda</a>
+                <a href="{{ url_for('report.global_schedule_config') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Precios</a>
+                <a href="{{ url_for('report.global_schedule_history') }}"
+                    class="px-4 py-2 rounded-md text-sm font-bold bg-blue-600 text-white shadow">Historial</a>
+                <a href="{{ url_for('report.global_schedule_summary') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Resumen</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- Filters -->
+        <div class="mb-8 flex items-center justify-between">
+            <form method="GET" class="flex gap-4">
+                <select name="league_id" onchange="this.form.submit()"
+                    class="bg-gray-800 border border-white/10 rounded px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <option value="">Todas las Ligas</option>
+                    {% for league in leagues %}
+                    <option value="{{ league.id }}" {% if selected_league==league.id %}selected{% endif %}>
+                        {{ league.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <div class="text-white/40 text-sm">
+                Mostrando eventos con discrepancias según precios configurados.
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="card bg-gray-800 border border-white/10 rounded-xl overflow-hidden shadow-xl">
+            {% if not events %}
+            <div class="p-12 text-center text-white/40">
+                <i class="fas fa-check-circle text-4xl mb-4 text-green-500/50"></i>
+                <p>No se encontraron deudas ni excedentes.</p>
+                <p class="text-sm mt-2">Asegúrate de configurar los precios en la pestaña "Precios" primero.</p>
+            </div>
+            {% else %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead class="bg-black/20 text-white/60 uppercase tracking-wider text-xs">
+                        <tr>
+                            <th class="py-3 px-6">Fecha</th>
+                            <th class="py-3 px-6">Liga</th>
+                            <th class="py-3 px-6">Partido</th>
+                            <th class="py-3 px-6">Entidad</th>
+                            <th class="py-3 px-6 text-right">Debía / Esperado</th>
+                            <th class="py-3 px-6 text-right">Pagó</th>
+                            <th class="py-3 px-6 text-right">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 text-white/80">
+                        {% for event in events %}
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="py-3 px-6 font-mono text-white/60">{{ event.date.strftime('%d/%m/%Y') }}</td>
+                            <td class="py-3 px-6 font-bold text-xs uppercase">{{ event.league }}</td>
+                            <td class="py-3 px-6">{{ event.match }}</td>
+                            <td
+                                class="py-3 px-6 font-medium {{ 'text-yellow-400' if event.entity == 'Arbitro' else 'text-white' }}">
+                                {{ event.entity }}
+                            </td>
+                            <td class="py-3 px-6 text-right font-mono text-white/60">${{ event.expected }}</td>
+                            <td class="py-3 px-6 text-right font-mono">${{ event.paid }}</td>
+                            <td
+                                class="py-3 px-6 text-right font-bold {{ 'text-green-400' if event.balance > 0 else 'text-red-400' }}">
+                                {{ '+' if event.balance > 0 else '' }}{{ event.balance }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}

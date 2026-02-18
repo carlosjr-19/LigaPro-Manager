@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Resumen Global{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 pb-12">
+    <!-- Header -->
+    <header class="bg-card border-b border-white/10 print:hidden">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('report.global_schedule') }}" class="text-white/60 hover:text-white">
+                    <i class="fas fa-arrow-left"></i> Volver a Agenda
+                </a>
+                <h1 class="text-2xl font-bold text-white">
+                    <i class="fas fa-chart-pie mr-2 text-yellow-400"></i>Resumen General
+                </h1>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex bg-white/5 rounded-lg p-1">
+                <a href="{{ url_for('report.global_schedule') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Agenda</a>
+                <a href="{{ url_for('report.global_schedule_config') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Precios</a>
+                <a href="{{ url_for('report.global_schedule_history') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Historial</a>
+                <a href="{{ url_for('report.global_schedule_summary') }}"
+                    class="px-4 py-2 rounded-md text-sm font-bold bg-yellow-600 text-white shadow">Resumen</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- Filters & Actions (Hidden on Print) -->
+        <div class="mb-8 flex flex-col md:flex-row items-center justify-between gap-4 print:hidden">
+            <form method="GET" class="flex gap-4">
+                <select name="league_id" onchange="this.form.submit()"
+                    class="bg-gray-800 border border-white/10 rounded px-4 py-2 text-white focus:outline-none focus:border-yellow-500">
+                    <option value="">Todas las Ligas</option>
+                    {% for league in leagues %}
+                    <option value="{{ league.id }}" {% if selected_league==league.id %}selected{% endif %}>
+                        {{ league.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+
+            <div class="flex gap-4">
+                <button onclick="window.print()"
+                    class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded border border-white/20 transition-colors">
+                    <i class="fas fa-print mr-2"></i>Imprimir
+                </button>
+                <a href="{{ url_for('report.export_global_summary', league_id=selected_league) }}"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded border border-white/20 transition-colors">
+                    <i class="fas fa-file-excel mr-2"></i>Excel
+                </a>
+            </div>
+        </div>
+
+        <!-- Print Header -->
+        <div class="hidden print:block text-center mb-8 border-b-2 border-black pb-4 text-black">
+            <h1 class="text-3xl font-black">RESUMEN DE DEUDAS Y EXCEDENTES</h1>
+            <p class="text-lg">{{ 'Todas las lIgas' if not selected_league else 'Liga Seleccionada' }}</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 print:block print:space-y-8">
+
+            <!-- Teams Summary -->
+            <div
+                class="card bg-gray-800 border border-white/10 rounded-xl overflow-hidden shadow-xl print:bg-white print:border-black print:shadow-none">
+                <div class="bg-black/20 px-6 py-4 border-b border-white/10 print:bg-gray-100 print:text-black">
+                    <h2 class="font-bold text-lg text-white print:text-black">
+                        <i class="fas fa-users mr-2 text-blue-400"></i>Balance de Equipos
+                    </h2>
+                </div>
+
+                {% if not teams_summary %}
+                <div class="p-8 text-center text-white/40 print:text-black/60">No hay discrepancias registradas.</div>
+                {% else %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-black/20 text-white/60 uppercase text-xs print:text-black print:bg-gray-100">
+                            <tr>
+                                <th class="py-2 px-4">Liga</th>
+                                <th class="py-2 px-4">Equipo</th>
+                                <th class="py-2 px-4 text-right">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 text-white/80 print:text-black print:divide-gray-300">
+                            {% for item in teams_summary %}
+                            <tr>
+                                <td class="py-2 px-4 font-bold text-xs uppercase text-white/50 print:text-black/60">{{
+                                    item.league }}</td>
+                                <td class="py-2 px-4 font-medium">{{ item.name }}</td>
+                                <td
+                                    class="py-2 px-4 text-right font-mono font-bold {{ 'text-green-400' if item.balance > 0 else 'text-red-400' }} print:text-black">
+                                    {{ '+' if item.balance > 0 else '' }}{{ item.balance }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Referee Summary -->
+            <div
+                class="card bg-gray-800 border border-white/10 rounded-xl overflow-hidden shadow-xl print:bg-white print:border-black print:shadow-none break-inside-avoid">
+                <div class="bg-black/20 px-6 py-4 border-b border-white/10 print:bg-gray-100 print:text-black">
+                    <h2 class="font-bold text-lg text-white print:text-black">
+                        <i class="fas fa-whistle mr-2 text-yellow-400"></i>Balance de Arbitraje
+                    </h2>
+                </div>
+
+                {% if not referee_summary %}
+                <div class="p-8 text-center text-white/40 print:text-black/60">No hay discrepancias registradas.</div>
+                {% else %}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-black/20 text-white/60 uppercase text-xs print:text-black print:bg-gray-100">
+                            <tr>
+                                <th class="py-2 px-4">Liga</th>
+                                <th class="py-2 px-4 text-right">Balance Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 text-white/80 print:text-black print:divide-gray-300">
+                            {% for item in referee_summary %}
+                            <tr>
+                                <td class="py-2 px-4 font-bold">{{ item.league }}</td>
+                                <td
+                                    class="py-2 px-4 text-right font-mono font-bold {{ 'text-green-400' if item.balance > 0 else 'text-red-400' }} print:text-black">
+                                    {{ '+' if item.balance > 0 else '' }}{{ item.balance }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<style>
+    @media print {
+        .print\:hidden {
+            display: none !important;
+        }
+
+        .print\:block {
+            display: block !important;
+        }
+
+        .print\:text-black {
+            color: black !important;
+        }
+
+        .print\:bg-white {
+            background-color: white !important;
+        }
+
+        .print\:bg-gray-100 {
+            background-color: #f3f4f6 !important;
+        }
+
+        body {
+            background-color: white !important;
+            color: black !important;
+        }
+
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Configuración de Precios{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-900 pb-12">
+    <!-- Header -->
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('report.global_schedule') }}" class="text-white/60 hover:text-white">
+                    <i class="fas fa-arrow-left"></i> Volver a Agenda
+                </a>
+                <h1 class="text-2xl font-bold text-white">
+                    <i class="fas fa-cog mr-2 text-purple-400"></i>Configuración de Precios
+                </h1>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex bg-white/5 rounded-lg p-1">
+                <a href="{{ url_for('report.global_schedule') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Agenda</a>
+                <a href="{{ url_for('report.global_schedule_config') }}"
+                    class="px-4 py-2 rounded-md text-sm font-bold bg-purple-600 text-white shadow">Precios</a>
+                <a href="{{ url_for('report.global_schedule_history') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Historial</a>
+                <a href="{{ url_for('report.global_schedule_summary') }}"
+                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Resumen</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-6 py-8">
+        <div class="card bg-gray-800 border border-white/10 rounded-xl p-6">
+            <h2 class="text-xl font-bold text-white mb-4">Precios por Defecto por Liga</h2>
+            <p class="text-white/60 text-sm mb-6">
+                Define aquí cuánto debe pagar cada equipo y cuánto se paga al árbitro por partido.<br>
+                Estos valores se usarán para calcular deudas y excedentes en el reporte de Historial.
+            </p>
+
+            <form method="POST">
+                {% if csrf_token %}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                {% endif %}
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
+                                <th class="py-3 px-4">Liga</th>
+                                <th class="py-3 px-4 text-center">Pago por Equipo ($)</th>
+                                <th class="py-3 px-4 text-center">Pago al Árbitro ($)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5 text-sm">
+                            {% for league in leagues %}
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="py-4 px-4 font-medium text-white">
+                                    {{ league.name }}
+                                </td>
+                                <td class="py-4 px-4 text-center">
+                                    <input type="number" name="price_team_{{ league.id }}"
+                                        value="{{ league.price_per_match }}"
+                                        class="bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-center w-32 focus:border-purple-500 focus:outline-none placeholder-white/20"
+                                        placeholder="0">
+                                </td>
+                                <td class="py-4 px-4 text-center">
+                                    <input type="number" name="price_referee_{{ league.id }}"
+                                        value="{{ league.price_referee }}"
+                                        class="bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-center w-32 focus:border-purple-500 focus:outline-none placeholder-white/20"
+                                        placeholder="0">
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button type="submit"
+                        class="btn btn-primary bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-bold shadow-lg transition-transform active:scale-95">
+                        <i class="fas fa-save mr-2"></i>Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}
