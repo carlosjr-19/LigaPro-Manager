@@ -1,6 +1,8 @@
 ## 0.9.4
 
-#### Se agregó la funcionalidad de incluir notas al generar el rol o reporte de la liga 
+#### Se agregó la funcionalidad de incluir notas al generar el rol o reporte de la liga
+
+#### Se cambiaron los colores de los resultados en el cuadro para ganador de color verde y perdedor de color rojo
 
 ## Modificado
 
@@ -8,10 +10,6 @@
 * league_detail.html
 * share_modal_fragment.html
 * share_report.html
-
- 
-
-
 
 ## 0.9.3
 

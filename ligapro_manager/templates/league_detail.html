@@ -578,29 +578,32 @@
                                         class="w-full h-full flex flex-col items-center justify-center p-1 group">
 
                                         {% if cell.status == 'completed' %}
-                                        <span
-                                            class="font-bold text-lg text-primary group-hover:scale-110 transition-transform">{{
+                                        {% set score_color = 'text-green-400' if cell.match.home_score >
+                                        cell.match.away_score else 'text-red-400' if cell.match.home_score <
+                                            cell.match.away_score else 'text-white' %} <span
+                                            class="font-bold text-lg {{ score_color }} group-hover:scale-110 transition-transform">
+                                            {{
                                             cell.match.home_score }} - {{ cell.match.away_score }}</span>
-                                        {% if cell.match.is_completed %}
-                                        <span class="text-[10px] text-green-400">Finalizado</span>
-                                        {% endif %}
-                                        <span class="text-xs text-white/40 mt-1">{{ cell.match.match_date_display
-                                            }}</span>
-                                        {% elif cell.status == 'scheduled' %}
-                                        <span class="text-sm text-blue-400 font-bold group-hover:text-blue-300">{{
-                                            cell.match.match_date_display }}</span>
-                                        {% if cell.match.match_time_display and '00:00' not in
-                                        cell.match.match_time_display
-                                        %}
-                                        <span class="text-[10px] text-white/40">{{ cell.match.match_time_display
-                                            }}</span>
-                                        {% endif %}
-                                        <i
-                                            class="fas fa-pencil-alt text-[10px] text-white/0 group-hover:text-white/40 mt-1 transition-colors"></i>
-                                        {% else %}
-                                        <span
-                                            class="text-white/20 text-2xl group-hover:text-white/60 transition-colors">-</span>
-                                        {% endif %}
+                                            {% if cell.match.is_completed %}
+                                            <span class="text-[10px] text-green-400">Finalizado</span>
+                                            {% endif %}
+                                            <span class="text-xs text-white/40 mt-1">{{ cell.match.match_date_display
+                                                }}</span>
+                                            {% elif cell.status == 'scheduled' %}
+                                            <span class="text-sm text-blue-400 font-bold group-hover:text-blue-300">{{
+                                                cell.match.match_date_display }}</span>
+                                            {% if cell.match.match_time_display and '00:00' not in
+                                            cell.match.match_time_display
+                                            %}
+                                            <span class="text-[10px] text-white/40">{{ cell.match.match_time_display
+                                                }}</span>
+                                            {% endif %}
+                                            <i
+                                                class="fas fa-pencil-alt text-[10px] text-white/0 group-hover:text-white/40 mt-1 transition-colors"></i>
+                                            {% else %}
+                                            <span
+                                                class="text-white/20 text-2xl group-hover:text-white/60 transition-colors">-</span>
+                                            {% endif %}
                                     </button>
                                     {% endif %}
                                 </td>
