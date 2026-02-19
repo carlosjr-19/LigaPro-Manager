@@ -79,9 +79,7 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 
 ## 🔄 Últimas Actualizaciones (v0.9.1)
 
-*   **Reportes Mejorados:** Tabla de posiciones en reporte de liga mejorada con mayor tamaño de logos de equipos, nombres y estadisticas. Nombre de las canchas más resaltantes
-* **Registros de jugadores:** Registros de jugadores mejorados con el logo de la liga de mayor tamaño y centrado. 
-*   **Documentación:** Actualización de README, CHANGELOG y VERSION.
+*   **Diseño responsivo para dispositivos móviles:** Modificando el diseño responsivo para dispositivos móviles de la plataforma
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

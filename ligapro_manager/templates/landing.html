@@ -3,209 +3,362 @@
 {% block title %}LigaPro Manager - Gestión Profesional de Ligas{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#121212] text-white">
+<div class="min-h-screen bg-[#0a0a0a] text-white selection:bg-red-500/30">
     <!-- Hero Section -->
-    <section class="relative overflow-hidden py-20 lg:py-32">
-        <div class="absolute inset-0 bg-gradient-to-br from-red-600/10 via-transparent to-purple-600/10 z-0"></div>
+    <section class="relative overflow-hidden py-24 lg:py-40">
+        <!-- Animated Background Elements -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+            <div
+                class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-red-600/20 rounded-full blur-[120px] animate-pulse-slow">
+            </div>
+            <div
+                class="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[100px] animate-pulse-slow delay-1000">
+            </div>
+            <div
+                class="absolute -bottom-[20%] left-[20%] w-[30%] h-[30%] bg-blue-600/10 rounded-full blur-[80px] animate-pulse-slow delay-2000">
+            </div>
+            <div
+                class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150 mix-blend-overlay">
+            </div>
+        </div>
+
         <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
             <div
-                class="inline-block px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-sm animate-fade-in-up">
-                <span class="text-red-400 font-bold tracking-wider text-sm uppercase">La plataforma #1 para Ligas
-                    Amateur</span>
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8 backdrop-blur-md animate-fade-in-up hover:bg-white/10 transition-colors cursor-default">
+                <span class="relative flex h-2 w-2">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                <span class="text-gray-300 font-medium text-xs md:text-sm tracking-wide uppercase">La plataforma #1 para
+                    Ligas Amateur</span>
             </div>
+
             <h1
-                class="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent leading-tight animate-fade-in-up delay-100">
-                Lleva tu Liga al <br />
-                <span class="text-red-500">Siguiente Nivel</span>
+                class="text-5xl md:text-6xl lg:text-8xl font-black mb-8 tracking-tight leading-tight animate-fade-in-up delay-100">
+                Lleva tu Liga al <br class="hidden md:block" />
+                <span
+                    class="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">Siguiente
+                    Nivel</span>
             </h1>
-            <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto animate-fade-in-up delay-200">
-                Gestiona torneos, automatiza calendarios, registra estadísticas detalladas y ofrece a tus equipos una
-                experiencia profesional.
+
+            <p
+                class="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed animate-fade-in-up delay-200">
+                Gestiona torneos, automatiza calendarios, genera reportes profesionales y dale a tus jugadores una
+                experiencia de primera división.
             </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up delay-300">
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up delay-300">
                 <a href="{{ url_for('auth.register') }}"
-                    class="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all hover:scale-105 shadow-lg shadow-red-600/20 flex items-center justify-center gap-2">
-                    <i class="fas fa-rocket"></i> Empezar Gratis
+                    class="group relative px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl transition-all hover:scale-105 shadow-[0_0_40px_-10px_rgba(220,38,38,0.5)] flex items-center justify-center gap-3 overflow-hidden">
+                    <div
+                        class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer">
+                    </div>
+                    <i class="fas fa-rocket text-lg"></i>
+                    <span>Empezar Gratis</span>
                 </a>
                 <a href="{{ url_for('auth.login') }}"
-                    class="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all hover:scale-105 flex items-center justify-center gap-2">
-                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    class="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white font-bold rounded-2xl transition-all hover:scale-105 flex items-center justify-center gap-3 backdrop-blur-sm">
+                    <i class="fas fa-sign-in-alt text-lg"></i>
+                    <span>Iniciar Sesión</span>
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="py-20 bg-black/40">
+    <!-- Stats Counter Section -->
+    <section class="py-10 border-y border-white/5 bg-white/[0.02]">
         <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl lg:text-4xl font-bold mb-4">Todo lo que necesitas en un solo lugar</h2>
-                <p class="text-gray-400">Funcionalidades diseñadas para ahorrarte tiempo y profesionalizar tu torneo.
-                </p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-white/5">
+                <div class="p-2">
+                    <div
+                        class="text-4xl lg:text-5xl font-bold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent mb-2">
+                        +100</div>
+                    <div class="text-sm text-gray-400 uppercase tracking-wider font-semibold">Ligas Activas</div>
+                </div>
+                <div class="p-2">
+                    <div
+                        class="text-4xl lg:text-5xl font-bold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent mb-2">
+                        +5k</div>
+                    <div class="text-sm text-gray-400 uppercase tracking-wider font-semibold">Jugadores</div>
+                </div>
+                <div class="p-2">
+                    <div
+                        class="text-4xl lg:text-5xl font-bold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent mb-2">
+                        +10k</div>
+                    <div class="text-sm text-gray-400 uppercase tracking-wider font-semibold">Partidos</div>
+                </div>
+                <div class="p-2">
+                    <div
+                        class="text-4xl lg:text-5xl font-bold bg-gradient-to-b from-white to-gray-500 bg-clip-text text-transparent mb-2">
+                        24/7</div>
+                    <div class="text-sm text-gray-400 uppercase tracking-wider font-semibold">Soporte</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-24 lg:py-32 relative">
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="text-center mb-24 max-w-3xl mx-auto">
+                <h2 class="text-3xl lg:text-5xl font-bold mb-6">Todo lo que necesitas en una sola plataforma</h2>
+                <p class="text-xl text-gray-400">Herramientas potentes diseñadas para ahorrarte tiempo y hacer lucir
+                    profesional a tu torneo.</p>
             </div>
 
             <!-- Feature 1: Scheduling -->
-            <div class="flex flex-col lg:flex-row items-center gap-12 mb-24">
-                <div class="lg:w-1/2">
-                    <div class="relative group">
+            <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20 mb-32 group">
+                <div class="lg:w-1/2 order-2 lg:order-1">
+                    <div class="relative">
                         <div
-                            class="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200">
+                            class="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition duration-500">
                         </div>
                         <img src="{{ url_for('static', filename='img/agendar_partidos.png') }}"
                             alt="Programación de Partidos"
-                            class="relative rounded-2xl shadow-2xl border border-white/10 w-full transform transition hover:scale-[1.01] duration-500">
+                            class="relative rounded-2xl shadow-2xl border border-white/10 w-full transform transition group-hover:scale-[1.01] duration-500 bg-[#1a1a1a]">
                     </div>
                 </div>
-                <div class="lg:w-1/2 space-y-6">
+                <div class="lg:w-1/2 space-y-8 order-1 lg:order-2">
                     <div
-                        class="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 text-2xl">
-                        <i class="fas fa-calendar-alt"></i>
+                        class="inline-flex items-center justify-center p-3 rounded-xl bg-red-500/10 text-red-500 mb-4 border border-red-500/20">
+                        <i class="fas fa-calendar-alt text-2xl"></i>
                     </div>
-                    <h3 class="text-3xl font-bold">Programación de Partidos Simplificada</h3>
+                    <h3 class="text-3xl lg:text-4xl font-bold">Programación Simplificada</h3>
                     <p class="text-gray-400 text-lg leading-relaxed">
                         Olvídate de las hojas de cálculo. Programa partidos seleccionando equipos y horarios fácilmente.
                         El sistema valida conflictos y lleva el historial de enfrentamientos automáticamente.
                     </p>
-                    <ul class="space-y-3 text-gray-300">
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Detección de conflictos de horario
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Detección automática de cruces de horario</span>
                         </li>
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Historial de enfrentamientos directos
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Marcadores en tiempo real
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Historial de enfrentamientos directos</span>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Feature 2: Stats -->
-            <div class="flex flex-col lg:flex-row-reverse items-center gap-12 mb-24">
-                <div class="lg:w-1/2">
-                    <div class="relative group">
-                        <div
-                            class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200">
-                        </div>
-                        <img src="{{ url_for('static', filename='img/tabla.png') }}" alt="Estadísticas Completas"
-                            class="relative rounded-2xl shadow-2xl border border-white/10 w-full transform transition hover:scale-[1.01] duration-500">
-                    </div>
-                </div>
-                <div class="lg:w-1/2 space-y-6">
+            <!-- Feature 2: Digital Credentials (NEW) -->
+            <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20 mb-32 group">
+                <div class="lg:w-1/2 space-y-8">
                     <div
-                        class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-500 text-2xl">
-                        <i class="fas fa-chart-bar"></i>
+                        class="inline-flex items-center justify-center p-3 rounded-xl bg-blue-500/10 text-blue-500 mb-4 border border-blue-500/20">
+                        <i class="fas fa-id-card text-2xl"></i>
                     </div>
-                    <h3 class="text-3xl font-bold">Estadísticas Detalladas</h3>
+                    <h3 class="text-3xl lg:text-4xl font-bold">Registros Digitales</h3>
                     <p class="text-gray-400 text-lg leading-relaxed">
-                        Tabla general, tabla de goleo, porteros menos goleados y más. Todo se actualiza automáticamente
-                        al registrar los resultados de los partidos.
+                        Profesionaliza tu liga con registros digitales para cada jugador. Generación automática con
+                        foto, nombre, equipo y CURP único para validación en cancha.
                     </p>
-                    <ul class="space-y-3 text-gray-300">
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Tabla de posiciones automática
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">CURP único por jugador</span>
                         </li>
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Goleo individual y porteros
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Diseño profesional y personalizable</span>
                         </li>
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Estadísticas por equipo y jugador
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Acceso rápido desde el móvil</span>
+                        </li>
+                    </ul>
+                </div>
+                <!-- Visual Placeholder for Credentials -->
+                <div class="lg:w-1/2 relative">
+                    <div
+                        class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition duration-500">
+                    </div>
+                    <div
+                        class="relative bg-[#1a1a1a] border border-white/10 rounded-2xl p-8 shadow-2xl overflow-hidden group-hover:scale-[1.01] transition duration-500 h-80 flex items-center justify-center">
+                        <!-- Simulated Credential Card UI -->
+                        <div
+                            class="w-64 bg-white rounded-xl shadow-lg overflow-hidden transform -rotate-3 hover:rotate-0 transition duration-300">
+                            <div class="bg-blue-600 h-20 relative">
+                                <div
+                                    class="absolute -bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 bg-gray-200 rounded-full border-4 border-white">
+                                </div>
+                            </div>
+                            <div class="pt-10 pb-6 px-4 text-center">
+                                <div class="h-4 w-32 bg-gray-200 rounded mx-auto mb-2"></div>
+                                <div class="h-3 w-20 bg-gray-100 rounded mx-auto mb-4"></div>
+                                <div
+                                    class="h-24 w-24 bg-gray-900 mx-auto rounded mb-2 flex items-center justify-center text-white/20">
+                                    <i class="fas fa-qrcode text-4xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 3: Professional Reports (NEW) -->
+            <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20 mb-32 group">
+                <div class="lg:w-1/2 order-2 lg:order-1">
+                    <div class="relative">
+                        <div
+                            class="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-green-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition duration-500">
+                        </div>
+                        <img src="{{ url_for('static', filename='img/tabla.png') }}" alt="Reportes Profesionales"
+                            class="relative rounded-2xl shadow-2xl border border-white/10 w-full transform transition group-hover:scale-[1.01] duration-500 bg-[#1a1a1a]">
+                    </div>
+                </div>
+                <div class="lg:w-1/2 space-y-8 order-1 lg:order-2">
+                    <div
+                        class="inline-flex items-center justify-center p-3 rounded-xl bg-emerald-500/10 text-emerald-500 mb-4 border border-emerald-500/20">
+                        <i class="fas fa-share-alt text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl lg:text-4xl font-bold">Reportes Listos para Compartir</h3>
+                    <p class="text-gray-400 text-lg leading-relaxed">
+                        Genera imágenes atractivas de los resultados, tabla general y próximos partidos con un solo
+                        clic. Diseñados perfectamente para compartir en WhatsApp, Facebook e Instagram.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Formato optimizado para redes sociales</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Descarga instantánea</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Mantén a tu comunidad informada</span>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Feature 3: Playoffs -->
-            <div class="flex flex-col lg:flex-row items-center gap-12">
-                <div class="lg:w-1/2">
-                    <div class="relative group">
-                        <div
-                            class="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200">
-                        </div>
-                        <img src="{{ url_for('static', filename='img/liguilla.png') }}" alt="Gestión de Liguilla"
-                            class="relative rounded-2xl shadow-2xl border border-white/10 w-full transform transition hover:scale-[1.01] duration-500">
-                    </div>
-                </div>
-                <div class="lg:w-1/2 space-y-6">
+
+            <!-- Feature 4: Automatic Liguilla -->
+            <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-20 group">
+                <div class="lg:w-1/2 space-y-8">
                     <div
-                        class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 text-2xl">
-                        <i class="fas fa-trophy"></i>
+                        class="inline-flex items-center justify-center p-3 rounded-xl bg-purple-500/10 text-purple-500 mb-4 border border-purple-500/20">
+                        <i class="fas fa-trophy text-2xl"></i>
                     </div>
-                    <h3 class="text-3xl font-bold">Liguilla y Playoffs Automáticos</h3>
+                    <h3 class="text-3xl lg:text-4xl font-bold">Liguilla Automática</h3>
                     <p class="text-gray-400 text-lg leading-relaxed">
                         Genera los cruces de liguilla automáticamente basándote en la tabla general. Maneja cuartos,
-                        semis y final con un solo clic.
+                        semis y final sin complicaciones matemáticas.
                     </p>
-                    <ul class="space-y-3 text-gray-300">
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Generación automática de llaves
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Smart-bracket automático</span>
                         </li>
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Soporte para Repechaje
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <i class="fas fa-check text-green-500"></i> Partidos de Ida y Vuelta
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center mt-1">
+                                <i class="fas fa-check text-green-500 text-xs"></i>
+                            </span>
+                            <span class="text-gray-300">Soporte para Repechaje e Ida/Vuelta</span>
                         </li>
                     </ul>
+                </div>
+                <div class="lg:w-1/2 relative">
+                    <div
+                        class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition duration-500">
+                    </div>
+                    <img src="{{ url_for('static', filename='img/liguilla.png') }}" alt="Gestión de Liguilla"
+                        class="relative rounded-2xl shadow-2xl border border-white/10 w-full transform transition group-hover:scale-[1.01] duration-500 bg-[#1a1a1a]">
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Roles Section -->
-    <section class="py-20 bg-card border-y border-white/5">
+    <section class="py-24 bg-gradient-to-b from-[#0a0a0a] to-[#121212] border-y border-white/5">
         <div class="max-w-7xl mx-auto px-6 text-center">
-            <h2 class="text-3xl font-bold mb-12">Roles para todos los participantes</h2>
+            <h2 class="text-3xl font-bold mb-16">Diseñado para todos los participantes</h2>
             <div class="grid md:grid-cols-3 gap-8">
                 <!-- Admin/Owner -->
                 <div
-                    class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-red-500/50 transition-colors">
+                    class="group p-8 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] hover:border-red-500/30 transition-all duration-300 hover:-translate-y-2">
                     <div
-                        class="w-16 h-16 mx-auto rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-3xl mb-6">
+                        class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-red-500/10 to-transparent flex items-center justify-center text-red-500 text-3xl mb-8 group-hover:scale-110 transition-transform">
                         <i class="fas fa-user-shield"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">Presidente de Liga</h3>
-                    <p class="text-gray-400">Control total. Crea torneos, gestiona equipos, valida pagos y define el
-                        reglamento.</p>
+                    <h3 class="text-xl font-bold mb-3">Presidente de Liga</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm">Control total. Crea torneos, gestiona equipos,
+                        valida pagos y define el reglamento.</p>
                 </div>
 
                 <!-- Captain -->
                 <div
-                    class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-blue-500/50 transition-colors">
+                    class="group p-8 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] hover:border-blue-500/30 transition-all duration-300 hover:-translate-y-2">
                     <div
-                        class="w-16 h-16 mx-auto rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 text-3xl mb-6">
+                        class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500/10 to-transparent flex items-center justify-center text-blue-500 text-3xl mb-8 group-hover:scale-110 transition-transform">
                         <i class="fas fa-users-cog"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">Capitán de Equipo</h3>
-                    <p class="text-gray-400">Gestiona su plantilla, sube fotos de jugadores y genera registros
-                        digitales.</p>
+                    <h3 class="text-xl font-bold mb-3">Capitán de Equipo</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm">Gestiona su plantilla, sube fotos de jugadores,
+                        genera credenciales y ve estadísticas.</p>
                 </div>
 
                 <!-- Player/Fan -->
                 <div
-                    class="p-8 rounded-2xl bg-white/5 border border-white/10 hover:border-green-500/50 transition-colors">
+                    class="group p-8 rounded-3xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] hover:border-green-500/30 transition-all duration-300 hover:-translate-y-2">
                     <div
-                        class="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center text-green-500 text-3xl mb-6">
+                        class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-green-500/10 to-transparent flex items-center justify-center text-green-500 text-3xl mb-8 group-hover:scale-110 transition-transform">
                         <i class="fas fa-mobile-alt"></i>
                     </div>
-                    <h3 class="text-xl font-bold mb-4">Aficionado</h3>
-                    <p class="text-gray-400">Sigue los resultados en vivo, revisa la tabla de posiciones y estadísticas
-                        desde su móvil.</p>
+                    <h3 class="text-xl font-bold mb-3">Aficionado</h3>
+                    <p class="text-gray-400 leading-relaxed text-sm">Sigue los resultados en vivo, revisa la tabla de
+                        posiciones y estadísticas desde su móvil.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- CTA Footer -->
-    <section class="py-20 relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-t from-red-900/40 to-black/90 z-0"></div>
+    <section class="py-32 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-t from-red-900/40 via-[#0a0a0a] to-[#0a0a0a] z-0"></div>
+        <div
+            class="absolute bottom-0 left-0 w-full h-[500px] bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-red-600/20 via-transparent to-transparent">
+        </div>
+
         <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
-            <h2 class="text-4xl font-bold mb-8">¿Listo para profesionalizar tu liga?</h2>
-            <p class="text-xl text-gray-300 mb-10">
-                Únete a los presidentes de liga que ya gestionan sus torneos con LigaPro Manager.
+            <h2 class="text-4xl md:text-5xl font-bold mb-8">¿Listo para profesionalizar tu liga?</h2>
+            <p class="text-xl text-gray-400 mb-12">
+                Únete a los presidentes de liga que ya gestionan sus torneos con <span
+                    class="text-white font-semibold">LigaPro Manager</span>.
             </p>
             <a href="{{ url_for('auth.register') }}"
-                class="inline-block px-10 py-5 bg-white text-red-900 font-bold rounded-xl text-lg hover:bg-gray-100 transition-colors shadow-2xl">
+                class="inline-block px-12 py-5 bg-white text-black font-bold rounded-2xl text-lg hover:bg-gray-100 transition-all hover:scale-105 shadow-[0_0_50px_-10px_rgba(255,255,255,0.3)]">
                 Crear mi Liga Ahora
             </a>
         </div>
