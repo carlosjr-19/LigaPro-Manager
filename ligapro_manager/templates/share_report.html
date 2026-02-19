@@ -72,6 +72,8 @@
             </div>
         </div>
 
+
+
         <div class="space-y-6 relative z-10">
 
             {% if include_standings and standings %}
@@ -278,6 +280,19 @@
                     {% endfor %}
                 </div>
                 {% endif %}
+            </div>
+            {% endif %}
+
+            {% if report_note %}
+            <!-- Custom Note (Premium) -->
+            <div class="relative z-10 px-4 mb-8 mt-8">
+                <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 flex gap-4 items-start">
+                    <i class="fas fa-info-circle text-yellow-400 mt-1 text-lg"></i>
+                    <div>
+                        <h3 class="text-yellow-400 font-bold text-sm uppercase tracking-wider mb-1">Nota Importante</h3>
+                        <p class="text-white text-lg font-medium leading-relaxed">{{ report_note }}</p>
+                    </div>
+                </div>
             </div>
             {% endif %}
 

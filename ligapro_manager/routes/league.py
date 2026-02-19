@@ -406,6 +406,11 @@ def generate_share_report(league_id):
     include_upcoming = request.values.get('include_upcoming') is not None
     include_scorers = request.values.get('include_scorers') is not None
     include_keepers = request.values.get('include_keepers') is not None
+    report_note = request.values.get('report_note')
+    
+    # Enforce Premium for Note
+    if report_note and not current_user.is_active_premium:
+        report_note = None
     
     # Data containers
     standings = []
@@ -479,7 +484,8 @@ def generate_share_report(league_id):
                           include_scorers=include_scorers, top_scorers=top_scorers,
                           include_keepers=include_keepers, top_goalkeepers=top_goalkeepers,
                           date_start=date_start_str if date_start_str else 'Inicio',
-                          date_end=date_end_str if date_end_str else 'Actualidad')
+                          date_end=date_end_str if date_end_str else 'Actualidad',
+                          report_note=report_note)
 
 
 

@@ -1358,6 +1358,26 @@
                         </div>
                     </label>
                 </div>
+
+                <!-- Extra Note (Premium) -->
+                <div class="border border-white/10 rounded p-3">
+                    <label class="block text-sm font-bold mb-2 flex justify-between">
+                        <span>Nota Adicional</span>
+                        {% if not current_user.is_active_premium %}
+                        <a href="{{ url_for('premium.premium') }}"
+                            class="text-xs text-yellow-400 hover:text-yellow-300">
+                            <i class="fas fa-crown mr-1"></i>Premium
+                        </a>
+                        {% endif %}
+                    </label>
+                    <textarea name="report_note" rows="2"
+                        placeholder="Ej: 'Equipo Monarcas descansa' o 'Llevar medias largas'"
+                        class="w-full bg-black/20 border border-white/10 rounded p-2 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                        {% if not current_user.is_active_premium %}disabled{% endif %}></textarea>
+                    {% if not current_user.is_active_premium %}
+                    <p class="text-xs text-white/40 mt-1">Función exclusiva para usuarios Premium.</p>
+                    {% endif %}
+                </div>
             </div>
 
             <div class="mt-8 flex justify-end gap-3">
