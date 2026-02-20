@@ -128,26 +128,32 @@ def global_schedule_config():
         return redirect(url_for('report.index'))
         
     if request.method == 'POST':
-        # Update prices for leagues
-        for key, value in request.form.items():
-            if key.startswith('price_team_'):
-                league_id = key.split('_')[2]
-                league = League.query.get(league_id)
-                if league and league.user_id == current_user.id:
-                    try:
-                        league.price_per_match = int(value)
-                    except ValueError:
-                        pass
-            elif key.startswith('price_referee_'):
-                league_id = key.split('_')[2]
-                league = League.query.get(league_id)
-                if league and league.user_id == current_user.id:
-                    try:
-                        league.price_referee = int(value)
-                    except ValueError:
-                        pass
+        leagues = League.query.filter_by(user_id=current_user.id).all()
+        for league in leagues:
+            # Prices
+            price_team = request.form.get(f'price_team_{league.id}')
+            price_ref = request.form.get(f'price_referee_{league.id}')
+            
+            # Start Date Settings
+            charge_from_start = request.form.get(f'charge_from_start_{league.id}') == 'on'
+            charge_date_str = request.form.get(f'charge_start_date_{league.id}')
+            
+            try:
+                if price_team is not None:
+                    league.price_per_match = int(price_team)
+                if price_ref is not None:
+                    league.price_referee = int(price_ref)
+                
+                league.charge_from_start = charge_from_start
+                if not charge_from_start and charge_date_str:
+                    league.charge_start_date = datetime.strptime(charge_date_str, '%Y-%m-%d').date()
+                else:
+                    league.charge_start_date = None
+            except ValueError:
+                pass
+                
         db.session.commit()
-        flash('Precios actualizados correctamente.', 'success')
+        flash('Configuración de precios y fechas actualizada correctamente.', 'success')
         return redirect(url_for('report.global_schedule_config'))
 
     leagues = League.query.filter_by(user_id=current_user.id).all()
@@ -180,6 +186,11 @@ def global_schedule_history():
 
     for match in matches:
         if not match.league: continue
+        
+        # Respect Charge Start Date
+        if not match.league.charge_from_start and match.league.charge_start_date:
+            if match.match_date.date() < match.league.charge_start_date:
+                continue
         
         # Defaults
         default_team_price = match.league.price_per_match or 0
@@ -384,6 +395,11 @@ def calculate_discrepancies(matches):
     for match in matches:
         if not match.league: continue
         
+        # Respect Charge Start Date
+        if not match.league.charge_from_start and match.league.charge_start_date:
+            if match.match_date.date() < match.league.charge_start_date:
+                continue
+
         # Defaults
         default_team_price = match.league.price_per_match or 0
         default_ref_price = match.league.price_referee or 0
@@ -560,6 +576,13 @@ def global_schedule_financials():
         date_key = match.match_date.strftime('%Y-%m-%d')
         court_name = match.court.name if match.court else "Sin Cancha"
         
+        if not match.league: continue
+        
+        # Respect Charge Start Date
+        if not match.league.charge_from_start and match.league.charge_start_date:
+            if match.match_date.date() < match.league.charge_start_date:
+                continue
+
         income = parse_cost(match.referee_cost_home) + parse_cost(match.referee_cost_away)
         expense = parse_cost(match.referee_cost)
         profit = income - expense
@@ -626,6 +649,13 @@ def export_global_financials():
         except: return 0
 
     for match in matches:
+        if not match.league: continue
+        
+        # Respect Charge Start Date
+        if not match.league.charge_from_start and match.league.charge_start_date:
+            if match.match_date.date() < match.league.charge_start_date:
+                continue
+
         date_key = match.match_date.strftime('%Y-%m-%d')
         court_name = match.court.name if match.court else "Sin Cancha"
         income = parse_cost(match.referee_cost_home) + parse_cost(match.referee_cost_away)

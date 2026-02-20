@@ -29,6 +29,8 @@ class League(db.Model):
     playoff_type = db.Column(db.String(20), default='single') # 'single' or 'double'
     price_per_match = db.Column(db.Integer, default=0) # Default cost for team per match
     price_referee = db.Column(db.Integer, default=0) # Default payment to referee per match
+    charge_from_start = db.Column(db.Boolean, default=True)
+    charge_start_date = db.Column(db.Date, nullable=True)
 
     @property
     def active_teams_count(self):

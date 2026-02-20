@@ -100,22 +100,28 @@ def run_migrations():
                     "ALTER TABLE matches ALTER COLUMN referee_cost_home TYPE VARCHAR(50)",
                     "ALTER TABLE matches ALTER COLUMN referee_cost_away TYPE VARCHAR(50)",
                     "ALTER TABLE leagues ADD COLUMN price_per_match INTEGER DEFAULT 0",
-                    "ALTER TABLE leagues ADD COLUMN price_referee INTEGER DEFAULT 0"
+                    "ALTER TABLE leagues ADD COLUMN price_referee INTEGER DEFAULT 0",
+                    "ALTER TABLE leagues ADD COLUMN charge_from_start BOOLEAN DEFAULT TRUE",
+                    "ALTER TABLE leagues ADD COLUMN charge_start_date DATE"
                 ]
                 
                 for migration in migrations:
+                    # Skip ALTER COLUMN for SQLite as it's not supported and not strictly needed for dynamic typing
+                    if "ALTER COLUMN" in migration:
+                        continue
+                        
                     try:
                         conn.execute(text(migration))
                         conn.commit()
                         print(f"Executed migration: {migration}")
                     except Exception as e:
                         conn.rollback()
-                        # Only ignore if column already exists (DuplicateColumn)
-                        if 'DuplicateColumn' in str(e) or 'already exists' in str(e):
+                        # Better check for already existing columns in various dialects (SQLite specifically)
+                        err_str = str(e).lower()
+                        if 'duplicate column name' in err_str or 'already exists' in err_str or 'duplicatecolumn' in err_str:
                             print(f"Column already exists: {migration}")
                         else:
                             print(f"Migration Error for '{migration}': {e}")
-                            # Optional: Fail if critical? For now just log.
 
     except Exception as e:
         print(f"Migration Setup Error: {e}")

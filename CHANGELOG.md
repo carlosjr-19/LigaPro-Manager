@@ -1,3 +1,13 @@
+## 0.9.5
+
+Se ajusto las fechas de cobro para el reporte de finanzas para establecer si se cobra desde al inicar la liga o desde una fecha especificas
+
+## Modificado
+* ligapro_manager.py
+* league.py
+* report.py
+* config.html
+
 ## 0.9.4.1
 
 Modificando el diseño responsivo para dispositivos móviles de la plataforma

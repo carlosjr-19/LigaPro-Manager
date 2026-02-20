@@ -51,6 +51,7 @@
                                 <th class="py-3 px-4">Liga</th>
                                 <th class="py-3 px-4 text-center">Pago por Equipo ($)</th>
                                 <th class="py-3 px-4 text-center">Pago al Árbitro ($)</th>
+                                <th class="py-3 px-4 text-center whitespace-nowrap">Cobrar Desde</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5 text-sm">
@@ -71,6 +72,27 @@
                                         class="bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-center w-32 focus:border-purple-500 focus:outline-none placeholder-white/20"
                                         placeholder="0">
                                 </td>
+                                <td class="py-4 px-4 text-center">
+                                    <div class="flex flex-col items-center gap-2">
+                                        <label class="relative inline-flex items-center cursor-pointer group">
+                                            <input type="checkbox" name="charge_from_start_{{ league.id }}"
+                                                class="sr-only peer" {% if league.charge_from_start %}checked{% endif %}
+                                                onchange="toggleDateInput('{{ league.id }}', this.checked)">
+                                            <div
+                                                class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                                            </div>
+                                            <span
+                                                class="ms-3 text-xs font-medium text-white/60 group-hover:text-white transition-colors">Inicio
+                                                Liga</span>
+                                        </label>
+
+                                        <input type="date" name="charge_start_date_{{ league.id }}"
+                                            id="date_input_{{ league.id }}"
+                                            value="{{ league.charge_start_date.strftime('%Y-%m-%d') if league.charge_start_date else '' }}"
+                                            class="{% if league.charge_from_start %}hidden{% endif %} bg-black/20 border border-white/10 rounded px-3 py-1 text-white text-xs focus:border-purple-500 focus:outline-none transition-all"
+                                            {% if not league.charge_from_start %}required{% endif %}>
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -87,4 +109,17 @@
         </div>
     </main>
 </div>
+
+<script>
+    function toggleDateInput(leagueId, isFromStart) {
+        const input = document.getElementById('date_input_' + leagueId);
+        if (isFromStart) {
+            input.classList.add('hidden');
+            input.removeAttribute('required');
+        } else {
+            input.classList.remove('hidden');
+            input.setAttribute('required', 'required');
+        }
+    }
+</script>
 {% endblock %}
