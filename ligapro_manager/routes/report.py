@@ -103,12 +103,14 @@ def update_match_costs():
     cost_home = data.get('referee_cost_home')
     cost_away = data.get('referee_cost_away')
     cost_referee = data.get('referee_cost')
+    home_score = data.get('home_score')
+    away_score = data.get('away_score')
     
     match = Match.query.get(match_id)
     if not match:
         return jsonify({'error': 'Match not found'}), 404
         
-    # Update fields if provided
+    # Update cost fields if provided
     if cost_home is not None:
         match.referee_cost_home = str(cost_home)
     if cost_away is not None:
@@ -116,9 +118,28 @@ def update_match_costs():
     if cost_referee is not None:
         match.referee_cost = str(cost_referee)
     
+    # Update scores
+    if home_score is not None:
+        try:
+            match.home_score = int(home_score) if str(home_score).strip() != "" else None
+        except ValueError:
+            pass
+            
+    if away_score is not None:
+        try:
+            match.away_score = int(away_score) if str(away_score).strip() != "" else None
+        except ValueError:
+            pass
+
+    # Auto-complete if scores are present (mirroring match_matrix logic)
+    if match.home_score is not None and match.away_score is not None:
+        match.is_completed = True
+    else:
+        match.is_completed = False
+    
     db.session.commit()
     
-    return jsonify({'success': True, 'match_id': match.id})
+    return jsonify({'success': True, 'match_id': match.id, 'is_completed': match.is_completed})
 
 @report_bp.route('/global-schedule/config', methods=['GET', 'POST'])
 @login_required

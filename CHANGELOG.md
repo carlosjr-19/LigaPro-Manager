@@ -1,3 +1,17 @@
+## 0.9.5.1
+
+Se agregó en el reporte de agenda global la opción para colocar el marcador directamente desde allí y esta sincronizado con la agenda de partidos de caad liga.
+
+Se colocó global el número de la versión de la aplicación
+
+## Modificado
+
+* global_schedule.html
+* report.py
+* base.html
+* ligapro_manager.py
+
+
 ## 0.9.5
 
 Se ajusto las fechas de cobro para el reporte de finanzas para establecer si se cobra desde al inicar la liga o desde una fecha especificas

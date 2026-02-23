@@ -35,8 +35,18 @@ def create_app(config_class=Config):
         
     # Context Processor for Global Variables
     @app.context_processor
-    def inject_stripe_key():
-        return {'stripe_public_key': app.config.get('STRIPE_PUBLIC_KEY')}
+    def inject_global_vars():
+        # Read version from VERSION file
+        app_version = "0.0.0"
+        version_file = os.path.join(os.path.dirname(__file__), '..', 'VERSION')
+        if os.path.exists(version_file):
+            with open(version_file, 'r') as f:
+                app_version = f.read().strip()
+                
+        return {
+            'stripe_public_key': app.config.get('STRIPE_PUBLIC_KEY'),
+            'app_version': app_version
+        }
 
     return app
 
