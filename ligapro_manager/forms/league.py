@@ -14,3 +14,11 @@ class LeagueForm(FlaskForm):
     slogan = StringField('Slogan de la Liga (Premium)', validators=[Optional(), Length(max=255)])
     credential_color = StringField('Color de Credencial (Hex)', validators=[Optional(), Length(max=10)], default='#dc2626')
     show_team_logos = BooleanField('Mostrar Logos de Equipos en Reportes', default=False)
+    
+    # Premium Personalization Fields
+    highlight_standings = BooleanField('Resaltar Posiciones en Tabla', default=False)
+    highlight_start = IntegerField('Inicio Rango', validators=[Optional(), NumberRange(min=1)], default=1)
+    highlight_end = IntegerField('Fin Rango', validators=[Optional(), NumberRange(min=1)], default=4)
+    highlight_color = StringField('Color de Resaltado', validators=[Optional(), Length(max=10)], default='#4ade80')
+    report_date_color = StringField('Color de Fecha en Reporte', validators=[Optional(), Length(max=10)], default='#ffffff99')
+    report_date_size = IntegerField('Tamaño de Fecha (px)', validators=[Optional(), NumberRange(min=12, max=20)], default=14)

@@ -1,3 +1,19 @@
+## 0.9.6
+
+Personalización visual premium para reportes. 
+
+- **Resaltado de Tabla**: Ahora solo se resaltan los números de las posiciones, manteniendo el fondo de la fila limpio.
+- **Canchas Individuales**: Se agregó color y alineación personalizable para cada cancha de forma independiente.
+- **Fecha de Partido**: Se incluyó personalización de color y tamaño de fuente para las fechas de los partidos en el reporte.
+- **Interfaz**: Switches de configuración redondeados para un look más premium.
+
+## Modificado
+* league.py (models & routes & forms)
+* court.py (models)
+* ligapro_manager.py (migrations)
+* league_detail.html
+* share_report.html
+
 ## 0.9.5.1
 
 Se agregó en el reporte de agenda global la opción para colocar el marcador directamente desde allí y esta sincronizado con la agenda de partidos de caad liga.

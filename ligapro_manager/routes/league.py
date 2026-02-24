@@ -284,6 +284,14 @@ def edit_league(league_id):
             league.slogan = form.slogan.data
             league.credential_color = form.credential_color.data
             league.show_team_logos = form.show_team_logos.data
+            
+            # Additional Personalization
+            league.highlight_standings = form.highlight_standings.data
+            league.highlight_start = form.highlight_start.data
+            league.highlight_end = form.highlight_end.data
+            league.highlight_color = form.highlight_color.data
+            league.report_date_color = form.report_date_color.data
+            league.report_date_size = form.report_date_size.data
         
         db.session.commit()
         flash('Liga actualizada.', 'success')
@@ -338,6 +346,9 @@ def add_court(league_id):
         return redirect(url_for('league.league_detail', league_id=league_id, _anchor='settings'))
         
     court = Court(name=court_name, league_id=league_id)
+    if current_user.is_active_premium:
+        court.color = request.form.get('court_color', '#22d3ee')
+        court.alignment = request.form.get('court_alignment', 'left')
     db.session.add(court)
     db.session.commit()
     
@@ -358,6 +369,9 @@ def update_court(court_id):
         flash('El nombre de la cancha es requerido.', 'danger')
     else:
         court.name = new_name
+        if current_user.is_active_premium:
+            court.color = request.form.get('court_color', '#22d3ee')
+            court.alignment = request.form.get('court_alignment', 'left')
         db.session.commit()
         flash('Nombre de cancha actualizado.', 'success')
         

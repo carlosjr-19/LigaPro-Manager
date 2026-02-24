@@ -31,6 +31,14 @@ class League(db.Model):
     price_referee = db.Column(db.Integer, default=0) # Default payment to referee per match
     charge_from_start = db.Column(db.Boolean, default=True)
     charge_start_date = db.Column(db.Date, nullable=True)
+    
+    # Premium Personalization for Reports
+    highlight_standings = db.Column(db.Boolean, default=False)
+    highlight_start = db.Column(db.Integer, default=1)
+    highlight_end = db.Column(db.Integer, default=4)
+    highlight_color = db.Column(db.String(10), default='#4ade80') # Tailwind green-400
+    report_date_color = db.Column(db.String(10), default='#ffffff99') # White with opacity
+    report_date_size = db.Column(db.Integer, default=14) # Default size in px
 
     @property
     def active_teams_count(self):

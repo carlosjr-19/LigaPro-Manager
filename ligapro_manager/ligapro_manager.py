@@ -94,7 +94,6 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN slogan VARCHAR(255)",
                     "ALTER TABLE teams ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE teams ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE",
-                    "ALTER TABLE teams ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE leagues ADD COLUMN num_vueltas INTEGER DEFAULT 1",
                     "ALTER TABLE users ADD COLUMN color_win VARCHAR(7) DEFAULT '#22c55e'",
                     "ALTER TABLE users ADD COLUMN color_loss VARCHAR(7) DEFAULT '#ef4444'",
@@ -112,7 +111,15 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN price_per_match INTEGER DEFAULT 0",
                     "ALTER TABLE leagues ADD COLUMN price_referee INTEGER DEFAULT 0",
                     "ALTER TABLE leagues ADD COLUMN charge_from_start BOOLEAN DEFAULT TRUE",
-                    "ALTER TABLE leagues ADD COLUMN charge_start_date DATE"
+                    "ALTER TABLE leagues ADD COLUMN charge_start_date DATE",
+                    "ALTER TABLE leagues ADD COLUMN highlight_standings BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE leagues ADD COLUMN highlight_start INTEGER DEFAULT 1",
+                    "ALTER TABLE leagues ADD COLUMN highlight_end INTEGER DEFAULT 4",
+                    "ALTER TABLE leagues ADD COLUMN highlight_color VARCHAR(10) DEFAULT '#4ade80'",
+                    "ALTER TABLE courts ADD COLUMN color VARCHAR(10) DEFAULT '#22d3ee'",
+                    "ALTER TABLE courts ADD COLUMN alignment VARCHAR(10) DEFAULT 'left'",
+                    "ALTER TABLE leagues ADD COLUMN report_date_color VARCHAR(10) DEFAULT '#ffffff99'",
+                    "ALTER TABLE leagues ADD COLUMN report_date_size INTEGER DEFAULT 14"
                 ]
                 
                 for migration in migrations:
