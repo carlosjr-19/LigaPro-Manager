@@ -1029,27 +1029,76 @@
 
                 <div class="space-y-3 mb-4">
                     {% for court in courts %}
-                    <div class="bg-black/20 p-3 rounded border border-white/5 flex items-center justify-between">
-                        <form method="POST" action="{{ url_for('league.update_court', court_id=court.id) }}"
-                            class="flex-1 flex items-center gap-2 mr-2">
-                            <input type="text" name="court_name" value="{{ court.name }}"
-                                class="w-full bg-transparent border-none text-white focus:ring-0 p-0 font-medium text-sm"
-                                placeholder="Nombre de cancha">
-                            <button type="submit"
-                                class="text-blue-400 hover:text-blue-300 text-xs px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors"
-                                title="Guardar nombre">
-                                <i class="fas fa-save"></i>
-                            </button>
+                    <div class="bg-black/20 p-4 rounded-xl border border-white/5 space-y-4">
+                        <form method="POST" action="{{ url_for('league.update_court', court_id=court.id) }}">
+                            <div class="flex items-center justify-between mb-4">
+                                <input type="text" name="court_name" value="{{ court.name }}"
+                                    class="bg-transparent border-none text-white focus:ring-0 p-0 font-bold text-base"
+                                    placeholder="Nombre de cancha">
+                                <div class="flex gap-2">
+                                    <button type="submit"
+                                        class="text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                                        title="Guardar cambios">
+                                        <i class="fas fa-save mr-1"></i>Guardar
+                                    </button>
+                                    {% if current_user.role == 'owner' and courts|length > 1 %}
+                                    <button form="delete-court-{{ court.id }}" type="submit"
+                                        class="text-red-400 hover:text-red-300 text-xs px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                                        title="Eliminar cancha">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if current_user.is_active_premium %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                                <div>
+                                    <label class="block text-[10px] text-white/40 mb-1 uppercase tracking-widest">Color
+                                        en Reporte</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" name="court_color" value="{{ court.color }}"
+                                            class="w-10 h-8 p-1 rounded cursor-pointer bg-transparent border border-white/20">
+                                        <span class="text-[10px] text-white/30">Color del título</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label
+                                        class="block text-[10px] text-white/40 mb-1 uppercase tracking-widest">Alineación</label>
+                                    <div class="flex bg-black/20 rounded-lg p-1 border border-white/10 w-fit">
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="court_alignment" value="left" class="hidden peer"
+                                                {% if court.alignment=='left' %}checked{% endif %}>
+                                            <div
+                                                class="px-3 py-1 rounded text-[10px] text-white/40 peer-checked:bg-primary peer-checked:text-white hover:bg-white/5 font-bold transition-all">
+                                                IZQ</div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="court_alignment" value="center"
+                                                class="hidden peer" {% if court.alignment=='center' %}checked{% endif
+                                                %}>
+                                            <div
+                                                class="px-3 py-1 rounded text-[10px] text-white/40 peer-checked:bg-primary peer-checked:text-white hover:bg-white/5 font-bold transition-all">
+                                                CEN</div>
+                                        </label>
+                                        <label class="cursor-pointer">
+                                            <input type="radio" name="court_alignment" value="right" class="hidden peer"
+                                                {% if court.alignment=='right' %}checked{% endif %}>
+                                            <div
+                                                class="px-3 py-1 rounded text-[10px] text-white/40 peer-checked:bg-primary peer-checked:text-white hover:bg-white/5 font-bold transition-all">
+                                                DER</div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </form>
 
                         {% if current_user.role == 'owner' and courts|length > 1 %}
-                        <form method="POST" action="{{ url_for('league.delete_court', court_id=court.id) }}"
-                            onsubmit="return confirm('¿Eliminar {{ court.name }}? No debe tener partidos asignados.')">
-                            <button type="submit"
-                                class="text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded bg-white/5 hover:bg-white/10 transition-colors"
-                                title="Eliminar cancha">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <form id="delete-court-{{ court.id }}" method="POST"
+                            action="{{ url_for('league.delete_court', court_id=court.id) }}"
+                            onsubmit="return confirm('¿Eliminar {{ court.name }}? No debe tener partidos asignados.')"
+                            class="hidden">
                         </form>
                         {% endif %}
                     </div>
@@ -1153,6 +1202,80 @@
                                 Muestra los escudos de los equipos en las secciones de Resultados y Próximos Partidos
                                 del reporte.
                             </p>
+                        </div>
+                    </div>
+
+                    <!-- Standing Highlighting -->
+                    <div class="mt-6 pt-4 border-t border-white/10">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <label class="block text-sm font-bold text-white mb-1">
+                                    Resaltar Posiciones en Tabla
+                                </label>
+                                <p class="text-xs text-white/50">Destaca el rango de posiciones seleccionado con un
+                                    color especial.</p>
+                            </div>
+                            <div
+                                class="relative inline-block w-12 h-6 transition duration-200 ease-in-out bg-white/10 rounded-full">
+                                {{ form.highlight_standings(class="opacity-0 w-0 h-0 peer", id="toggle-highlight",
+                                form="leagueSettingsForm") }}
+                                <label for="toggle-highlight"
+                                    class="absolute top-0 left-0 right-0 bottom-0 cursor-pointer rounded-full before:absolute before:content-[''] before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-white before:transition before:duration-200 before:rounded-full peer-checked:bg-primary peer-checked:before:translate-x-6"></label>
+                            </div>
+                        </div>
+
+                        <div id="highlight-settings-box"
+                            class="space-y-4 {% if not league.highlight_standings %}hidden{% endif %} pl-4 border-l-2 border-primary/20">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-white/40 mb-1 uppercase">Inicio Rango</label>
+                                    {{ form.highlight_start(class="input-field py-1 text-sm", type="number", min="1",
+                                    id="h-start", form="leagueSettingsForm") }}
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-white/40 mb-1 uppercase">Fin Rango</label>
+                                    {{ form.highlight_end(class="input-field py-1 text-sm", type="number", min="1",
+                                    id="h-end", form="leagueSettingsForm") }}
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs text-white/40 mb-1 uppercase">Color de Números de
+                                        Posición</label>
+                                    <div class="flex items-center gap-3">
+                                        {{ form.highlight_color(class="w-10 h-8 p-1 rounded cursor-pointer
+                                        bg-transparent
+                                        border border-white/20", type="color", form="leagueSettingsForm") }}
+                                        <span class="text-xs text-white/40">Este color se aplicará a los números de las
+                                            posiciones seleccionadas de la tabla.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Match Date Personalization (Independent) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/5 mt-4">
+                            <div>
+                                <label class="block text-xs text-white/40 mb-1 uppercase">Color de Fecha
+                                    (Reporte)</label>
+                                <div class="flex items-center gap-2">
+                                    {{ form.report_date_color(class="w-10 h-8 p-1 rounded cursor-pointer
+                                    bg-transparent
+                                    border border-white/20", type="color", form="leagueSettingsForm") }}
+                                    <span class="text-[10px] text-white/30">Color de la fecha del
+                                        partido.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-white/40 mb-1 uppercase">Tamaño de
+                                    Fecha</label>
+                                <div class="flex items-center gap-2">
+                                    {{ form.report_date_size(class="w-20 bg-black/20 border border-white/10
+                                    rounded px-2 py-1 text-xs text-white", type="number", min="12", max="20",
+                                    form="leagueSettingsForm") }}
+                                    <span class="text-[10px] text-white/30">Rango: 12-20px</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1661,6 +1784,44 @@
             activeBtn.classList.remove('bg-white/5', 'text-white/60', 'hover:bg-white/10');
             activeBtn.classList.add('bg-primary', 'text-white');
         }
+    }
+
+    // Toggle highlight settings visibility
+    const highlightToggle = document.getElementById('toggle-highlight');
+    if (highlightToggle) {
+        highlightToggle.addEventListener('change', function () {
+            const box = document.getElementById('highlight-settings-box');
+            if (this.checked) {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        });
+    }
+
+    // Validate highlight range
+    const hStart = document.getElementById('h-start');
+    const hEnd = document.getElementById('h-end');
+
+    if (hStart && hEnd) {
+        function validateRange() {
+            let start = parseInt(hStart.value);
+            let end = parseInt(hEnd.value);
+
+            const teamCount = parseInt("{{ teams|length }}");
+
+
+            if (start > end) {
+                hStart.value = end;
+            }
+            if (end > teamCount) {
+                hEnd.value = teamCount;
+            }
+            if (start < 1) hStart.value = 1;
+        }
+
+        hStart.addEventListener('change', validateRange);
+        hEnd.addEventListener('change', validateRange);
     }
 </script>
 {% endblock %}

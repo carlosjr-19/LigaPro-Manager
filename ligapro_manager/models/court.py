@@ -8,6 +8,10 @@ class Court(db.Model):
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = db.Column(db.String(100), nullable=False)
     league_id = db.Column(db.String(36), db.ForeignKey('leagues.id'), nullable=False)
+    
+    # Premium Personalization for Reports
+    color = db.Column(db.String(10), default='#22d3ee') # Tailwind cyan-400
+    alignment = db.Column(db.String(10), default='left') # left, center, right
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships

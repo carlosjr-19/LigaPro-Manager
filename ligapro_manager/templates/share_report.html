@@ -99,9 +99,14 @@
                     </thead>
                     <tbody class="text-white/80">
                         {% for s in standings %}
-                        <tr class="border-b border-white/5 last:border-0 text-center">
-                            <td class="py-2 text-left font-bold {% if loop.index <= 3 %}text-yellow-400{% endif %}">{{
-                                loop.index }}</td>
+                        {% set is_highlighted = league.highlight_standings and loop.index >= league.highlight_start and
+                        loop.index <= league.highlight_end %} <tr
+                            class="border-b border-white/5 last:border-0 text-center">
+                            <td class="py-2 text-left font-bold 
+                                {% if loop.index <= 3 and not is_highlighted %}text-yellow-400{% endif %}" {% if
+                                is_highlighted %}style="color: {{ league.highlight_color }};" {% endif %}>
+                                {{ loop.index }}
+                            </td>
                             <td class="py-3 text-left flex items-center gap-3">
                                 {% if s.team.shield_url %}
                                 <img src="{{ s.team.shield_url }}" class="w-8 h-8 object-contain">
@@ -116,8 +121,8 @@
                             <td class="py-2">{{ s.goals_against }}</td>
                             <td class="py-2">{{ s.goal_difference }}</td>
                             <td class="py-3 font-bold text-yellow-400 text-2xl">{{ s.points }}</td>
-                        </tr>
-                        {% endfor %}
+                            </tr>
+                            {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -132,9 +137,16 @@
                 </h3>
                 <div class="space-y-8">
                     {% for court_name, matches in matches_by_court.items() %}
+                    {% set court_obj = matches[0].court if matches and matches[0].court else None %}
+                    {% set alignment_class = 'justify-start' %}
+                    {% if court_obj and court_obj.alignment == 'center' %}{% set alignment_class = 'justify-center' %}
+                    {% elif court_obj and court_obj.alignment == 'right' %}{% set alignment_class = 'justify-end' %}{%
+                    endif %}
+                    {% set court_color = court_obj.color if court_obj else '#22d3ee' %}
+
                     <div>
-                        <h4
-                            class="font-bold text-cyan-400 uppercase tracking-widest text-xl mb-4 flex items-center gap-3">
+                        <h4 class="font-bold uppercase tracking-widest text-xl mb-4 flex items-center gap-3 {{ alignment_class }}"
+                            style="color: {{ court_color }};">
                             <i class="fas fa-map-marker-alt"></i>{{ court_name }}
                         </h4>
                         <div class="grid grid-cols-1 gap-4">
@@ -160,7 +172,8 @@
                                         <i class="far fa-clock text-orange-400"></i>
                                         {{ match.match_date.strftime('%I:%M %p') }}
                                     </div>
-                                    <div class="text-white/60 text-sm font-medium">
+                                    <div class="text-white/60 text-sm font-medium"
+                                        style="color: {{ league.report_date_color }}; font-size: {{ league.report_date_size }}px;">
                                         {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
                                         'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday':
                                         'Domingo'} %}
