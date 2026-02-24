@@ -1,6 +1,6 @@
 ## 0.9.6
 
-Personalización visual premium refinada para reportes y gestión de ligas.
+Personalización visual premium para reportes. 
 
 - **Resaltado de Tabla**: Ahora solo se resaltan los números de las posiciones, manteniendo el fondo de la fila limpio.
 - **Canchas Individuales**: Se agregó color y alineación personalizable para cada cancha de forma independiente.
