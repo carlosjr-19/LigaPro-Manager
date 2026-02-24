@@ -105,10 +105,14 @@ def update_match_result(match_id):
         match.court_id = form.court_id.data
         match.match_date = form.match_date.data
         
-        # Update Scores
+        # Update Scores (Only if both scores are provided)
         match.home_score = form.home_score.data
         match.away_score = form.away_score.data
-        match.is_completed = True
+        
+        if match.home_score is not None and match.away_score is not None:
+            match.is_completed = True
+        else:
+            match.is_completed = False
         
         db.session.commit()
         flash('Partido actualizado (Resultados y Detalles).', 'success')
@@ -138,7 +142,8 @@ def delete_match(match_id):
     db.session.delete(match)
     db.session.commit()
     flash('Partido eliminado.', 'success')
-    return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+    anchor = 'playoff' if match.stage not in ['regular', None, ''] else 'matches'
+    return redirect(url_for('league.league_detail', league_id=league_id, _anchor=anchor))
 
 
 @match_bp.route('/matches/<match_id>/edit', methods=['GET', 'POST'])
@@ -177,7 +182,8 @@ def edit_match(match_id):
             
             db.session.commit()
             flash('Partido actualizado.', 'success')
-            return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+            anchor = 'playoff' if match.stage not in ['regular', None, ''] else 'matches'
+            return redirect(url_for('league.league_detail', league_id=league_id, _anchor=anchor))
             
     # Calculate match history for frontend display (reuse logic)
     completed_matches = Match.query.filter_by(league_id=league_id, is_completed=True).all()
@@ -264,7 +270,7 @@ def generate_playoffs(league_id):
     # Delete existing playoff matches
     Match.query.filter(
         Match.league_id == league_id,
-        Match.stage.in_(['repechaje', 'quarterfinal', 'semifinal', 'final'])
+        Match.stage.in_(['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'final'])
     ).delete(synchronize_session=False)
     
     # Clear playoff state
@@ -274,6 +280,10 @@ def generate_playoffs(league_id):
     
     playoff_matches = []
     bye_teams = []
+    
+    # Get default court (first one registered)
+    default_court = Court.query.filter_by(league_id=league_id).order_by(Court.created_at.asc()).first()
+    default_court_id = default_court.id if default_court else None
 
 
     # Continue with generation...
@@ -307,26 +317,49 @@ def generate_playoffs(league_id):
                 'name': f"Repechaje 2: {standings[3]['team'].name} vs {standings[4]['team'].name}"
             })
     
-    # Large leagues (8+ teams)
-    else:
+    # Large leagues (16+ teams) -> Round of 16
+    elif total_teams >= 16:
+        if mode == 'corte_directo':
+            # Top 16 -> Round of 16
+            for i in range(8):
+                playoff_matches.append({
+                    'home': standings[i], 'away': standings[15-i], 'stage': 'round_of_16',
+                    'name': f"Octavo {i+1}: {standings[i]['team'].name} vs {standings[15-i]['team'].name}"
+                })
+        else: # con_repechaje for 16+ teams could be complex, keeping top 14 with bye or similar. 
+              # For now, let's keep it simple: if >= 16 and corte_directo, do 16.
+              # If con_repechaje, let's do top 12 bye and 13-20 repechaje?
+              # User explicitly asked for 16 teams.
+            for i in range(8):
+                playoff_matches.append({
+                    'home': standings[i], 'away': standings[15-i], 'stage': 'round_of_16',
+                    'name': f"Octavo {i+1}: {standings[i]['team'].name} vs {standings[15-i]['team'].name}"
+                })
+
+    # Medium leagues (8+ teams)
+    elif total_teams >= 8:
         if mode == 'corte_directo':
             # Top 8 -> Quarterfinals
             if total_teams < 8:
                 flash('Se necesitan al menos 8 equipos para corte directo.', 'danger')
                 return redirect(url_for('league.league_detail', league_id=league_id))
             
+            # Match 1: 1 vs 8
             playoff_matches.append({
                 'home': standings[0], 'away': standings[7], 'stage': 'quarterfinal',
                 'name': f"Cuarto 1: {standings[0]['team'].name} vs {standings[7]['team'].name}"
             })
+            # Match 2: 2 vs 7
             playoff_matches.append({
                 'home': standings[1], 'away': standings[6], 'stage': 'quarterfinal',
                 'name': f"Cuarto 2: {standings[1]['team'].name} vs {standings[6]['team'].name}"
             })
+            # Match 3: 3 vs 6
             playoff_matches.append({
                 'home': standings[2], 'away': standings[5], 'stage': 'quarterfinal',
                 'name': f"Cuarto 3: {standings[2]['team'].name} vs {standings[5]['team'].name}"
             })
+            # Match 4: 4 vs 5
             playoff_matches.append({
                 'home': standings[3], 'away': standings[4], 'stage': 'quarterfinal',
                 'name': f"Cuarto 4: {standings[3]['team'].name} vs {standings[4]['team'].name}"
@@ -361,6 +394,7 @@ def generate_playoffs(league_id):
             league_id=league_id,
             home_team_id=m['home']['team'].id,
             away_team_id=m['away']['team'].id,
+            court_id=default_court_id,
             match_date=datetime.now(timezone.utc),
             stage=m['stage'],
             match_name=m['name'] + (" (Ida)" if playoff_type == 'double' else "")
@@ -374,6 +408,7 @@ def generate_playoffs(league_id):
                 league_id=league_id,
                 home_team_id=m['away']['team'].id, # Swapped
                 away_team_id=m['home']['team'].id, # Swapped
+                court_id=default_court_id,
                 match_date=datetime.now(timezone.utc), # Should ideally be later
                 stage=m['stage'],
                 match_name=m['name'].replace(m['home']['team'].name, "TEMP").replace(m['away']['team'].name, m['home']['team'].name).replace("TEMP", m['away']['team'].name) + " (Vuelta)"
@@ -395,14 +430,14 @@ def advance_playoff_round(league_id):
     # Get all playoff matches
     playoff_matches = Match.query.filter(
         Match.league_id == league_id,
-        Match.stage.in_(['repechaje', 'quarterfinal', 'semifinal', 'final'])
+        Match.stage.in_(['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'final'])
     ).all()
     
     if not playoff_matches:
         flash('No hay partidos de liguilla.', 'danger')
         return redirect(url_for('league.league_detail', league_id=league_id, _anchor='playoff'))
     
-    stages_order = ['repechaje', 'quarterfinal', 'semifinal', 'final']
+    stages_order = ['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'final']
     active_stage = None
     active_stage_matches = []
     
@@ -537,6 +572,11 @@ def advance_playoff_round(league_id):
     # Generate Matches (Best vs Worst)
     num_matches = num_qualified // 2
     teams_dict = {t.id: t for t in Team.query.filter_by(league_id=league_id).all()}
+    
+    # Get default court
+    default_court = Court.query.filter_by(league_id=league_id).order_by(Court.created_at.asc()).first()
+    default_court_id = default_court.id if default_court else None
+    
     created_count = 0
     
     for i in range(num_matches):
@@ -549,6 +589,7 @@ def advance_playoff_round(league_id):
             league_id=league_id,
             home_team_id=home_id,
             away_team_id=away_id,
+            court_id=default_court_id,
             match_date=datetime.now(timezone.utc),
             stage=next_stage,
             match_name=f"{next_stage.capitalize()}: {teams_dict[home_id].name} vs {teams_dict[away_id].name}" + (" (Ida)" if (league.playoff_type == 'double' and next_stage != 'final') else "")
@@ -562,6 +603,7 @@ def advance_playoff_round(league_id):
                 league_id=league_id,
                 home_team_id=away_id,
                 away_team_id=home_id,
+                court_id=default_court_id,
                 match_date=datetime.now(timezone.utc),
                 stage=next_stage,
                 match_name=f"{next_stage.capitalize()}: {teams_dict[away_id].name} vs {teams_dict[home_id].name} (Vuelta)"

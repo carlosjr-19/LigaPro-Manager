@@ -10,22 +10,21 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   **Canchas:** Asignación de canchas específicas para los encuentros.
 
 ### 📅 Competencia
-*   **Calendario Inteligente:** Vista de matriz para programación rápida de partidos.
-*   **Resultados en Vivo:** Actualización de marcadores y cálculo automático de tablas de posiciones.
-*   **Liguilla (Playoffs):** Generación automática de cruces (Cuartos, Semis, Final) y repechajes.
+*   **Calendario Inteligente:** Vista de matriz y nueva agrupación **Por Fechas** para programación rápida.
+*   **Resultados en Vivo:** Actualización de marcadores con colores dinámicos por resultado.
+*   **Liguilla (Playoffs):** Generación automática de cruces interactivos en formato de **Llaves (Brackets)**, con soporte para Repechajes, Cuartos y ahora **Octavos de Final**.
 
 ### 📊 Reportes y Credenciales
-*   **Reportes Compartibles:** Genera imágenes descargables de la tabla general, resultados recientes y próximos partidos (con soporte para logos de equipos).
-*   **Credenciales de Jugador:** Generación de credenciales imprimibles (PDF/Imagen) con foto y datos del jugador.
+*   **Reportes de Resumen:** Visualización e imágenes de tabla, próximos partidos y resultados recientes con personalización premium (colores, tamaños).
+*   **Credenciales de Jugador:** Generación de credenciales imprimibles con fotos y logos de liga.
 
 ### 👥 Roles de Usuario
-*   **Gratuito:** Creación de hasta 3 ligas con límites básicos.
-*   **Premium (Dueño):**
-    *   Ligas ilimitadas y más equipos.
-    *   Personalización completa (Logos, Slogans, Colores).
-    *   Estadísticas avanzadas (Goleadores, Arqueros).
-    *   **Zona de Peligro:** Reinicio de temporadas y borrado de datos.
-*   **Capitán:** Gestión de su propio equipo y generación de credenciales (si la liga lo permite).
+*   **Gratuito:** Gestión básica de ligas.
+*   **Premium / Ultra:**
+    *   Ligas ilimitadas.
+    *   Personalización de reportes avanzada (colores por resultado, fecha y cancha).
+    *   Estadísticas e Informes financieros detallados (Ultra).
+    *   **Prioridad de Privilegios:** Los usuarios Ultra disfrutan de todas las funciones Premium.
 
 ## 🛠️ Tecnologías
 
