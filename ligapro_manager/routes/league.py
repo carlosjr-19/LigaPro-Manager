@@ -10,6 +10,7 @@ from datetime import datetime
 import json
 import requests
 from flask import Response, stream_with_context
+from collections import OrderedDict
 
 league_bp = Blueprint('league', __name__)
 
@@ -141,6 +142,29 @@ def league_detail(league_id):
             matches_by_pair[pair] = []
         matches_by_pair[pair].append(m)
         
+    # Group matches by date for the new "Dates" view
+    matches_by_date = OrderedDict()
+    # Sort all_regular_matches descending by date 
+    sorted_matches = sorted(all_regular_matches, key=lambda x: x.match_date, reverse=True)
+    
+    for m in sorted_matches:
+        date_key = m.match_date.date()
+        if date_key not in matches_by_date:
+            matches_by_date[date_key] = []
+        matches_by_date[date_key].append(m)
+
+    # Translation map for Mexican/Spanish months
+    spanish_months = {
+        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+    }
+    spanish_months_short = {
+        1: 'ENE', 2: 'FEB', 3: 'MAR', 4: 'ABR',
+        5: 'MAY', 6: 'JUN', 7: 'JUL', 8: 'AGO',
+        9: 'SEP', 10: 'OCT', 11: 'NOV', 12: 'DIC'
+    }
+        
     # Assign matches to appropriate matrix
     for pair, matches in matches_by_pair.items():
         for i, m in enumerate(matches):
@@ -193,10 +217,12 @@ def league_detail(league_id):
 
     playoff_matches = {
         'repechaje': Match.query.filter_by(league_id=league_id, stage='repechaje').all(),
+        'round_of_16': Match.query.filter_by(league_id=league_id, stage='round_of_16').all(),
         'quarterfinal': Match.query.filter_by(league_id=league_id, stage='quarterfinal').all(),
         'semifinal': Match.query.filter_by(league_id=league_id, stage='semifinal').all(),
         'final': Match.query.filter_by(league_id=league_id, stage='final').all()
     }
+    stages_order = ['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'final']
     has_playoffs = any(len(m) > 0 for m in playoff_matches.values())
     
     teams_dict = {t.id: t for t in all_teams}
@@ -250,6 +276,9 @@ def league_detail(league_id):
                           matches_pagination=matches_pagination,
                           teams_js=teams_js,
                           scheduling_teams=scheduling_teams,
+                          matches_by_date=matches_by_date,
+                          spanish_months=spanish_months,
+                          spanish_months_short=spanish_months_short,
                           form=form)
 
 

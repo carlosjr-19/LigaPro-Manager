@@ -12,7 +12,6 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), default='owner')  # owner or captain
     is_premium = db.Column(db.Boolean, default=False)
-    is_premium = db.Column(db.Boolean, default=False)
     is_suspended = db.Column(db.Boolean, default=False)
     is_ultra = db.Column(db.Boolean, default=False)
     color_win = db.Column(db.String(7), default='#22c55e') # Green-500
@@ -24,8 +23,9 @@ class User(UserMixin, db.Model):
     
     @property
     def is_active_premium(self):
-        """Check if user has active premium (lifetime or temporary)"""
-        if self.is_premium:
+        """Check if user has active premium (lifetime, ultra or temporary)"""
+        # Ultra plan includes all premium features
+        if self.is_ultra or self.is_premium:
             return True
         
         if self.premium_expires_at:

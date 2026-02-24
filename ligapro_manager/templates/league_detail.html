@@ -67,6 +67,41 @@
         .tab-content.active {
             display: block;
         }
+
+        /* Bracket Styles */
+        .bracket-container {
+            @apply flex gap-8 overflow-x-auto pb-8 min-h-[400px];
+            scrollbar-width: thin;
+        }
+
+        .bracket-column {
+            @apply flex flex-col justify-around gap-4 min-w-[220px];
+        }
+
+        .bracket-match {
+            @apply block bg-card border border-white/10 rounded-lg p-3 relative shadow-lg hover:border-primary/50 hover:bg-white/5 transition-all cursor-pointer;
+        }
+
+        .bracket-match::after {
+            content: '';
+            @apply absolute top-1/2 -right-8 w-8 h-px bg-white/20;
+        }
+
+        .bracket-column:last-child .bracket-match::after {
+            display: none;
+        }
+
+        .bracket-team {
+            @apply flex justify-between items-center text-sm py-1;
+        }
+
+        .bracket-team.winner {
+            @apply text-primary font-bold;
+        }
+
+        .bracket-score {
+            @apply bg-white/5 px-2 rounded font-mono text-xs;
+        }
     </style>
 
     <!-- Content -->
@@ -367,6 +402,10 @@
                             class="px-3 py-1 rounded text-sm font-medium transition-colors text-white/60 hover:text-white">
                             <i class="fas fa-th mr-2"></i>Cuadro
                         </button>
+                        <button onclick="toggleMatchView('dates')" id="btn-view-dates"
+                            class="px-3 py-1 rounded text-sm font-medium transition-colors text-white/60 hover:text-white">
+                            <i class="fas fa-calendar-day mr-2"></i>Fechas
+                        </button>
                     </div>
                 </div>
 
@@ -508,6 +547,103 @@
                 </div>
                 {% endif %}
             </div> <!-- End matches-list-view -->
+
+            <!-- Dates View -->
+            <div id="matches-dates-view" class="hidden space-y-4">
+                {% if matches_by_date %}
+                {% for date, day_matches in matches_by_date.items() %}
+                <div class="border border-white/10 rounded-xl overflow-hidden bg-white/5">
+                    <button onclick="toggleDateCollapse('date-{{ loop.index }}')"
+                        class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="bg-primary/20 text-primary w-10 h-10 rounded-lg flex flex-col items-center justify-center font-bold">
+                                <span class="text-xs uppercase leading-none">{{ spanish_months_short[date.month]
+                                    }}</span>
+                                <span class="text-lg leading-none">{{ date.day }}</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-lg">{{ date.day }} de {{ spanish_months[date.month] }} de {{
+                                    date.year }}</h4>
+                                <p class="text-white/40 text-sm italic">{{ day_matches|length }} partidos</p>
+                            </div>
+                        </div>
+                        <i id="icon-date-{{ loop.index }}"
+                            class="fas fa-chevron-down text-white/40 transition-transform"></i>
+                    </button>
+                    <div id="date-{{ loop.index }}" class="hidden border-t border-white/5 bg-black/20 p-4 space-y-3">
+                        {% for match in day_matches %}
+                        <div
+                            class="flex flex-col md:flex-row md:items-center gap-4 border-b border-white/5 last:border-0 pb-3 last:pb-0">
+                            <div class="flex-1">
+                                <p class="text-white/60 text-xs mb-2">
+                                    {{ match.match_date.strftime('%I:%M %p') }}
+                                    {% if match.court %}
+                                    <span class="ml-2 text-blue-400"><i class="fas fa-map-marker-alt mr-1"></i>{{
+                                        match.court.name }}</span>
+                                    {% endif %}
+                                </p>
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-2 flex-1 justify-end">
+                                        <span class="font-bold text-sm text-right leading-tight">
+                                            {{ teams_dict[match.home_team_id].name }}
+                                        </span>
+                                        {% if teams_dict[match.home_team_id].shield_url %}
+                                        <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                            class="w-6 h-6 rounded object-cover">
+                                        {% else %}
+                                        <div
+                                            class="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-[10px]">
+                                            <i class="fas fa-shield-alt text-white/40"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center gap-2 min-w-[60px] justify-center">
+                                        {% if match.is_completed %}
+                                        <span class="font-bold text-primary">{{ match.home_score }} - {{
+                                            match.away_score }}</span>
+                                        {% else %}
+                                        <span class="text-white/40 text-xs">vs</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-1">
+                                        {% if teams_dict[match.away_team_id].shield_url %}
+                                        <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                            class="w-6 h-6 rounded object-cover">
+                                        {% else %}
+                                        <div
+                                            class="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-[10px]">
+                                            <i class="fas fa-shield-alt text-white/40"></i>
+                                        </div>
+                                        {% endif %}
+                                        <span class="font-bold text-sm leading-tight">
+                                            {{ teams_dict[match.away_team_id].name }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                {% if match.is_completed %}
+                                <span
+                                    class="bg-green-500/20 text-green-400 px-2 py-0.5 rounded text-[10px]">Finalizado</span>
+                                {% endif %}
+                                <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
+                                    class="text-blue-400 hover:text-blue-300 text-xs">
+                                    <i class="fas fa-pencil-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="card text-center py-12">
+                    <i class="fas fa-calendar-day text-4xl text-white/20 mb-4"></i>
+                    <p class="text-white/60">No hay partidos para agrupar por fechas</p>
+                </div>
+                {% endif %}
+            </div> <!-- End matches-dates-view -->
 
             <!-- Matrix View -->
             <div id="matches-matrix-view" class="hidden overflow-x-auto pb-4">
@@ -819,6 +955,21 @@
                 </div>
             </div>
 
+            {% if has_playoffs %}
+            <div class="flex justify-center mb-6">
+                <div class="flex bg-white/5 rounded-lg p-1 border border-white/10">
+                    <button onclick="togglePlayoffView('list')" id="btn-playoff-list"
+                        class="px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-primary text-white shadow-lg shadow-primary/20">
+                        <i class="fas fa-list mr-2"></i>Lista
+                    </button>
+                    <button onclick="togglePlayoffView('bracket')" id="btn-playoff-bracket"
+                        class="px-4 py-1.5 rounded-md text-sm font-medium transition-all text-white/60 hover:text-white">
+                        <i class="fas fa-sitemap mr-2"></i>Llaves
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
             {% if not has_playoffs %}
             <div class="card text-center py-12">
                 <i class="fas fa-bolt text-4xl text-white/20 mb-4"></i>
@@ -867,8 +1018,9 @@
                 {% endif %}
             </div>
             {% else %}
-            <div class="space-y-8">
-                {% for stage_name, stage_matches in [('repechaje', playoff_matches.repechaje), ('quarterfinal',
+            <div id="playoff-list-view" class="space-y-8">
+                {% for stage_name, stage_matches in [('repechaje', playoff_matches.repechaje), ('round_of_16',
+                playoff_matches.round_of_16), ('quarterfinal',
                 playoff_matches.quarterfinal), ('semifinal', playoff_matches.semifinal), ('final',
                 playoff_matches.final)] %}
                 {% if stage_matches %}
@@ -928,6 +1080,81 @@
                 </div>
                 {% endif %}
                 {% endfor %}
+            </div>
+
+            <!-- Bracket View -->
+            <div id="playoff-bracket-view" class="hidden">
+                <div class="bracket-container p-4">
+                    {% for stage in ['round_of_16', 'quarterfinal', 'semifinal', 'final'] %}
+                    {% set stage_matches = playoff_matches[stage] %}
+                    {% if stage_matches %}
+                    <div class="bracket-column">
+                        <h4 class="text-center text-[10px] uppercase tracking-widest text-white/40 mb-4">
+                            {% if stage == 'round_of_16' %}Octavos{% endif %}
+                            {% if stage == 'quarterfinal' %}Cuartos{% endif %}
+                            {% if stage == 'semifinal' %}Semis{% endif %}
+                            {% if stage == 'final' %}Final{% endif %}
+                        </h4>
+                        {% for match in stage_matches %}
+                        <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
+                            class="bracket-match group">
+                            <div class="text-[10px] text-white/30 mb-2 flex justify-between">
+                                <span>{{ match.match_date.strftime('%d/%m') }}</span>
+                                {% if match.is_completed %}
+                                <span class="text-success">FIN</span>
+                                {% endif %}
+                            </div>
+                            <div
+                                class="bracket-team {% if match.is_completed and match.home_score > match.away_score %}winner{% endif %}">
+                                <span class="truncate pr-2">{{ teams_dict[match.home_team_id].name }}</span>
+                                <span class="bracket-score">{{ match.home_score if match.home_score is not none else '-'
+                                    }}</span>
+                            </div>
+                            <div
+                                class="bracket-team {% if match.is_completed and match.away_score > match.home_score %}winner{% endif %}">
+                                <span class="truncate pr-2">{{ teams_dict[match.away_team_id].name }}</span>
+                                <span class="bracket-score">{{ match.away_score if match.away_score is not none else '-'
+                                    }}</span>
+                            </div>
+
+                            <div class="mt-2 pt-2 border-t border-white/5 flex justify-center">
+                                <span
+                                    class="text-[10px] text-white/20 group-hover:text-primary transition-colors uppercase tracking-widest font-bold">
+                                    <i class="fas fa-pencil-alt mr-1"></i> Editar / Resultado
+                                </span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if playoff_matches.repechaje %}
+                <div class="mt-8 border-t border-white/10 pt-6">
+                    <h4 class="text-warning text-sm font-bold mb-4 uppercase tracking-wider">⚡ Fase de Repechaje</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for match in playoff_matches.repechaje %}
+                        <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
+                            class="card p-4 flex justify-between items-center shadow-lg hover:border-primary/50 hover:bg-white/5 transition-all group">
+                            <div class="flex items-center gap-4">
+                                <span class="font-bold text-sm">{{ teams_dict[match.home_team_id].name }}</span>
+                                <span class="bg-white/10 px-3 py-1 rounded font-bold text-primary">{{ match.home_score
+                                    if match.is_completed else '-' }}</span>
+                                <span class="text-white/20">vs</span>
+                                <span class="bg-white/10 px-3 py-1 rounded font-bold text-primary">{{ match.away_score
+                                    if match.is_completed else '-' }}</span>
+                                <span class="font-bold text-sm">{{ teams_dict[match.away_team_id].name }}</span>
+                            </div>
+                            <span
+                                class="text-[10px] text-white/20 group-hover:text-primary transition-colors uppercase tracking-widest font-bold">
+                                <i class="fas fa-pencil-alt mr-1"></i> Editar
+                            </span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Regenerate Option -->
@@ -1398,6 +1625,35 @@
             showTab(tab);
         }
     }
+
+    function togglePlayoffView(view) {
+        const listView = document.getElementById('playoff-list-view');
+        const bracketView = document.getElementById('playoff-bracket-view');
+        const btnList = document.getElementById('btn-playoff-list');
+        const btnBracket = document.getElementById('btn-playoff-bracket');
+
+        if (!listView || !bracketView) return;
+
+        // Reset
+        listView.classList.add('hidden');
+        bracketView.classList.add('hidden');
+        btnList.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
+        btnList.classList.add('text-white/60', 'hover:text-white');
+        btnBracket.classList.remove('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
+        btnBracket.classList.add('text-white/60', 'hover:text-white');
+
+        if (view === 'list') {
+            listView.classList.remove('hidden');
+            btnList.classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
+            btnList.classList.remove('text-white/60', 'hover:text-white');
+        } else {
+            bracketView.classList.remove('hidden');
+            btnBracket.classList.add('bg-primary', 'text-white', 'shadow-lg', 'shadow-primary/20');
+            btnBracket.classList.remove('text-white/60', 'hover:text-white');
+        }
+
+        localStorage.setItem('playoffView', view);
+    }
 </script>
 
 <!-- Share Modal -->
@@ -1629,41 +1885,64 @@
     function toggleMatchView(view) {
         const listView = document.getElementById('matches-list-view');
         const matrixView = document.getElementById('matches-matrix-view');
+        const datesView = document.getElementById('matches-dates-view');
         const btnList = document.getElementById('btn-view-list');
         const btnMatrix = document.getElementById('btn-view-matrix');
+        const btnDates = document.getElementById('btn-view-dates');
+
+        // Reset all views
+        listView.classList.add('hidden');
+        matrixView.classList.add('hidden');
+        datesView.classList.add('hidden');
+
+        // Reset all buttons
+        [btnList, btnMatrix, btnDates].forEach(btn => {
+            if (btn) {
+                btn.classList.remove('bg-primary', 'text-white');
+                btn.classList.add('text-white/60', 'hover:text-white');
+            }
+        });
 
         if (view === 'list') {
             listView.classList.remove('hidden');
-            matrixView.classList.add('hidden');
-
             btnList.classList.remove('text-white/60', 'hover:text-white');
             btnList.classList.add('bg-primary', 'text-white');
-
-            btnMatrix.classList.remove('bg-primary', 'text-white');
-            btnMatrix.classList.add('text-white/60', 'hover:text-white');
-
-            // Save preference
-            localStorage.setItem('matchView', 'list');
-        } else {
-            listView.classList.add('hidden');
+        } else if (view === 'matrix') {
             matrixView.classList.remove('hidden');
-
             btnMatrix.classList.remove('text-white/60', 'hover:text-white');
             btnMatrix.classList.add('bg-primary', 'text-white');
+        } else if (view === 'dates') {
+            datesView.classList.remove('hidden');
+            btnDates.classList.remove('text-white/60', 'hover:text-white');
+            btnDates.classList.add('bg-primary', 'text-white');
+        }
 
-            btnList.classList.remove('bg-primary', 'text-white');
-            btnList.classList.add('text-white/60', 'hover:text-white');
+        // Save preference
+        localStorage.setItem('matchView', view);
+    }
 
-            // Save preference
-            localStorage.setItem('matchView', 'matrix');
+    function toggleDateCollapse(id) {
+        const el = document.getElementById(id);
+        const icon = document.getElementById('icon-' + id);
+        if (el.classList.contains('hidden')) {
+            el.classList.remove('hidden');
+            icon.classList.add('rotate-180');
+        } else {
+            el.classList.add('hidden');
+            icon.classList.remove('rotate-180');
         }
     }
 
     // Restore preference on load
     document.addEventListener('DOMContentLoaded', () => {
         const pref = localStorage.getItem('matchView');
-        if (pref === 'matrix') {
-            toggleMatchView('matrix');
+        if (pref) {
+            toggleMatchView(pref);
+        }
+
+        const playoffPref = localStorage.getItem('playoffView');
+        if (playoffPref) {
+            togglePlayoffView(playoffPref);
         }
     });
 

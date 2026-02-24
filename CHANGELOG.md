@@ -1,3 +1,24 @@
+## 0.9.7
+
+Visualización de Liguilla (Llaves) y soporte para Octavos de Final.
+
+- **Vista de Llaves (Brackets)**: Nueva visualización gráfica interactiva para los playoffs.
+- **Soporte de Octavos de Final**: El sistema ahora permite liguillas de hasta 16 equipos.
+- **Cruces de Liguilla Corregidos**: Se implementó el patrón de competencia oficial (1º vs 8º, 2º vs 7º, 3º vs 6º, 4º vs 5º).
+- **Agenda por Fechas**: Nueva pestaña en la agenda de partidos para agrupar encuentros por día de juego.
+- **Edición de Resultados Flexible**: Se permite editar fecha y cancha de partidos de liguilla sin requerir puntuación obligatoria.
+- **Cancha por Defecto**: Asignación automática de la primera cancha registrada al generar liguillas.
+- **Persistencia de Vistas**: El navegador ahora recuerda qué vista de partidos o liguilla tenías seleccionada.
+- **Unificación de Licencias**: Usuarios con plan Ultra ahora heredan automáticamente todos los beneficios Premium.
+
+## Modificado
+* routes/match.py (lógica de generación y avance)
+* routes/league.py (agrupación por fechas y manejo de octavos)
+* models/user.py (unificación Ultra/Premium)
+* forms/match.py (flexibilidad de goles)
+* templates/league_detail.html (HTML/CSS/JS de brackets y fechas)
+* templates/match_result_form.html (layout de edición)
+
 ## 0.9.6
 
 Personalización visual premium para reportes. 
