@@ -1,3 +1,17 @@
+## 0.9.8.1
+
+Refinamiento de límites Premium y visibilidad de escudos.
+
+- **Límites Premium Automatizados**: Las ligas ahora regresan automáticamente a los valores por defecto (1 vuelta, 1 cancha, puntaje estándar) cuando expira la suscripción del dueño.
+- **Visibilidad de Escudos Mejorada**: Los escudos de los equipos ahora son visibles para todos en el panel, tablas y liguilla. Solo se restringen en las secciones de agenda y resultados del reporte descargable para usuarios gratuitos.
+- **Correcciones de Estabilidad**: Se resolvió un error crítico de cálculo en la tabla de posiciones y se mejoró el manejo de datos nulos.
+
+## Modificado
+* utils/helpers.py (lógica de tabla y puntos)
+* routes/league.py (límites de vueltas y canchas)
+* templates/league_detail.html (visibilidad de escudos en dashboard)
+* templates/share_report.html (escudos en reporte)
+
 ## 0.9.8
 
 Lanzamiento de Planes Ultra Premium y refinamiento de acceso a reportes.

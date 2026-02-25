@@ -2,6 +2,7 @@
 {% block title %}{{ league.name }} - LigaPro Manager{% endblock %}
 
 {% block content %}
+{% set is_premium = league.owner.is_active_premium %}
 <div class="min-h-screen">
     <!-- Header -->
     <header class="bg-card border-b border-white/10">
@@ -170,15 +171,23 @@
                         {% for match in recent_matches %}
                         <div
                             class="flex justify-between items-center text-sm border-b border-white/5 pb-2 last:border-0">
-                            <div class="flex-1 text-right">
+                            <div class="flex-1 text-right flex items-center justify-end gap-2">
                                 {{ teams_dict[match.home_team_id].name }}
+                                {% if teams_dict[match.home_team_id].shield_url %}
+                                <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                    class="w-5 h-5 rounded object-cover flex-shrink-0">
+                                {% endif %}
                                 {% if teams_dict[match.home_team_id].is_deleted %}<span
                                     class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
                             </div>
-                            <div class="px-3 font-bold bg-white/10 rounded mx-2 py-1">
+                            <div class="px-3 font-bold bg-white/10 rounded mx-2 py-1 flex-shrink-0">
                                 {{ match.home_score }} - {{ match.away_score }}
                             </div>
-                            <div class="flex-1 text-left">
+                            <div class="flex-1 text-left flex items-center gap-2">
+                                {% if teams_dict[match.away_team_id].shield_url %}
+                                <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                    class="w-5 h-5 rounded object-cover flex-shrink-0">
+                                {% endif %}
                                 {{ teams_dict[match.away_team_id].name }}
                                 {% if teams_dict[match.away_team_id].is_deleted %}<span
                                     class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
@@ -202,14 +211,22 @@
                                 <span class="text-white/60 text-xs">{{ match.match_date.strftime('%d/%m %I:%M %p')
                                     }}</span>
                             </div>
-                            <div class="flex justify-between items-center font-medium">
-                                <span>
+                            <div class="flex justify-between items-center font-medium gap-2">
+                                <span class="flex-1 text-right flex items-center justify-end gap-2">
                                     {{ teams_dict[match.home_team_id].name }}
+                                    {% if teams_dict[match.home_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                        class="w-5 h-5 rounded object-cover flex-shrink-0">
+                                    {% endif %}
                                     {% if teams_dict[match.home_team_id].is_deleted %}<span
                                         class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
                                 </span>
-                                <span class="text-white/40 text-xs">vs</span>
-                                <span>
+                                <span class="text-white/40 text-xs flex-shrink-0">vs</span>
+                                <span class="flex-1 text-left flex items-center gap-2">
+                                    {% if teams_dict[match.away_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                        class="w-5 h-5 rounded object-cover flex-shrink-0">
+                                    {% endif %}
                                     {{ teams_dict[match.away_team_id].name }}
                                     {% if teams_dict[match.away_team_id].is_deleted %}<span
                                         class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
@@ -1040,7 +1057,11 @@
                         <div class="card {% if stage_name == 'final' %}border-yellow-400/50{% endif %}">
                             <div class="flex items-center justify-between">
                                 <div class="flex-1 flex items-center gap-4">
-                                    <span class="font-bold">
+                                    <span class="font-bold flex items-center gap-2">
+                                        {% if teams_dict[match.home_team_id].shield_url %}
+                                        <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                            class="w-6 h-6 rounded object-cover">
+                                        {% endif %}
                                         {{ teams_dict[match.home_team_id].name }}
                                         {% if teams_dict[match.home_team_id].is_deleted %}<span
                                             class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
@@ -1052,8 +1073,12 @@
                                     {% else %}
                                     <span class="text-white/40">vs</span>
                                     {% endif %}
-                                    <span class="font-bold">
+                                    <span class="font-bold flex items-center gap-2">
                                         {{ teams_dict[match.away_team_id].name }}
+                                        {% if teams_dict[match.away_team_id].shield_url %}
+                                        <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                            class="w-6 h-6 rounded object-cover">
+                                        {% endif %}
                                         {% if teams_dict[match.away_team_id].is_deleted %}<span
                                             class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
                                     </span>
@@ -1106,13 +1131,25 @@
                             </div>
                             <div
                                 class="bracket-team {% if match.is_completed and match.home_score > match.away_score %}winner{% endif %}">
-                                <span class="truncate pr-2">{{ teams_dict[match.home_team_id].name }}</span>
+                                <div class="flex items-center gap-2 truncate pr-2">
+                                    {% if teams_dict[match.home_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                        class="w-4 h-4 rounded object-cover flex-shrink-0">
+                                    {% endif %}
+                                    <span class="truncate">{{ teams_dict[match.home_team_id].name }}</span>
+                                </div>
                                 <span class="bracket-score">{{ match.home_score if match.home_score is not none else '-'
                                     }}</span>
                             </div>
                             <div
                                 class="bracket-team {% if match.is_completed and match.away_score > match.home_score %}winner{% endif %}">
-                                <span class="truncate pr-2">{{ teams_dict[match.away_team_id].name }}</span>
+                                <div class="flex items-center gap-2 truncate pr-2">
+                                    {% if teams_dict[match.away_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                        class="w-4 h-4 rounded object-cover flex-shrink-0">
+                                    {% endif %}
+                                    <span class="truncate">{{ teams_dict[match.away_team_id].name }}</span>
+                                </div>
                                 <span class="bracket-score">{{ match.away_score if match.away_score is not none else '-'
                                     }}</span>
                             </div>
@@ -1138,13 +1175,25 @@
                         <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
                             class="card p-4 flex justify-between items-center shadow-lg hover:border-primary/50 hover:bg-white/5 transition-all group">
                             <div class="flex items-center gap-4">
-                                <span class="font-bold text-sm">{{ teams_dict[match.home_team_id].name }}</span>
+                                <div class="flex items-center gap-2">
+                                    {% if teams_dict[match.home_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                        class="w-5 h-5 rounded object-cover">
+                                    {% endif %}
+                                    <span class="font-bold text-sm">{{ teams_dict[match.home_team_id].name }}</span>
+                                </div>
                                 <span class="bg-white/10 px-3 py-1 rounded font-bold text-primary">{{ match.home_score
                                     if match.is_completed else '-' }}</span>
                                 <span class="text-white/20">vs</span>
                                 <span class="bg-white/10 px-3 py-1 rounded font-bold text-primary">{{ match.away_score
                                     if match.is_completed else '-' }}</span>
-                                <span class="font-bold text-sm">{{ teams_dict[match.away_team_id].name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-sm">{{ teams_dict[match.away_team_id].name }}</span>
+                                    {% if teams_dict[match.away_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                        class="w-5 h-5 rounded object-cover">
+                                    {% endif %}
+                                </div>
                             </div>
                             <span
                                 class="text-[10px] text-white/20 group-hover:text-primary transition-colors uppercase tracking-widest font-bold">

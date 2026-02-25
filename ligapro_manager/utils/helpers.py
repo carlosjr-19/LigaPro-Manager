@@ -9,15 +9,37 @@ def calculate_standings(league_id, include_playoffs=False):
     
     # Get completed matches (only regular season by default)
     if include_playoffs:
-        matches = Match.query.filter_by(league_id=league_id, is_completed=True).all()
+        matches_query = Match.query.filter_by(league_id=league_id, is_completed=True)
     else:
-        matches = Match.query.filter(
+        matches_query = Match.query.filter(
             Match.league_id == league_id,
             Match.is_completed == True,
-            Match.stage.in_(['regular', None])
-        ).all()
+            Match.stage.in_(['regular', None, ''])
+        )
+    
+    all_matches = matches_query.all()
+    
+    # If not premium, only count the first match between any pair (Round 1)
+    if not league.owner.is_active_premium:
+        filtered_matches = []
+        pairs_seen = set()
+        # Sort matches by date to ensure we pick the first one chronologically
+        sorted_matches = sorted(all_matches, key=lambda x: x.match_date)
+        for m in sorted_matches:
+            pair = tuple(sorted([m.home_team_id, m.away_team_id]))
+            if pair not in pairs_seen:
+                filtered_matches.append(m)
+                pairs_seen.add(pair)
+        matches = filtered_matches
+    else:
+        matches = all_matches
     
     standings = []
+    
+    # Points configuration (Enforce defaults for non-premium)
+    is_premium = league.owner.is_active_premium
+    win_points = league.win_points if is_premium else 3
+    draw_points = league.draw_points if is_premium else 1
     for team in teams:
         stats = {
             'team': team,
@@ -39,10 +61,10 @@ def calculate_standings(league_id, include_playoffs=False):
                 
                 if match.home_score > match.away_score:
                     stats['won'] += 1
-                    stats['points'] += league.win_points
+                    stats['points'] += win_points
                 elif match.home_score == match.away_score:
                     stats['drawn'] += 1
-                    stats['points'] += league.draw_points
+                    stats['points'] += draw_points
                 else:
                     stats['lost'] += 1
                     
@@ -53,10 +75,10 @@ def calculate_standings(league_id, include_playoffs=False):
                 
                 if match.away_score > match.home_score:
                     stats['won'] += 1
-                    stats['points'] += league.win_points
+                    stats['points'] += win_points
                 elif match.away_score == match.home_score:
                     stats['drawn'] += 1
-                    stats['points'] += league.draw_points
+                    stats['points'] += draw_points
                 else:
                     stats['lost'] += 1
         
