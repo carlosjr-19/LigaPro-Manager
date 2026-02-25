@@ -12,37 +12,77 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Global Schedule Card -->
-            <a href="{{ url_for('report.global_schedule') }}"
-                class="card hover:bg-white/5 transition-all group border-l-4 border-purple-500">
-                <div class="flex items-start justify-between mb-4">
-                    <div
-                        class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-calendar-alt text-2xl"></i>
-                    </div>
-                    <span
-                        class="bg-purple-500/10 text-purple-400 text-xs px-2 py-1 rounded border border-purple-500/20">Ultra</span>
-                </div>
-                <h3 class="text-xl font-bold mb-2 group-hover:text-purple-400 transition-colors">Agenda Global</h3>
-                <p class="text-white/40 text-sm">
-                    Visualiza todos tus partidos del día agrupados por cancha en una sola 'sábana' lista para imprimir.
+        {% if not current_user.is_ultra %}
+        <div
+            class="mb-12 p-8 rounded-2xl bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-indigo-500/30 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+            <div
+                class="w-16 h-16 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 shrink-0">
+                <i class="fas fa-lock text-3xl"></i>
+            </div>
+            <div class="flex-1">
+                <h2 class="text-2xl font-bold mb-2">Contenido Exclusivo Ultra</h2>
+                <p class="text-white/60 mb-4 max-w-2xl">
+                    Los reportes avanzados, agenda global y gestión financiera están disponibles exclusivamente para
+                    usuarios <strong>Premium Ultra</strong>. Mejora tu cuenta hoy para desbloquear estas potentes
+                    herramientas.
                 </p>
-            </a>
-
-            <!-- Placeholder for future reports -->
-            <div class="card opacity-50 border-dashed border-2 border-white/10">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center text-white/20">
-                        <i class="fas fa-chart-pie text-2xl"></i>
-                    </div>
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                    <a href="{{ url_for('premium.premium') }}" class="btn-primary">
+                        <i class="fas fa-arrow-up mr-2"></i>Mejorar a Ultra
+                    </a>
                 </div>
-                <h3 class="text-xl font-bold mb-2 text-white/40">Próximamente</h3>
-                <p class="text-white/20 text-sm">
-                    Más reportes avanzados en desarrollo.
-                </p>
             </div>
         </div>
-    </main>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Global Schedule Card -->
+            {% if current_user.is_ultra %}
+            <a href="{{ url_for('report.global_schedule') }}"
+                class="card hover:bg-white/5 transition-all group border-l-4 border-purple-500">
+                {% else %}
+                <div class="card opacity-60 border-l-4 border-gray-600 grayscale cursor-not-allowed group">
+                    {% endif %}
+                    <div class="flex items-start justify-between mb-4">
+                        <div
+                            class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-calendar-alt text-2xl"></i>
+                        </div>
+                        {% if current_user.is_ultra %}
+                        <span
+                            class="bg-purple-500/10 text-purple-400 text-xs px-2 py-1 rounded border border-purple-500/20">Ultra</span>
+                        {% else %}
+                        <span
+                            class="bg-gray-500/10 text-gray-400 text-xs px-2 py-1 rounded border border-gray-500/20"><i
+                                class="fas fa-lock mr-1"></i>Bloqueado</span>
+                        {% endif %}
+                    </div>
+                    <h3
+                        class="text-xl font-bold mb-2 {% if current_user.is_ultra %}group-hover:text-purple-400{% endif %} transition-colors">
+                        Agenda Global</h3>
+                    <p class="text-white/40 text-sm">
+                        Visualiza todos tus partidos del día agrupados por cancha en una sola 'sábana' lista para
+                        imprimir.
+                    </p>
+                    {% if current_user.is_ultra %}
+            </a>
+            {% else %}
+        </div>
+        {% endif %}
+
+        <!-- Placeholder for future reports (can stay as is or be improved) -->
+        <div class="card opacity-30 border-dashed border-2 border-white/10">
+            <div class="flex items-start justify-between mb-4">
+                <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center text-white/20">
+                    <i class="fas fa-chart-pie text-2xl"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold mb-2 text-white/40">Próximamente</h3>
+            <p class="text-white/20 text-sm">
+                Más reportes avanzados en desarrollo.
+            </p>
+        </div>
+</div>
+</main>
 </div>
 {% endblock %}

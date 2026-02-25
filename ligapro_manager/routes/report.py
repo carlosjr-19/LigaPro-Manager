@@ -15,11 +15,9 @@ report_bp = Blueprint('report', __name__)
 @report_bp.route('/report')
 @login_required
 def index():
-    # Ultra Premium Check
-    if not getattr(current_user, 'is_ultra', False):
-        flash('No tienes acceso a esta funcionalidad (Ultra Premium).', 'warning')
-        return redirect(url_for('main.dashboard'))
-        
+    if current_user.role not in ['owner', 'admin']:
+        flash('No tienes permiso para acceder a esta sección.', 'danger')
+        return redirect(url_for('main.captain_dashboard'))
     return render_template('report.html')
 
 @report_bp.route('/global-schedule')
@@ -28,7 +26,7 @@ def global_schedule():
     # Ultra Premium Check
     if not getattr(current_user, 'is_ultra', False):
         flash('No tienes acceso a esta funcionalidad (Ultra Premium).', 'warning')
-        return redirect(url_for('main.dashboard'))
+        return redirect(url_for('report.index'))
 
     # Date Parameter
     date_str = request.args.get('date')

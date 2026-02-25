@@ -13,10 +13,10 @@
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-6 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <main class="max-w-6xl mx-auto px-6 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <!-- Free Plan -->
-            <div class="card">
+            <div class="card flex flex-col h-full">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-user text-2xl text-white/40"></i>
@@ -53,12 +53,12 @@
             </div>
 
             <!-- Premium Plan (Monthly) -->
-            <div class="card border-white/10">
+            <div class="card border-white/10 flex flex-col h-full">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-star text-2xl text-white"></i>
                     </div>
-                    <h3 class="text-2xl font-bold">Plan Mensual</h3>
+                    <h3 class="text-2xl font-bold">Premium Mensual</h3>
                     <p class="text-white/60">Flexible</p>
                 </div>
                 <ul class="space-y-3 mb-6">
@@ -103,15 +103,15 @@
 
             <!-- Premium Plan (Annual) -->
             <div
-                class="card border-warning/50 bg-warning/5 relative overflow-hidden transform hover:scale-105 transition-transform duration-300">
+                class="card border-warning/50 bg-warning/5 relative overflow-hidden transform hover:scale-105 transition-transform duration-300 flex flex-col h-full">
                 <div class="absolute top-0 right-0 bg-warning text-black text-xs font-bold px-3 py-1 rounded-bl-lg">
-                    ¡2 MESES GRATIS!
+                    ¡AHORRA $400!
                 </div>
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-warning/20 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-crown text-2xl text-warning"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-warning">Plan Anual</h3>
+                    <h3 class="text-2xl font-bold text-warning">Premium Anual</h3>
                     <p class="text-white/60">Mejor Valor</p>
                 </div>
                 <ul class="space-y-3 mb-6">
@@ -151,10 +151,113 @@
                         <i class="fas fa-crown mr-2"></i>Mejorar Ahora
                     </button>
                 </form>
+                {% endif %}
+            </div>
+
+            <!-- Ultra Plan (Monthly) -->
+            <div
+                class="card border-indigo-500/50 bg-indigo-500/5 relative overflow-hidden flex flex-col h-full transform hover:scale-105 transition-transform duration-300">
+                <div class="absolute top-0 right-0 bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                    ¡NUEVO!
+                </div>
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-gem text-2xl text-indigo-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-indigo-400">Ultra Mensual</h3>
+                    <p class="text-white/60">Para Profesionales</p>
+                </div>
+                <ul class="space-y-3 mb-6 font-medium">
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-indigo-400"></i>
+                        <span>Reportes Financieros</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-indigo-400"></i>
+                        <span>Estadísticas por Cancha</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-indigo-400"></i>
+                        <span>Exportación PDF y Excel</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-plus text-success"></i>
+                        <span>Todas las funciones Premium</span>
+                    </li>
+                </ul>
+                <div class="text-center mb-6 mt-auto">
+                    <p class="text-3xl font-bold text-indigo-400 mb-2">$400 MXN</p>
+                    <p class="text-white/40">Al mes</p>
+                </div>
+
+                {% if current_user.is_ultra %}
+                <button disabled class="bg-indigo-500/50 text-white/50 w-full cursor-not-allowed py-3 px-4 rounded">
+                    <i class="fas fa-check mr-2"></i>Ya eres Ultra
+                </button>
+                {% else %}
+                <form method="POST" action="{{ url_for('premium.create_checkout_session', plan='ultra_monthly') }}">
+                    <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded transition-colors shadow-lg shadow-indigo-500/20">
+                        <i class="fas fa-gem mr-2"></i>Suscribirse Ultra
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+
+            <!-- Ultra Plan (Annual) -->
+            <div
+                class="card border-indigo-400/50 bg-indigo-400/5 relative overflow-hidden flex flex-col h-full transform hover:scale-105 transition-transform duration-300">
+                <div class="absolute top-0 right-0 bg-indigo-400 text-black text-xs font-bold px-3 py-1 rounded-bl-lg">
+                    ¡AHORRA $1,000!
+                </div>
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-indigo-400/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-chess-king text-2xl text-indigo-300"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-indigo-300">Ultra Anual</h3>
+                    <p class="text-white/60">Máximo Valor</p>
+                </div>
+                <ul class="space-y-3 mb-6 font-medium">
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-indigo-300"></i>
+                        <span>Todas las Funciones Ultra</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-indigo-300"></i>
+                        <span>Gestión Financiera Total</span>
+                    </li>
+                    <li class="flex items-center gap-3">
+                        <i class="fas fa-check text-indigo-300"></i>
+                        <span>Soporte Ultra Prioritario</span>
+                    </li>
+                    <li class="flex items-center gap-3 text-indigo-300">
+                        <i class="fas fa-gift"></i>
+                        <span>Ahorras $1,000 MXN al año</span>
+                    </li>
+                </ul>
+                <div class="text-center mb-6 mt-auto">
+                    <div class="flex items-center justify-center gap-2 mb-1">
+                        <span class="text-white/40 line-through text-lg">$4,800</span>
+                        <span class="text-3xl font-bold text-indigo-300">$3,800 MXN</span>
+                    </div>
+                    <p class="text-white/40">Al año</p>
+                </div>
+
+                {% if current_user.is_ultra %}
+                <button disabled class="bg-indigo-400/50 text-black/50 w-full cursor-not-allowed py-3 px-4 rounded">
+                    <i class="fas fa-check mr-2"></i>Ya eres Ultra
+                </button>
+                {% else %}
+                <form method="POST" action="{{ url_for('premium.create_checkout_session', plan='ultra_annual') }}">
+                    <button type="submit"
+                        class="w-full bg-indigo-400 hover:bg-indigo-500 text-black font-bold py-3 px-4 rounded transition-colors shadow-lg shadow-indigo-400/20">
+                        <i class="fas fa-crown mr-2"></i>Mejorar a Ultra
+                    </button>
+                </form>
+                {% endif %}
                 <p class="text-white/40 text-xs text-center mt-3">
                     Pago único anual
                 </p>
-                {% endif %}
             </div>
         </div>
     </main>

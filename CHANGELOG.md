@@ -1,3 +1,21 @@
+## 0.9.8
+
+Lanzamiento de Planes Ultra Premium y refinamiento de acceso a reportes.
+
+- **Planes Ultra Premium**: Se agregaron opciones de suscripción mensual ($400 MXN) y anual ($3800 MXN) para acceder a funciones avanzadas.
+- **Acceso a Reportes Refinado**: La sección de reportes ahora es visible para todos los usuarios.
+- **Gated Content**: El contenido de los reportes está restringido a usuarios Ultra, mostrando una invitación a mejorar para los demás.
+- **Activación Inmediata**: Los beneficios Ultra se activan de forma instantánea tras completar el pago en Stripe, sin esperar al webhook.
+- **Navegación Fluida**: Redireccionamientos internos mejorados para mantener al usuario dentro de la sección de reportes tras intentos de acceso no autorizados.
+
+## Modificado
+* routes/premium.py (lógica de checkout y activación inmediata)
+* routes/report.py (acceso abierto al index y redirecciones internas)
+* templates/premium.html (nuevas tarjetas de precios Ultra)
+* templates/report.html (interfaz de acceso restringido y banners)
+* templates/base.html (visibilidad permanente del enlace de reportes)
+* .env (nuevas variables de precio de Stripe)
+
 ## 0.9.7
 
 Visualización de Liguilla (Llaves) y soporte para Octavos de Final.
