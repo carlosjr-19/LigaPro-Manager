@@ -53,16 +53,20 @@
         </div>
 
         <!-- Header -->
+        {% set is_premium = league.owner.is_active_premium %}
         <div class="flex items-center gap-6 mb-8 relative z-10 px-4">
-            {% if league.logo_url %}
+            {% if is_premium and league.logo_url %}
             <img src="{{ league.logo_url }}"
+                class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
+            {% else %}
+            <img src="{{ url_for('static', filename='img/LigaPro_Manager.png') }}"
                 class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
             {% endif %}
 
             <div class="text-left">
                 <h1 class="text-4xl font-bold mb-1">{{ league.name }}</h1>
 
-                {% if league.slogan %}
+                {% if is_premium and league.slogan %}
                 <p class="text-white/60 text-lg uppercase tracking-widest font-medium">{{ league.slogan }}</p>
                 {% else %}
                 <p class="text-white/60 text-lg uppercase tracking-widest font-medium">Reporte Oficial</p>
@@ -99,7 +103,8 @@
                     </thead>
                     <tbody class="text-white/80">
                         {% for s in standings %}
-                        {% set is_highlighted = league.highlight_standings and loop.index >= league.highlight_start and
+                        {% set is_highlighted = is_premium and league.highlight_standings and loop.index >=
+                        league.highlight_start and
                         loop.index <= league.highlight_end %} <tr
                             class="border-b border-white/5 last:border-0 text-center">
                             <td class="py-2 text-left font-bold 
@@ -139,10 +144,11 @@
                     {% for court_name, matches in matches_by_court.items() %}
                     {% set court_obj = matches[0].court if matches and matches[0].court else None %}
                     {% set alignment_class = 'justify-start' %}
-                    {% if court_obj and court_obj.alignment == 'center' %}{% set alignment_class = 'justify-center' %}
-                    {% elif court_obj and court_obj.alignment == 'right' %}{% set alignment_class = 'justify-end' %}{%
-                    endif %}
-                    {% set court_color = court_obj.color if court_obj else '#22d3ee' %}
+                    {% if is_premium and court_obj %}
+                    {% if court_obj.alignment == 'center' %}{% set alignment_class = 'justify-center' %}
+                    {% elif court_obj.alignment == 'right' %}{% set alignment_class = 'justify-end' %}{% endif %}
+                    {% endif %}
+                    {% set court_color = court_obj.color if (is_premium and court_obj) else '#22d3ee' %}
 
                     <div>
                         <h4 class="font-bold uppercase tracking-widest text-xl mb-4 flex items-center gap-3 {{ alignment_class }}"
@@ -173,7 +179,7 @@
                                         {{ match.match_date.strftime('%I:%M %p') }}
                                     </div>
                                     <div class="text-white/60 text-sm font-medium"
-                                        style="color: {{ league.report_date_color }}; font-size: {{ league.report_date_size }}px;">
+                                        style="{% if is_premium %}color: {{ league.report_date_color }}; font-size: {{ league.report_date_size }}px;{% else %}color: #ffffff99; font-size: 14px;{% endif %}">
                                         {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
                                         'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday':
                                         'Domingo'} %}
@@ -189,7 +195,8 @@
                                 <div class="flex justify-between items-center">
                                     <!-- Home -->
                                     <div class="flex items-center gap-3 flex-1">
-                                        {% if league.show_team_logos and teams_dict[match.home_team_id].shield_url %}
+                                        {% if is_premium and league.show_team_logos and
+                                        teams_dict[match.home_team_id].shield_url %}
                                         <img src="{{ teams_dict[match.home_team_id].shield_url }}"
                                             class="w-10 h-10 object-contain drop-shadow-md">
                                         {% endif %}
@@ -204,7 +211,8 @@
                                     <div class="flex items-center justify-end gap-3 flex-1 text-right">
                                         <span class="text-xl font-bold leading-tight">{{
                                             teams_dict[match.away_team_id].name }}</span>
-                                        {% if league.show_team_logos and teams_dict[match.away_team_id].shield_url %}
+                                        {% if is_premium and league.show_team_logos and
+                                        teams_dict[match.away_team_id].shield_url %}
                                         <img src="{{ teams_dict[match.away_team_id].shield_url }}"
                                             class="w-10 h-10 object-contain drop-shadow-md">
                                         {% endif %}
@@ -229,7 +237,7 @@
                     {% for match in recent_matches %}
                     <div class="bg-white/5 p-3 rounded flex justify-between items-center text-sm border border-white/5">
                         <div class="flex items-center justify-end gap-2 flex-1 text-right">
-                            {% if league.show_team_logos and teams_dict[match.home_team_id].shield_url %}
+                            {% if is_premium and league.show_team_logos and teams_dict[match.home_team_id].shield_url %}
                             <img src="{{ teams_dict[match.home_team_id].shield_url }}"
                                 class="w-5 h-5 object-contain flex-shrink-0">
                             {% endif %}
@@ -241,7 +249,7 @@
                         </span>
                         <div class="flex items-center justify-start gap-2 flex-1 text-left">
                             <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name }}</span>
-                            {% if league.show_team_logos and teams_dict[match.away_team_id].shield_url %}
+                            {% if is_premium and league.show_team_logos and teams_dict[match.away_team_id].shield_url %}
                             <img src="{{ teams_dict[match.away_team_id].shield_url }}"
                                 class="w-5 h-5 object-contain flex-shrink-0">
                             {% endif %}

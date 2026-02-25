@@ -103,7 +103,7 @@ def league_detail(league_id):
 
     # Matrix View Data (Multi-Round)
     # Use scheduling_teams for Matrix
-    num_vueltas = league.num_vueltas if league.num_vueltas else 1
+    num_vueltas = league.num_vueltas if (league.num_vueltas and league.owner.is_active_premium) else 1
     
     # helper to init a blank matrix
     def init_matrix():
@@ -259,7 +259,7 @@ def league_detail(league_id):
     return render_template('league_detail.html', 
                           league=league, 
                           teams=active_teams,
-                          courts=league.courts,
+                          courts=league.courts[:1] if not league.owner.is_active_premium else league.courts,
                           standings=standings,
                           matches=matches,
                           round_matrices=round_matrices,
@@ -452,7 +452,7 @@ def generate_share_report(league_id):
     report_note = request.values.get('report_note')
     
     # Enforce Premium for Note
-    if report_note and not current_user.is_active_premium:
+    if report_note and not league.owner.is_active_premium:
         report_note = None
     
     # Data containers
@@ -504,9 +504,15 @@ def generate_share_report(league_id):
     # Group upcoming matches by court
     matches_by_court = {}
     if upcoming_matches:
+        is_premium = league.owner.is_active_premium
         for match in upcoming_matches:
             # Use court name if exists, else "Cancha Principal" or similar fallback
-            court_name = match.court.name if match.court else "Cancha Principal"
+            # If not premium, force all matches to the first court for report grouping
+            if not is_premium:
+                court_name = league.courts[0].name if league.courts else "Cancha Principal"
+            else:
+                court_name = match.court.name if match.court else "Cancha Principal"
+                
             if court_name not in matches_by_court:
                 matches_by_court[court_name] = []
             matches_by_court[court_name].append(match)
