@@ -31,6 +31,12 @@ def create_checkout_session():
         elif plan_type == 'annual':
              price_id = current_app.config['STRIPE_PRICE_ANUAL_ID']
              mode = 'payment'
+        elif plan_type == 'ultra_monthly':
+             price_id = current_app.config['STRIPE_ULTRA_PRICE_MENSUAL']
+             mode = 'subscription'
+        elif plan_type == 'ultra_annual':
+             price_id = current_app.config['STRIPE_ULTRA_PRICE_ANUAL']
+             mode = 'subscription'
         else:
              price_id = current_app.config['STRIPE_PRICE_ID']
              mode = 'subscription'
@@ -43,8 +49,9 @@ def create_checkout_session():
                 },
             ],
             mode=mode,
+            metadata={'plan_type': plan_type},
             success_url=url_for('premium.success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=url_for('premium.premium', _external=True) if plan_type in ['owner', 'annual'] else url_for('premium.captain_premium', _external=True),
+            cancel_url=url_for('premium.premium', _external=True) if plan_type != 'captain' else url_for('premium.captain_premium', _external=True),
             customer_email=current_user.email,
             client_reference_id=current_user.id,
         )
@@ -59,13 +66,33 @@ def create_checkout_session():
 def success():
     session_id = request.args.get('session_id')
     if session_id:
-        # Aquí podrías verificar la sesión con Stripe si quisieras doble seguridad
-        # session = stripe.checkout.Session.retrieve(session_id)
-        pass
-    
-    current_user.is_premium = True
-    db.session.commit()
-    flash('¡Gracias por tu suscripción! Tu cuenta ahora es Premium.', 'success')
+        try:
+            # Recuperar la sesión de Stripe para verificar qué se compró
+            session = stripe.checkout.Session.retrieve(session_id)
+            plan_type = session.get('metadata', {}).get('plan_type')
+            
+            if plan_type and 'ultra' in plan_type:
+                current_user.is_ultra = True
+                flash('¡Gracias por tu suscripción! Tu cuenta ahora es Ultra Premium.', 'success')
+                print(f"🚀 SUCCESS: Ultra activado por sesión para {current_user.email}")
+            else:
+                current_user.is_premium = True
+                flash('¡Gracias por tu suscripción! Tu cuenta ahora es Premium.', 'success')
+                print(f"✅ SUCCESS: Premium activado por sesión para {current_user.email}")
+                
+            db.session.commit()
+        except Exception as e:
+            print(f"❌ SUCCESS ERROR: No se pudo verificar la sesión: {e}")
+            # Fallback seguro
+            current_user.is_premium = True
+            db.session.commit()
+            flash('Tu suscripción ha sido procesada.', 'success')
+    else:
+        # Si no hay session_id, al menos activamos premium (comportamiento anterior)
+        current_user.is_premium = True
+        db.session.commit()
+        flash('Suscripción activada.', 'success')
+        
     return redirect(url_for('main.dashboard'))
 
 @premium_bp.route('/stripe_webhook', methods=['POST'])
@@ -102,6 +129,13 @@ def stripe_webhook():
                 user = User.query.get(user_id)
                 if user:
                     user.is_premium = True
+                    
+                    # Check for Ultra plan in metadata
+                    plan_type = session.get('metadata', {}).get('plan_type')
+                    if plan_type and 'ultra' in plan_type:
+                        user.is_ultra = True
+                        print(f"💎 WEBHOOK: Ultra activado para el usuario {user.email}")
+                    
                     db.session.commit()
                     print(f"✅ WEBHOOK: Premium activado para el usuario {user.email}")
                 else:
