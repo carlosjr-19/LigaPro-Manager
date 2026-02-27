@@ -1,3 +1,16 @@
+## 0.9.8.2
+
+Refactorización de plantillas HTML y extracción de recursos estáticos.
+
+- **Organización de Código**: Se extrajo todo el código CSS y JavaScript *in-line* de las plantillas HTML hacia archivos estáticos independientes en las carpetas `static/css/` y `static/js/`.
+- **Rendimiento y Mantenibilidad**: Mejora estructural del proyecto separando los lenguajes (HTML, CSS, JS) para facilitar su edición y compresión.
+- **Consolidación de Estilos**: Se unificaron estilos repetidos (como visualización de inputs, reportes y vistas de impresión) en archivos CSS compartidos.
+
+## Modificado
+* Múltiples plantillas HTML en `templates/` (base, auth, ligas, partidos, reportes, modales, etc.)
+* Creación de nuevos archivos CSS en `static/css/` (auth.css, credentials.css, report_financials.css, etc.)
+* Creación de nuevos archivos JS en `static/js/` (base.js, league_detail.js, match_form.js, etc.)
+
 ## 0.9.8.1
 
 Refinamiento de límites Premium y visibilidad de escudos.
