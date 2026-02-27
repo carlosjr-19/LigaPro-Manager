@@ -114,13 +114,7 @@
                 class="hidden">
             </form>
 
-            <script>
-                function confirmDelete() {
-                    if (confirm('¿Estás seguro de eliminar este partido? Se eliminarán los puntos otorgados.')) {
-                        document.getElementById('deleteMatchForm').submit();
-                    }
-                }
-            </script>
+            <script src="{{ url_for('static', filename='js/match_result_form.js') }}"></script>
         </div>
     </main>
 </div>

@@ -8,54 +8,9 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='img/LigaPro_Manager.ico') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#FF4444',
-                        background: '#0A0A0A',
-                        card: '#141414',
-                        success: '#22C55E',
-                        warning: '#F59E0B',
-                    }
-                }
-            }
-        }
-    </script>
-    <style type="text/tailwindcss">
-        body {
-            background-color: #0A0A0A;
-            color: white;
-            font-family: 'Inter', system-ui, sans-serif;
-        }
-
-        .btn-primary {
-            @apply bg-primary hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition-all transform hover:scale-105 shadow-lg shadow-red-500/20;
-        }
-
-        .btn-secondary {
-            @apply bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-6 rounded-lg border border-white/20 transition-all hover:border-white/40;
-        }
-
-        .card {
-            @apply bg-card/90 backdrop-blur-md border border-white/10 rounded-xl p-8 shadow-2xl;
-        }
-
-        .input-field {
-            @apply w-full bg-black/50 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors;
-        }
-
-        /* Autofill Fix */
-        input:-webkit-autofill,
-        input:-webkit-autofill:hover,
-        input:-webkit-autofill:focus,
-        input:-webkit-autofill:active {
-            -webkit-box-shadow: 0 0 0 30px #141414 inset !important;
-            -webkit-text-fill-color: white !important;
-            transition: background-color 5000s ease-in-out 0s;
-        }
-    </style>
+    <script src="{{ url_for('static', filename='js/tailwind-config.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <script src="{{ url_for('static', filename='js/base.js') }}" defer></script>
 </head>
 
 <body class="min-h-screen">
@@ -152,26 +107,7 @@
         </div>
     </nav>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const btn = document.getElementById('mobile-menu-btn');
-            const menu = document.getElementById('mobile-menu');
 
-            if (btn && menu) {
-                btn.addEventListener('click', () => {
-                    menu.classList.toggle('hidden');
-                    const icon = btn.querySelector('i');
-                    if (menu.classList.contains('hidden')) {
-                        icon.classList.remove('fa-times');
-                        icon.classList.add('fa-bars');
-                    } else {
-                        icon.classList.remove('fa-bars');
-                        icon.classList.add('fa-times');
-                    }
-                });
-            }
-        });
-    </script>
     {% endif %}
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -184,11 +120,7 @@
         </div>
         {% endfor %}
     </div>
-    <script>
-        setTimeout(() => {
-            document.querySelectorAll('.fixed.top-4 > div').forEach(el => el.remove());
-        }, 5000);
-    </script>
+
     {% endif %}
     {% endwith %}
 

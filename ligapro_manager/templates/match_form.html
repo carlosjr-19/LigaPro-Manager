@@ -73,42 +73,8 @@
 </div>
 
 <script>
-    const teamsHistory = {{ teams_history| tojson }};
-    const teamsMap = {{ teams_map| tojson }};
-
-    function updateHistory(selectId, outputId) {
-        const select = document.getElementById(selectId);
-        const output = document.getElementById(outputId);
-        const teamId = select.value;
-
-        // In JS object keys are always strings. So teamsHistory['1'] works even if key was 1.
-
-        if (!teamId) {
-            output.textContent = '';
-            return;
-        }
-
-        const history = teamsHistory[teamId];
-        if (!history || Object.keys(history).length === 0) {
-            output.textContent = 'Sin partidos previos.';
-            return;
-        }
-
-        const opponents = [];
-        for (const [oppId, count] of Object.entries(history)) {
-            const name = teamsMap[oppId] || 'Desconocido';
-            const countStr = count > 1 ? ` x${count}` : '';
-            opponents.push(`${name}${countStr}`);
-        }
-
-        output.textContent = 'Ya jugó contra: ' + opponents.join(', ');
-    }
-
-    document.getElementById('home_team_id').addEventListener('change', () => updateHistory('home_team_id', 'home_history'));
-    document.getElementById('away_team_id').addEventListener('change', () => updateHistory('away_team_id', 'away_history'));
-
-    // Initial update
-    updateHistory('home_team_id', 'home_history');
-    updateHistory('away_team_id', 'away_history');
+    window.teamsHistory = {{ teams_history | tojson }};
+    window.teamsMap = {{ teams_map | tojson }};
 </script>
+<script src="{{ url_for('static', filename='js/match_form.js') }}"></script>
 {% endblock %}

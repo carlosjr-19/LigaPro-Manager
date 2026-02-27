@@ -2,6 +2,7 @@
 {% block title %}Editar Estadística - LigaPro Manager{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/stat_form.css') }}">
 <div class="min-h-screen flex items-center justify-center p-6">
     <div class="card max-w-lg w-full">
         <div class="mb-6">
@@ -21,12 +22,7 @@
             <div>
                 <label class="block text-sm text-white/60 mb-2">Jugador</label>
                 {{ form.player_name(class="input-field w-full", disabled="disabled") }}
-                <style>
-                    .input-field:disabled {
-                        background-color: #252525;
-                        color: #cdcdcd;
-                    }
-                </style>
+
             </div>
 
             <div>

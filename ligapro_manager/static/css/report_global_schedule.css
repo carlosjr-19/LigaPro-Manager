@@ -1,0 +1,77 @@
+@media print {
+    @page {
+        size: auto;
+        margin: 1cm;
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    .min-h-screen {
+        min-height: 0 !important;
+        background: white !important;
+    }
+
+    .bg-card,
+    .btn-primary,
+    .btn-secondary {
+        display: none !important;
+    }
+
+    .print\:hidden {
+        display: none !important;
+    }
+
+    .print\:block {
+        display: block !important;
+    }
+
+    .print\:text-black {
+        color: black !important;
+    }
+
+    .print\:bg-white {
+        background: white !important;
+    }
+
+    .print\:bg-gray-200 {
+        background-color: #e5e7eb !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .print\:bg-gray-100 {
+        background-color: #f3f4f6 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        padding: 4px 8px;
+    }
+
+    /* Ensure background colors print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    input {
+        border: none !important;
+        background: transparent !important;
+        color: black !important;
+        padding: 0 !important;
+    }
+
+    input::placeholder {
+        color: transparent !important;
+    }
+}
