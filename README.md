@@ -78,9 +78,12 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 
 ## 🔄 Últimas Actualizaciones (v0.9.8.3)
 
-- **Navegación en Reportes**: Se agregó scroll horizontal a los menús de navegación en la sección de reportes para evitar que se desborden en pantallas pequeñas.
+- **Optimización Móvil Global**: Se añadieron contenedores con scroll horizontal nativo a todas las tablas del panel de administrador (Usuarios, Equipos, Ligas) y reportes.
+- **Botones y Filtros Responsivos**: Los botones de acción (Imprimir, Excel, Buscar) y los perfiles de filtros por fecha/liga ahora fluyen y se adaptan al ancho de pantallas móviles sin desbordarse.
+- **Navegación en Reportes**: Se agregó scroll horizontal a los menús de navegación en la sección de reportes para evitar que se desborden y se tapen los botones (Agenda, Precios, Historial, Resumen, Finanzas).
 - **Tarjetas de Partidos (Agenda)**: Se ajustó el diseño de las tarjetas de partidos en la vista de lista y de fechas. Los nombres largos de los equipos ahora se truncan correctamente sin empujar los marcadores fuera de la pantalla.
 - **Botones de Liguilla**: Se reorganizaron los botones de "Editar / Resultado" en las llaves de Liguilla y Repechaje para que se acomoden en la parte inferior de los nombres de los equipos en vista móvil.
+- **Impresión Móvil y Compartir**: Se integró `html2pdf.js` para permitir la exportación de reportes a PDF directamente desde navegadores móviles. La vista de "Compartir Reporte" ahora utiliza la API Nativa de Compartir de los teléfonos para enviar la imagen generada fácilmente.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

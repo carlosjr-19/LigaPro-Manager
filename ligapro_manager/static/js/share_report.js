@@ -1,6 +1,6 @@
 async function downloadImage() {
     const target = document.getElementById('capture-target');
-    const btn = document.querySelector('button');
+    const btn = document.querySelector('button[onclick="downloadImage()"]');
 
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
     btn.disabled = true;
@@ -16,10 +16,25 @@ async function downloadImage() {
             allowTaint: true
         });
 
-        const link = document.createElement('a');
-        link.download = `reporte-${window.leagueName}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
+        // Try Web Share API with file (Best for mobile)
+        try {
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            const file = new File([blob], `reporte-${window.leagueName}.png`, { type: 'image/png' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: `Reporte ${window.leagueName}`,
+                });
+            } else {
+                triggerDownload(canvas.toDataURL());
+            }
+        } catch (err) {
+            // AbortError is typical when user cancels share, don't show error
+            if (err.name !== 'AbortError') {
+                triggerDownload(canvas.toDataURL());
+            }
+        }
 
         btn.innerHTML = '<i class="fas fa-download mr-2"></i>Descargar Imagen';
         btn.disabled = false;
@@ -30,6 +45,15 @@ async function downloadImage() {
         btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Error';
         btn.disabled = false;
     }
+}
+
+function triggerDownload(dataUrl) {
+    const link = document.createElement('a');
+    link.download = `reporte-${window.leagueName}.png`;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 async function preloadImages(element) {

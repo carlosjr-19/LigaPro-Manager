@@ -5,6 +5,10 @@ Mejoras de responsividad y UI en móviles.
 - **Navegación en Reportes**: Se agregó scroll horizontal a los menús de navegación en la sección de reportes para evitar que se desborden en pantallas pequeñas.
 - **Tarjetas de Partidos (Agenda)**: Se ajustó el diseño de las tarjetas de partidos en la vista de lista y de fechas. Los nombres largos de los equipos ahora se truncan correctamente sin empujar los marcadores fuera de la pantalla.
 - **Botones de Liguilla**: Se reorganizaron los botones de "Editar / Resultado" en las llaves de Liguilla y Repechaje para que se acomoden en la parte inferior de los nombres de los equipos en vista móvil.
+- **Panel de Administrador**: Se optimizó la vista de gestión de usuarios permitiendo que los botones de filtrado y búsqueda se adapten a la pantalla, y se añadió desplazamiento horizontal a todas las tablas (Usuarios, Equipos, Ligas y Dashboard) para evitar recortes en celulares.
+- **Reporte para Compartir (Share View)**: La tabla de posiciones y resultados ya no se recorta verticalmente en móviles gracias al scroll panorámico. Se implementó la API nativa de "Compartir" de dispositivos móviles para agilizar la exportación de la imagen.
+- **Impresión de Reportes Web en Móviles**: El botón "Imprimir" ahora integra generación inteligente de archivos PDF en dispositivos móviles (Agenda Global y Finanzas) en lugar de usar comandos de navegador inestables.
+- **Barra de Navegación de Reportes**: Se arregló definitivamente el menú de navegación (Agenda, Precios, Finanzas, etc.) asegurando que el scroll funcione de extremo a extremo sin apretar los botones.
 
 ## Modificado
 * templates/report/summary.html
@@ -13,6 +17,10 @@ Mejoras de responsividad y UI en móviles.
 * templates/report/config.html
 * templates/report/global_schedule.html
 * templates/league_detail.html
+* templates/admin/users.html
+* templates/admin/teams.html
+* templates/admin/leagues.html
+* templates/admin/dashboard.html
 
 ## 0.9.8.2
 

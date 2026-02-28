@@ -11,10 +11,10 @@
                     <i class="fas fa-arrow-left"></i> Volver al Dashboard admin
                 </a>
             </div>
-            <div class="flex justify-between items-end">
-                <h1 class="text-3xl font-bold">Gestión de Usuarios</h1>
+            <div class="flex flex-col md:flex-row md:justify-between items-start md:items-end gap-4">
+                <h1 class="text-3xl font-bold text-center md:text-left">Gestión de Usuarios</h1>
 
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                     <a href="{{ url_for('admin.users') }}"
                         class="btn-sm {% if not current_role %}btn-primary{% else %}btn-secondary{% endif %}">Todos</a>
                     <a href="{{ url_for('admin.users', role='owner') }}"
@@ -23,10 +23,10 @@
                         class="btn-sm {% if current_role == 'captain' %}btn-primary{% else %}btn-secondary{% endif %}">Capitanes</a>
                 </div>
 
-                <form action="{{ url_for('admin.users') }}" method="GET" class="flex gap-2">
+                <form action="{{ url_for('admin.users') }}" method="GET" class="flex w-full md:w-auto gap-2">
                     <input type="hidden" name="role" value="{{ current_role }}">
                     <input type="text" name="search" value="{{ search }}" placeholder="Buscar por email o nombre..."
-                        class="input-field w-64">
+                        class="input-field w-full md:w-64">
                     <button type="submit" class="btn-secondary">
                         <i class="fas fa-search"></i>
                     </button>
@@ -36,8 +36,8 @@
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-8">
-        <div class="card overflow-hidden">
-            <table class="w-full text-left">
+        <div class="card overflow-x-auto">
+            <table class="w-full text-left whitespace-nowrap min-w-max">
                 <thead>
                     <tr class="bg-white/5 border-b border-white/10">
                         <th class="py-4 px-6 text-white/60">Usuario</th>
