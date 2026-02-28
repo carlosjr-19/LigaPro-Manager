@@ -76,13 +76,11 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.9.8)
+## 🔄 Últimas Actualizaciones (v0.9.8.3)
 
-*   **Plan Ultra Premium:** Se agregaron opciones de suscripción mensual ($400 MXN) y anual ($3800 MXN) para acceder a funciones avanzadas.
-*   **Acceso a Reportes Refinado:** La sección de reportes ahora es visible para todos los usuarios.
-*   **Gated Content:** El contenido de los reportes está restringido a usuarios Ultra, mostrando una invitación a mejorar para los demás.
-*   **Activación Inmediata:** Los beneficios Ultra se activan de forma instantánea tras completar el pago en Stripe, sin esperar al webhook.
-*   **Navegación Fluida:** Redireccionamientos internos mejorados para mantener al usuario dentro de la sección de reportes tras intentos de acceso no autorizados.
+- **Navegación en Reportes**: Se agregó scroll horizontal a los menús de navegación en la sección de reportes para evitar que se desborden en pantallas pequeñas.
+- **Tarjetas de Partidos (Agenda)**: Se ajustó el diseño de las tarjetas de partidos en la vista de lista y de fechas. Los nombres largos de los equipos ahora se truncan correctamente sin empujar los marcadores fuera de la pantalla.
+- **Botones de Liguilla**: Se reorganizaron los botones de "Editar / Resultado" en las llaves de Liguilla y Repechaje para que se acomoden en la parte inferior de los nombres de los equipos en vista móvil.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager
