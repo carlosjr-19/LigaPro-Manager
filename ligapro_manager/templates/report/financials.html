@@ -16,17 +16,20 @@
             </div>
 
             <!-- Navigation Tabs -->
-            <div class="flex bg-white/5 rounded-lg p-1 overflow-x-auto whitespace-nowrap hide-scrollbar">
-                <a href="{{ url_for('report.global_schedule') }}"
-                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Agenda</a>
-                <a href="{{ url_for('report.global_schedule_config') }}"
-                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Precios</a>
-                <a href="{{ url_for('report.global_schedule_history') }}"
-                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Historial</a>
-                <a href="{{ url_for('report.global_schedule_summary') }}"
-                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Resumen</a>
-                <a href="{{ url_for('report.global_schedule_financials') }}"
-                    class="px-4 py-2 rounded-md text-sm font-bold bg-green-600 text-white shadow">Finanzas</a>
+            <div
+                class="w-full md:w-auto overflow-x-auto overflow-y-hidden hide-scrollbar max-w-[100vw] pb-1 print:hidden">
+                <div class="flex bg-white/5 rounded-lg p-1 gap-1 min-w-max">
+                    <a href="{{ url_for('report.global_schedule') }}"
+                        class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Agenda</a>
+                    <a href="{{ url_for('report.global_schedule_config') }}"
+                        class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Precios</a>
+                    <a href="{{ url_for('report.global_schedule_history') }}"
+                        class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Historial</a>
+                    <a href="{{ url_for('report.global_schedule_summary') }}"
+                        class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Resumen</a>
+                    <a href="{{ url_for('report.global_schedule_financials') }}"
+                        class="px-4 py-2 rounded-md text-sm font-bold bg-green-600 text-white shadow flex-shrink-0">Finanzas</a>
+                </div>
             </div>
         </div>
     </header>
@@ -34,34 +37,35 @@
     <main class="max-w-7xl mx-auto px-6 py-8">
 
         <!-- Controls -->
-        <div class="mb-8 flex flex-col md:flex-row items-center justify-between gap-4 print:hidden">
-            <form method="GET" class="flex gap-4 items-center bg-gray-800 p-2 rounded-lg border border-white/10">
-                <label class="text-white/60 text-sm font-bold ml-2">Periodo:</label>
+        <div class="mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 print:hidden">
+            <form method="GET"
+                class="flex flex-wrap justify-center gap-2 md:gap-4 items-center bg-gray-800 p-2 rounded-lg border border-white/10">
+                <label class="text-white/60 text-sm font-bold md:ml-2">Periodo:</label>
                 <select name="month"
-                    class="bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
+                    class="flex-1 md:flex-none bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
                     {% for m_num, m_name in months %}
                     <option value="{{ m_num }}" {% if selected_month==m_num %}selected{% endif %}>{{ m_name }}</option>
                     {% endfor %}
                 </select>
                 <select name="year"
-                    class="bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
+                    class="flex-1 md:flex-none bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
                     {% for y in years %}
                     <option value="{{ y }}" {% if selected_year==y %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
                 </select>
                 <button type="submit"
-                    class="bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded transition-colors">
-                    <i class="fas fa-search"></i>
+                    class="w-full md:w-auto mt-2 md:mt-0 bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded transition-colors text-center">
+                    <i class="fas fa-search"></i> Buscar
                 </button>
             </form>
 
-            <div class="flex gap-4">
-                <button onclick="window.print()"
-                    class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded border border-white/20 transition-colors">
+            <div class="flex gap-2 md:gap-4 w-full md:w-auto">
+                <button onclick="triggerMobilePrint()" type="button"
+                    class="flex-1 justify-center bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
                     <i class="fas fa-print mr-2"></i>Imprimir
                 </button>
                 <a href="{{ url_for('report.export_global_financials', month=selected_month, year=selected_year) }}"
-                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded border border-white/20 transition-colors">
+                    class="flex-1 justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
                     <i class="fas fa-file-excel mr-2"></i>Excel
                 </a>
             </div>
@@ -151,7 +155,50 @@
         </div>
 
     </main>
+    </main>
 </div>
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/report_financials.css') }}">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+    function triggerMobilePrint() {
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            const btn = document.querySelector('button[onclick="triggerMobilePrint()"]');
+            const oldHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>PDF...';
+            btn.disabled = true;
+
+            const element = document.querySelector('main');
+            // Temporarily adjust classes that might break html2pdf
+            element.classList.remove('max-w-7xl', 'mx-auto', 'px-6');
+            element.style.padding = '0';
+            element.style.background = '#111827'; // match bg-gray-900
+
+            const opt = {
+                margin: 0.2,
+                filename: 'finanzas_{{ selected_month }}_{{ selected_year }}.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#111827' },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+                // Restore classes
+                element.classList.add('max-w-7xl', 'mx-auto', 'px-6');
+                element.style.padding = '';
+                element.style.background = '';
+            }).catch(err => {
+                console.error("PDF generation failed", err);
+                btn.innerHTML = oldHtml;
+                btn.disabled = false;
+                alert("Error al generar PDF");
+            });
+        } else {
+            window.print();
+        }
+    }
+</script>
 {% endblock %}

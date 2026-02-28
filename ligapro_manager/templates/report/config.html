@@ -16,17 +16,20 @@
             </div>
 
             <!-- Navigation Tabs -->
-            <div class="flex bg-white/5 rounded-lg p-1 overflow-x-auto whitespace-nowrap hide-scrollbar">
-                <a href="{{ url_for('report.global_schedule') }}"
-                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Agenda</a>
-                <a href="{{ url_for('report.global_schedule_config') }}"
-                    class="px-4 py-2 rounded-md text-sm font-bold bg-purple-600 text-white shadow">Precios</a>
-                <a href="{{ url_for('report.global_schedule_history') }}"
-                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Historial</a>
-                <a href="{{ url_for('report.global_schedule_summary') }}"
-                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Resumen</a>
-                <a href="{{ url_for('report.global_schedule_financials') }}"
-                    class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors">Finanzas</a>
+            <div
+                class="w-full md:w-auto overflow-x-auto overflow-y-hidden hide-scrollbar max-w-[100vw] pb-1 print:hidden">
+                <div class="flex bg-white/5 rounded-lg p-1 gap-1 min-w-max">
+                    <a href="{{ url_for('report.global_schedule') }}"
+                        class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Agenda</a>
+                    <a href="{{ url_for('report.global_schedule_config') }}"
+                        class="px-4 py-2 rounded-md text-sm font-bold bg-purple-600 text-white shadow flex-shrink-0">Precios</a>
+                    <a href="{{ url_for('report.global_schedule_history') }}"
+                        class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Historial</a>
+                    <a href="{{ url_for('report.global_schedule_summary') }}"
+                        class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Resumen</a>
+                    <a href="{{ url_for('report.global_schedule_financials') }}"
+                        class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Finanzas</a>
+                </div>
             </div>
         </div>
     </header>

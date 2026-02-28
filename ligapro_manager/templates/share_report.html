@@ -25,286 +25,299 @@
         </button>
     </div>
 
-    <!-- Capture Target -->
-    <div id="capture-target"
-        class="w-[800px] bg-[#0f172a] p-8 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden">
-        <!-- Background Decor -->
-        <div class="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 blur-[100px] rounded-full pointer-events-none">
-        </div>
-        <div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/10 blur-[80px] rounded-full pointer-events-none">
-        </div>
+    <!-- Capture Target Wrapper for Mobile Scrolling -->
+    <div class="w-full max-w-full overflow-x-auto pb-8 relative">
+        <!-- Capture Target -->
+        <div id="capture-target"
+            class="w-[800px] min-w-[800px] mx-auto bg-[#0f172a] p-8 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden">
+            <!-- Background Decor -->
+            <div class="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 blur-[100px] rounded-full pointer-events-none">
+            </div>
+            <div
+                class="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/10 blur-[80px] rounded-full pointer-events-none">
+            </div>
 
-        <!-- Header -->
-        {% set is_premium = league.owner.is_active_premium %}
-        <div class="flex items-center gap-6 mb-8 relative z-10 px-4">
-            {% if is_premium and league.logo_url %}
-            <img src="{{ league.logo_url }}"
-                class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
-            {% else %}
-            <img src="{{ url_for('static', filename='img/LigaPro_Manager.png') }}"
-                class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
-            {% endif %}
-
-            <div class="text-left">
-                <h1 class="text-4xl font-bold mb-1">{{ league.name }}</h1>
-
-                {% if is_premium and league.slogan %}
-                <p class="text-white/60 text-lg uppercase tracking-widest font-medium">{{ league.slogan }}</p>
+            <!-- Header -->
+            {% set is_premium = league.owner.is_active_premium %}
+            <div class="flex items-center gap-6 mb-8 relative z-10 px-4">
+                {% if is_premium and league.logo_url %}
+                <img src="{{ league.logo_url }}"
+                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
                 {% else %}
-                <p class="text-white/60 text-lg uppercase tracking-widest font-medium">Reporte Oficial</p>
+                <img src="{{ url_for('static', filename='img/LigaPro_Manager.png') }}"
+                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
                 {% endif %}
 
-                <p class="text-white/40 text-sm mt-2 font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}</p>
-            </div>
-        </div>
+                <div class="text-left">
+                    <h1 class="text-4xl font-bold mb-1">{{ league.name }}</h1>
 
-
-
-        <div class="space-y-6 relative z-10">
-
-            {% if include_standings and standings %}
-            <!-- Standings -->
-            <div class="glass rounded-lg p-5">
-                <h3 class="font-bold mb-4 text-blue-400 flex items-center gap-2">
-                    <i class="fas fa-trophy"></i> Tabla General
-                </h3>
-                <table class="w-full text-lg">
-                    <thead>
-                        <tr class="text-white/40 text-sm uppercase border-b border-white/10">
-                            <th class="text-left pb-2">#</th>
-                            <th class="text-left pb-2">Equipo</th>
-                            <th class="text-center pb-2">PJ</th>
-                            <th class="text-center pb-2">G</th>
-                            <th class="text-center pb-2">E</th>
-                            <th class="text-center pb-2">P</th>
-                            <th class="text-center pb-2">GF</th>
-                            <th class="text-center pb-2">GC</th>
-                            <th class="text-center pb-2">DG</th>
-                            <th class="text-center pb-2">PTS</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-white/80">
-                        {% for s in standings %}
-                        {% set is_highlighted = is_premium and league.highlight_standings and loop.index >=
-                        league.highlight_start and
-                        loop.index <= league.highlight_end %} <tr
-                            class="border-b border-white/5 last:border-0 text-center">
-                            <td class="py-2 text-left font-bold 
-                                {% if loop.index <= 3 and not is_highlighted %}text-yellow-400{% endif %}" {% if
-                                is_highlighted %}style="color: {{ league.highlight_color }};" {% endif %}>
-                                {{ loop.index }}
-                            </td>
-                            <td class="py-3 text-left flex items-center gap-3">
-                                {% if s.team.shield_url %}
-                                <img src="{{ s.team.shield_url }}" class="w-8 h-8 object-contain">
-                                {% endif %}
-                                {{ s.team.name }}
-                            </td>
-                            <td class="py-2 font-bold text-white">{{ s.played }}</td>
-                            <td class="py-2">{{ s.won }}</td>
-                            <td class="py-2">{{ s.drawn }}</td>
-                            <td class="py-2">{{ s.lost }}</td>
-                            <td class="py-2">{{ s.goals_for }}</td>
-                            <td class="py-2">{{ s.goals_against }}</td>
-                            <td class="py-2">{{ s.goal_difference }}</td>
-                            <td class="py-3 font-bold text-yellow-400 text-2xl">{{ s.points }}</td>
-                            </tr>
-                            {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% endif %}
-
-            {% if include_upcoming and upcoming_matches %}
-            <!-- Upcoming Matches -->
-            <div class="glass rounded-lg p-6">
-                <h3
-                    class="font-bold mb-6 text-xl text-orange-400 flex items-center gap-2 border-b border-white/10 pb-3">
-                    <i class="fas fa-calendar-alt"></i> Próximos Partidos
-                </h3>
-                <div class="space-y-8">
-                    {% for court_name, matches in matches_by_court.items() %}
-                    {% set court_obj = matches[0].court if matches and matches[0].court else None %}
-                    {% set alignment_class = 'justify-start' %}
-                    {% if is_premium and court_obj %}
-                    {% if court_obj.alignment == 'center' %}{% set alignment_class = 'justify-center' %}
-                    {% elif court_obj.alignment == 'right' %}{% set alignment_class = 'justify-end' %}{% endif %}
+                    {% if is_premium and league.slogan %}
+                    <p class="text-white/60 text-lg uppercase tracking-widest font-medium">{{ league.slogan }}</p>
+                    {% else %}
+                    <p class="text-white/60 text-lg uppercase tracking-widest font-medium">Reporte Oficial</p>
                     {% endif %}
-                    {% set court_color = court_obj.color if (is_premium and court_obj) else '#22d3ee' %}
 
-                    <div>
-                        <h4 class="font-bold uppercase tracking-widest text-xl mb-4 flex items-center gap-3 {{ alignment_class }}"
-                            style="color: {{ court_color }};">
-                            <i class="fas fa-map-marker-alt"></i>{{ court_name }}
-                        </h4>
-                        <div class="grid grid-cols-1 gap-4">
-                            {% for match in matches %}
-                            <div class="bg-white/5 p-4 rounded-lg border border-white/5 relative overflow-hidden group">
-                                <div class="absolute top-0 left-0 w-1 h-full bg-orange-500/50"></div>
+                    <p class="text-white/40 text-sm mt-2 font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}
+                    </p>
+                </div>
+            </div>
 
-                                {% if match.stage != 'regular' %}
-                                <div class="mb-3 flex justify-center">
-                                    <span
-                                        class="bg-yellow-500/20 text-yellow-400 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
-                                        {% if match.stage == 'quarterfinal' %}Cuartos de Final
-                                        {% elif match.stage == 'repechaje' %}Repechaje
-                                        {% elif match.stage == 'semifinal' %}Semifinal
-                                        {% elif match.stage == 'final' %}Gran Final
-                                        {% else %}{{ match.stage }}{% endif %}
-                                    </span>
+
+
+            <div class="space-y-6 relative z-10">
+
+                {% if include_standings and standings %}
+                <!-- Standings -->
+                <div class="glass rounded-lg p-5">
+                    <h3 class="font-bold mb-4 text-blue-400 flex items-center gap-2">
+                        <i class="fas fa-trophy"></i> Tabla General
+                    </h3>
+                    <table class="w-full text-lg">
+                        <thead>
+                            <tr class="text-white/40 text-sm uppercase border-b border-white/10">
+                                <th class="text-left pb-2">#</th>
+                                <th class="text-left pb-2">Equipo</th>
+                                <th class="text-center pb-2">PJ</th>
+                                <th class="text-center pb-2">G</th>
+                                <th class="text-center pb-2">E</th>
+                                <th class="text-center pb-2">P</th>
+                                <th class="text-center pb-2">GF</th>
+                                <th class="text-center pb-2">GC</th>
+                                <th class="text-center pb-2">DG</th>
+                                <th class="text-center pb-2">PTS</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-white/80">
+                            {% for s in standings %}
+                            {% set is_highlighted = is_premium and league.highlight_standings and loop.index >=
+                            league.highlight_start and
+                            loop.index <= league.highlight_end %} <tr
+                                class="border-b border-white/5 last:border-0 text-center">
+                                <td class="py-2 text-left font-bold 
+                                {% if loop.index <= 3 and not is_highlighted %}text-yellow-400{% endif %}" {% if
+                                    is_highlighted %}style="color: {{ league.highlight_color }};" {% endif %}>
+                                    {{ loop.index }}
+                                </td>
+                                <td class="py-3 text-left flex items-center gap-3">
+                                    {% if s.team.shield_url %}
+                                    <img src="{{ s.team.shield_url }}" class="w-8 h-8 object-contain">
+                                    {% endif %}
+                                    {{ s.team.name }}
+                                </td>
+                                <td class="py-2 font-bold text-white">{{ s.played }}</td>
+                                <td class="py-2">{{ s.won }}</td>
+                                <td class="py-2">{{ s.drawn }}</td>
+                                <td class="py-2">{{ s.lost }}</td>
+                                <td class="py-2">{{ s.goals_for }}</td>
+                                <td class="py-2">{{ s.goals_against }}</td>
+                                <td class="py-2">{{ s.goal_difference }}</td>
+                                <td class="py-3 font-bold text-yellow-400 text-2xl">{{ s.points }}</td>
+                                </tr>
+                                {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                {% if include_upcoming and upcoming_matches %}
+                <!-- Upcoming Matches -->
+                <div class="glass rounded-lg p-6">
+                    <h3
+                        class="font-bold mb-6 text-xl text-orange-400 flex items-center gap-2 border-b border-white/10 pb-3">
+                        <i class="fas fa-calendar-alt"></i> Próximos Partidos
+                    </h3>
+                    <div class="space-y-8">
+                        {% for court_name, matches in matches_by_court.items() %}
+                        {% set court_obj = matches[0].court if matches and matches[0].court else None %}
+                        {% set alignment_class = 'justify-start' %}
+                        {% if is_premium and court_obj %}
+                        {% if court_obj.alignment == 'center' %}{% set alignment_class = 'justify-center' %}
+                        {% elif court_obj.alignment == 'right' %}{% set alignment_class = 'justify-end' %}{% endif %}
+                        {% endif %}
+                        {% set court_color = court_obj.color if (is_premium and court_obj) else '#22d3ee' %}
+
+                        <div>
+                            <h4 class="font-bold uppercase tracking-widest text-xl mb-4 flex items-center gap-3 {{ alignment_class }}"
+                                style="color: {{ court_color }};">
+                                <i class="fas fa-map-marker-alt"></i>{{ court_name }}
+                            </h4>
+                            <div class="grid grid-cols-1 gap-4">
+                                {% for match in matches %}
+                                <div
+                                    class="bg-white/5 p-4 rounded-lg border border-white/5 relative overflow-hidden group">
+                                    <div class="absolute top-0 left-0 w-1 h-full bg-orange-500/50"></div>
+
+                                    {% if match.stage != 'regular' %}
+                                    <div class="mb-3 flex justify-center">
+                                        <span
+                                            class="bg-yellow-500/20 text-yellow-400 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
+                                            {% if match.stage == 'quarterfinal' %}Cuartos de Final
+                                            {% elif match.stage == 'repechaje' %}Repechaje
+                                            {% elif match.stage == 'semifinal' %}Semifinal
+                                            {% elif match.stage == 'final' %}Gran Final
+                                            {% else %}{{ match.stage }}{% endif %}
+                                        </span>
+                                    </div>
+                                    {% endif %}
+
+                                    <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
+                                        <div class="flex items-center gap-2 text-white/90 font-mono text-lg font-bold">
+                                            <i class="far fa-clock text-orange-400"></i>
+                                            {{ match.match_date.strftime('%I:%M %p') }}
+                                        </div>
+                                        <div class="text-white/60 text-sm font-medium"
+                                            style="{% if is_premium %}color: {{ league.report_date_color }}; font-size: {{ league.report_date_size }}px;{% else %}color: #ffffff99; font-size: 14px;{% endif %}">
+                                            {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday':
+                                            'Miércoles',
+                                            'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday':
+                                            'Domingo'} %}
+                                            {% set months = {'January': 'Enero', 'February': 'Febrero', 'March':
+                                            'Marzo',
+                                            'April': 'Abril', 'May': 'Mayo', 'June': 'Junio', 'July': 'Julio', 'August':
+                                            'Agosto', 'September': 'Septiembre', 'October': 'Octubre', 'November':
+                                            'Noviembre', 'December': 'Diciembre'} %}
+                                            {{ days[match.match_date.strftime('%A')] }} {{
+                                            match.match_date.strftime('%d')
+                                            }} de {{ months[match.match_date.strftime('%B')] }}
+                                        </div>
+                                    </div>
+
+                                    <div class="flex justify-between items-center">
+                                        <!-- Home -->
+                                        <div class="flex items-center gap-3 flex-1">
+                                            {% if is_premium and league.show_team_logos and
+                                            teams_dict[match.home_team_id].shield_url %}
+                                            <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                                class="w-10 h-10 object-contain drop-shadow-md">
+                                            {% endif %}
+                                            <span class="text-xl font-bold leading-tight">{{
+                                                teams_dict[match.home_team_id].name }}</span>
+                                        </div>
+
+                                        <span
+                                            class="text-white/20 text-sm font-bold mx-4 uppercase tracking-widest">VS</span>
+
+                                        <!-- Away -->
+                                        <div class="flex items-center justify-end gap-3 flex-1 text-right">
+                                            <span class="text-xl font-bold leading-tight">{{
+                                                teams_dict[match.away_team_id].name }}</span>
+                                            {% if is_premium and league.show_team_logos and
+                                            teams_dict[match.away_team_id].shield_url %}
+                                            <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                                class="w-10 h-10 object-contain drop-shadow-md">
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if include_recent and recent_matches %}
+                <!-- Recent Matches -->
+                <div class="glass rounded-lg p-5">
+                    <h3 class="font-bold mb-4 text-green-400 flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i> Resultados ({{ date_start }} - {{ date_end }})
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        {% for match in recent_matches %}
+                        <div
+                            class="bg-white/5 p-3 rounded flex justify-between items-center text-sm border border-white/5">
+                            <div class="flex items-center justify-end gap-2 flex-1 text-right">
+                                {% if is_premium and league.show_team_logos and
+                                teams_dict[match.home_team_id].shield_url %}
+                                <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                    class="w-5 h-5 object-contain flex-shrink-0">
                                 {% endif %}
-
-                                <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
-                                    <div class="flex items-center gap-2 text-white/90 font-mono text-lg font-bold">
-                                        <i class="far fa-clock text-orange-400"></i>
-                                        {{ match.match_date.strftime('%I:%M %p') }}
-                                    </div>
-                                    <div class="text-white/60 text-sm font-medium"
-                                        style="{% if is_premium %}color: {{ league.report_date_color }}; font-size: {{ league.report_date_size }}px;{% else %}color: #ffffff99; font-size: 14px;{% endif %}">
-                                        {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles',
-                                        'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday':
-                                        'Domingo'} %}
-                                        {% set months = {'January': 'Enero', 'February': 'Febrero', 'March': 'Marzo',
-                                        'April': 'Abril', 'May': 'Mayo', 'June': 'Junio', 'July': 'Julio', 'August':
-                                        'Agosto', 'September': 'Septiembre', 'October': 'Octubre', 'November':
-                                        'Noviembre', 'December': 'Diciembre'} %}
-                                        {{ days[match.match_date.strftime('%A')] }} {{ match.match_date.strftime('%d')
-                                        }} de {{ months[match.match_date.strftime('%B')] }}
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-between items-center">
-                                    <!-- Home -->
-                                    <div class="flex items-center gap-3 flex-1">
-                                        {% if is_premium and league.show_team_logos and
-                                        teams_dict[match.home_team_id].shield_url %}
-                                        <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                            class="w-10 h-10 object-contain drop-shadow-md">
-                                        {% endif %}
-                                        <span class="text-xl font-bold leading-tight">{{
-                                            teams_dict[match.home_team_id].name }}</span>
-                                    </div>
-
-                                    <span
-                                        class="text-white/20 text-sm font-bold mx-4 uppercase tracking-widest">VS</span>
-
-                                    <!-- Away -->
-                                    <div class="flex items-center justify-end gap-3 flex-1 text-right">
-                                        <span class="text-xl font-bold leading-tight">{{
-                                            teams_dict[match.away_team_id].name }}</span>
-                                        {% if is_premium and league.show_team_logos and
-                                        teams_dict[match.away_team_id].shield_url %}
-                                        <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                            class="w-10 h-10 object-contain drop-shadow-md">
-                                        {% endif %}
-                                    </div>
-                                </div>
+                                <span class="font-medium leading-tight">{{ teams_dict[match.home_team_id].name }}</span>
                             </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if include_recent and recent_matches %}
-            <!-- Recent Matches -->
-            <div class="glass rounded-lg p-5">
-                <h3 class="font-bold mb-4 text-green-400 flex items-center gap-2">
-                    <i class="fas fa-check-circle"></i> Resultados ({{ date_start }} - {{ date_end }})
-                </h3>
-                <div class="grid grid-cols-2 gap-4">
-                    {% for match in recent_matches %}
-                    <div class="bg-white/5 p-3 rounded flex justify-between items-center text-sm border border-white/5">
-                        <div class="flex items-center justify-end gap-2 flex-1 text-right">
-                            {% if is_premium and league.show_team_logos and teams_dict[match.home_team_id].shield_url %}
-                            <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                class="w-5 h-5 object-contain flex-shrink-0">
-                            {% endif %}
-                            <span class="font-medium leading-tight">{{ teams_dict[match.home_team_id].name }}</span>
-                        </div>
-                        <span
-                            class="bg-black/40 px-3 py-1 rounded font-bold mx-2 text-white whitespace-nowrap flex-shrink-0">
-                            {{ match.home_score }} - {{ match.away_score }}
-                        </span>
-                        <div class="flex items-center justify-start gap-2 flex-1 text-left">
-                            <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name }}</span>
-                            {% if is_premium and league.show_team_logos and teams_dict[match.away_team_id].shield_url %}
-                            <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                class="w-5 h-5 object-contain flex-shrink-0">
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if (include_scorers and top_scorers) or (include_keepers and top_goalkeepers) %}
-            <div class="grid grid-cols-2 gap-6">
-                {% if include_scorers and top_scorers %}
-                <div class="glass rounded-lg p-5">
-                    <h3 class="font-bold mb-4 text-yellow-400 flex items-center gap-2">
-                        <i class="fas fa-futbol"></i> Goleadores
-                    </h3>
-                    {% for stat in top_scorers[:5] %}
-                    <div class="flex justify-between items-center mb-2 last:mb-0 text-sm">
-                        <div class="flex items-center gap-2">
-                            <span class="text-white/40 text-xs font-bold w-4">{{ loop.index }}.</span>
-                            <div class="flex flex-col">
-                                <span class="font-medium">{{ stat.player_name }}</span>
-                                <span class="text-[10px] text-white/50 uppercase">{{ stat.team.name }}</span>
+                            <span
+                                class="bg-black/40 px-3 py-1 rounded font-bold mx-2 text-white whitespace-nowrap flex-shrink-0">
+                                {{ match.home_score }} - {{ match.away_score }}
+                            </span>
+                            <div class="flex items-center justify-start gap-2 flex-1 text-left">
+                                <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name }}</span>
+                                {% if is_premium and league.show_team_logos and
+                                teams_dict[match.away_team_id].shield_url %}
+                                <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                    class="w-5 h-5 object-contain flex-shrink-0">
+                                {% endif %}
                             </div>
                         </div>
-                        <span class="font-bold bg-white/10 px-2 rounded-full text-xs">{{ stat.value }}</span>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
                 {% endif %}
 
-                {% if include_keepers and top_goalkeepers %}
-                <div class="glass rounded-lg p-5">
-                    <h3 class="font-bold mb-4 text-red-400 flex items-center gap-2">
-                        <i class="fas fa-shield-alt"></i> Arqueros
-                    </h3>
-                    {% for stat in top_goalkeepers[:5] %}
-                    <div class="flex justify-between items-center mb-2 last:mb-0 text-sm">
-                        <div class="flex items-center gap-2">
-                            <span class="text-white/40 text-xs font-bold w-4">{{ loop.index }}.</span>
-                            <div class="flex flex-col">
-                                <span class="font-medium">{{ stat.player_name }}</span>
-                                <span class="text-[10px] text-white/50 uppercase">{{ stat.team.name }}</span>
+                {% if (include_scorers and top_scorers) or (include_keepers and top_goalkeepers) %}
+                <div class="grid grid-cols-2 gap-6">
+                    {% if include_scorers and top_scorers %}
+                    <div class="glass rounded-lg p-5">
+                        <h3 class="font-bold mb-4 text-yellow-400 flex items-center gap-2">
+                            <i class="fas fa-futbol"></i> Goleadores
+                        </h3>
+                        {% for stat in top_scorers[:5] %}
+                        <div class="flex justify-between items-center mb-2 last:mb-0 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-white/40 text-xs font-bold w-4">{{ loop.index }}.</span>
+                                <div class="flex flex-col">
+                                    <span class="font-medium">{{ stat.player_name }}</span>
+                                    <span class="text-[10px] text-white/50 uppercase">{{ stat.team.name }}</span>
+                                </div>
                             </div>
+                            <span class="font-bold bg-white/10 px-2 rounded-full text-xs">{{ stat.value }}</span>
                         </div>
-                        <span class="font-bold bg-white/10 px-2 rounded-full text-xs">{{ stat.value }}</span>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
+                    {% endif %}
+
+                    {% if include_keepers and top_goalkeepers %}
+                    <div class="glass rounded-lg p-5">
+                        <h3 class="font-bold mb-4 text-red-400 flex items-center gap-2">
+                            <i class="fas fa-shield-alt"></i> Arqueros
+                        </h3>
+                        {% for stat in top_goalkeepers[:5] %}
+                        <div class="flex justify-between items-center mb-2 last:mb-0 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-white/40 text-xs font-bold w-4">{{ loop.index }}.</span>
+                                <div class="flex flex-col">
+                                    <span class="font-medium">{{ stat.player_name }}</span>
+                                    <span class="text-[10px] text-white/50 uppercase">{{ stat.team.name }}</span>
+                                </div>
+                            </div>
+                            <span class="font-bold bg-white/10 px-2 rounded-full text-xs">{{ stat.value }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endif %}
-            </div>
-            {% endif %}
 
-            {% if report_note %}
-            <!-- Custom Note (Premium) -->
-            <div class="relative z-10 px-4 mb-8 mt-8">
-                <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 flex gap-4 items-start">
-                    <i class="fas fa-info-circle text-yellow-400 mt-1 text-lg"></i>
-                    <div>
-                        <h3 class="text-yellow-400 font-bold text-sm uppercase tracking-wider mb-1">Nota Importante</h3>
-                        <p class="text-white text-lg font-medium leading-relaxed">{{ report_note }}</p>
+                {% if report_note %}
+                <!-- Custom Note (Premium) -->
+                <div class="relative z-10 px-4 mb-8 mt-8">
+                    <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 flex gap-4 items-start">
+                        <i class="fas fa-info-circle text-yellow-400 mt-1 text-lg"></i>
+                        <div>
+                            <h3 class="text-yellow-400 font-bold text-sm uppercase tracking-wider mb-1">Nota Importante
+                            </h3>
+                            <p class="text-white text-lg font-medium leading-relaxed">{{ report_note }}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {% endif %}
+                {% endif %}
 
-            <!-- Footer -->
-            <div class="mt-8 text-center border-t border-white/10 pt-4">
-                <p class="text-white/30 text-xs font-medium uppercase tracking-widest">LigaPro Manager</p>
+                <!-- Footer -->
+                <div class="mt-8 text-center border-t border-white/10 pt-4">
+                    <p class="text-white/30 text-xs font-medium uppercase tracking-widest">LigaPro Manager</p>
+                </div>
             </div>
-        </div>
-    </div>
+        </div> <!-- Close Capture Target -->
+    </div> <!-- Close Scroll Wrapper -->
 
     <script>
         window.leagueName = '{{ league.name|lower|replace(" ", "-") }}';
