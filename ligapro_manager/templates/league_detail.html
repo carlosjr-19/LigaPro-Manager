@@ -395,43 +395,48 @@
                                             class="fas fa-map-marker-alt mr-1"></i>{{ match.court.name }}</span>
                                     {% endif %}
                                 </p>
-                                <div class="flex items-center justify-between gap-4">
-                                    <div class="flex items-center gap-3 flex-1 justify-end">
-                                        <span class="font-bold text-right">
+                                <div class="flex items-center justify-between gap-2 sm:gap-4 overflow-hidden w-full">
+                                    <div class="flex items-center gap-2 sm:gap-3 flex-1 justify-end min-w-0">
+                                        <span class="font-bold text-xs sm:text-base text-right truncate">
                                             {{ teams_dict[match.home_team_id].name }}
                                             {% if teams_dict[match.home_team_id].is_deleted %}<span
                                                 class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
                                         </span>
                                         {% if teams_dict[match.home_team_id].shield_url %}
                                         <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                            class="w-8 h-8 rounded object-cover bg-white/5">
+                                            class="w-6 h-6 sm:w-8 sm:h-8 rounded object-cover bg-white/5 flex-shrink-0">
                                         {% else %}
-                                        <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
-                                            <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                        <div
+                                            class="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 rounded bg-white/10 flex items-center justify-center">
+                                            <i class="fas fa-shield-alt text-[10px] sm:text-xs text-white/40"></i>
                                         </div>
                                         {% endif %}
                                     </div>
 
-                                    <div class="flex items-center gap-2 min-w-[80px] justify-center">
+                                    <div
+                                        class="flex items-center gap-1 sm:gap-2 min-w-[50px] sm:min-w-[80px] justify-center flex-shrink-0">
                                         {% if match.is_completed %}
-                                        <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
+                                        <span class="text-lg sm:text-2xl font-bold text-primary">{{ match.home_score
+                                            }}</span>
                                         <span class="text-white/40">-</span>
-                                        <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
+                                        <span class="text-lg sm:text-2xl font-bold text-primary">{{ match.away_score
+                                            }}</span>
                                         {% else %}
-                                        <span class="text-white/40 text-sm">vs</span>
+                                        <span class="text-white/40 text-xs sm:text-sm">vs</span>
                                         {% endif %}
                                     </div>
 
-                                    <div class="flex items-center gap-3 flex-1">
+                                    <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                         {% if teams_dict[match.away_team_id].shield_url %}
                                         <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                            class="w-8 h-8 rounded object-cover bg-white/5">
+                                            class="w-6 h-6 sm:w-8 sm:h-8 rounded object-cover bg-white/5 flex-shrink-0">
                                         {% else %}
-                                        <div class="w-8 h-8 rounded bg-white/10 flex items-center justify-center">
-                                            <i class="fas fa-shield-alt text-xs text-white/40"></i>
+                                        <div
+                                            class="w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 rounded bg-white/10 flex items-center justify-center">
+                                            <i class="fas fa-shield-alt text-[10px] sm:text-xs text-white/40"></i>
                                         </div>
                                         {% endif %}
-                                        <span class="font-bold">
+                                        <span class="font-bold text-xs sm:text-base text-left truncate">
                                             {{ teams_dict[match.away_team_id].name }}
                                             {% if teams_dict[match.away_team_id].is_deleted %}<span
                                                 class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
@@ -549,40 +554,42 @@
                                         match.court.name }}</span>
                                     {% endif %}
                                 </p>
-                                <div class="flex items-center justify-between gap-4">
-                                    <div class="flex items-center gap-2 flex-1 justify-end">
-                                        <span class="font-bold text-sm text-right leading-tight">
+                                <div class="flex items-center justify-between gap-2 overflow-hidden w-full">
+                                    <div class="flex items-center gap-2 flex-1 justify-end min-w-0">
+                                        <span class="font-bold text-xs sm:text-sm text-right leading-tight truncate">
                                             {{ teams_dict[match.home_team_id].name }}
                                         </span>
                                         {% if teams_dict[match.home_team_id].shield_url %}
                                         <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                            class="w-6 h-6 rounded object-cover">
+                                            class="w-6 h-6 rounded object-cover flex-shrink-0">
                                         {% else %}
                                         <div
-                                            class="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-[10px]">
+                                            class="w-6 h-6 rounded flex-shrink-0 bg-white/10 flex items-center justify-center text-[10px]">
                                             <i class="fas fa-shield-alt text-white/40"></i>
                                         </div>
                                         {% endif %}
                                     </div>
-                                    <div class="flex items-center gap-2 min-w-[60px] justify-center">
+                                    <div
+                                        class="flex items-center gap-2 min-w-[40px] sm:min-w-[60px] justify-center flex-shrink-0">
                                         {% if match.is_completed %}
-                                        <span class="font-bold text-primary">{{ match.home_score }} - {{
+                                        <span class="font-bold text-primary text-sm sm:text-base whitespace-nowrap">{{
+                                            match.home_score }} - {{
                                             match.away_score }}</span>
                                         {% else %}
-                                        <span class="text-white/40 text-xs">vs</span>
+                                        <span class="text-white/40 text-xs whitespace-nowrap">vs</span>
                                         {% endif %}
                                     </div>
-                                    <div class="flex items-center gap-2 flex-1">
+                                    <div class="flex items-center gap-2 flex-1 min-w-0">
                                         {% if teams_dict[match.away_team_id].shield_url %}
                                         <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                            class="w-6 h-6 rounded object-cover">
+                                            class="w-6 h-6 rounded object-cover flex-shrink-0">
                                         {% else %}
                                         <div
-                                            class="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-[10px]">
+                                            class="w-6 h-6 rounded flex-shrink-0 bg-white/10 flex items-center justify-center text-[10px]">
                                             <i class="fas fa-shield-alt text-white/40"></i>
                                         </div>
                                         {% endif %}
-                                        <span class="font-bold text-sm leading-tight">
+                                        <span class="font-bold text-xs sm:text-sm leading-tight truncate">
                                             {{ teams_dict[match.away_team_id].name }}
                                         </span>
                                     </div>
@@ -1004,49 +1011,60 @@
                     <div class="space-y-3">
                         {% for match in stage_matches %}
                         <div class="card {% if stage_name == 'final' %}border-yellow-400/50{% endif %}">
-                            <div class="flex items-center justify-between">
-                                <div class="flex-1 flex items-center gap-4">
-                                    <span class="font-bold flex items-center gap-2">
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <div class="flex-1 flex items-center justify-center sm:justify-start gap-4 w-full">
+                                    <span
+                                        class="font-bold flex items-center gap-2 text-right justify-end flex-1 truncate">
                                         {% if teams_dict[match.home_team_id].shield_url %}
                                         <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                            class="w-6 h-6 rounded object-cover">
+                                            class="w-6 h-6 rounded object-cover flex-shrink-0">
                                         {% endif %}
-                                        {{ teams_dict[match.home_team_id].name }}
+                                        <span class="truncate">{{ teams_dict[match.home_team_id].name }}</span>
                                         {% if teams_dict[match.home_team_id].is_deleted %}<span
-                                            class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                            class="text-red-400 text-xs hidden sm:inline">(Eliminado)</span>{% endif %}
                                     </span>
-                                    {% if match.is_completed %}
-                                    <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
-                                    <span class="text-white/40">-</span>
-                                    <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
-                                    {% else %}
-                                    <span class="text-white/40">vs</span>
-                                    {% endif %}
-                                    <span class="font-bold flex items-center gap-2">
-                                        {{ teams_dict[match.away_team_id].name }}
+
+                                    <div class="flex items-center justify-center px-2 flex-shrink-0">
+                                        {% if match.is_completed %}
+                                        <span class="text-2xl font-bold text-primary">{{ match.home_score }}</span>
+                                        <span class="text-white/40 mx-2">-</span>
+                                        <span class="text-2xl font-bold text-primary">{{ match.away_score }}</span>
+                                        {% else %}
+                                        <span class="text-white/40">vs</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <span
+                                        class="font-bold flex items-center gap-2 text-left justify-start flex-1 truncate">
+                                        <span class="truncate">{{ teams_dict[match.away_team_id].name }}</span>
                                         {% if teams_dict[match.away_team_id].shield_url %}
                                         <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                            class="w-6 h-6 rounded object-cover">
+                                            class="w-6 h-6 rounded object-cover flex-shrink-0">
                                         {% endif %}
                                         {% if teams_dict[match.away_team_id].is_deleted %}<span
-                                            class="text-red-400 text-xs">(Eliminado)</span>{% endif %}
+                                            class="text-red-400 text-xs hidden sm:inline">(Eliminado)</span>{% endif %}
                                     </span>
                                 </div>
-                                {% if match.is_completed %}
-                                <span class="bg-success/20 text-success px-3 py-1 rounded text-xs">Finalizado</span>
-                                <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
-                                    class="text-blue-400 hover:text-blue-300 text-sm p-2" title="Editar Resultado">
-                                    <i class="fas fa-pencil-alt"></i>
-                                </a>
-                                {% else %}
-                                <a href="{{ url_for('match.edit_match', match_id=match.id) }}"
-                                    class="text-white/40 hover:text-white transition-colors p-2"
-                                    title="Editar Detalles">
-                                    <i class="fas fa-pencil-alt"></i>
-                                </a>
-                                <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
-                                    class="btn-secondary text-sm">Resultado</a>
-                                {% endif %}
+
+                                <div class="flex items-center gap-2 mt-2 sm:mt-0 flex-shrink-0">
+                                    {% if match.is_completed %}
+                                    <span
+                                        class="bg-success/20 text-success px-3 py-1 rounded text-xs hidden sm:inline">Finalizado</span>
+                                    <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
+                                        class="text-blue-400 hover:text-blue-300 text-sm p-2 border border-blue-400/30 sm:border-transparent rounded"
+                                        title="Editar Resultado">
+                                        <i class="fas fa-pencil-alt"></i> Editar
+                                    </a>
+                                    {% else %}
+                                    <a href="{{ url_for('match.edit_match', match_id=match.id) }}"
+                                        class="text-white/60 hover:text-white border border-white/20 sm:border-transparent rounded transition-colors px-3 py-1.5 text-sm flex items-center gap-2"
+                                        title="Editar Detalles">
+                                        <i class="fas fa-pencil-alt"></i> Editar
+                                    </a>
+                                    <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
+                                        class="btn-secondary text-sm">Resultado</a>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
@@ -1122,25 +1140,34 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {% for match in playoff_matches.repechaje %}
                         <a href="{{ url_for('match.update_match_result', match_id=match.id) }}"
-                            class="card p-4 flex justify-between items-center shadow-lg hover:border-primary/50 hover:bg-white/5 transition-all group">
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-2">
+                            class="card p-4 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-lg hover:border-primary/50 hover:bg-white/5 transition-all group">
+                            <div
+                                class="flex items-center justify-between w-full sm:w-auto gap-2 sm:gap-4 overflow-hidden">
+                                <div class="flex items-center gap-1 sm:gap-2 flex-1 justify-end min-w-0">
                                     {% if teams_dict[match.home_team_id].shield_url %}
                                     <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                        class="w-5 h-5 rounded object-cover">
+                                        class="w-4 h-4 sm:w-5 sm:h-5 rounded object-cover flex-shrink-0">
                                     {% endif %}
-                                    <span class="font-bold text-sm">{{ teams_dict[match.home_team_id].name }}</span>
+                                    <span class="font-bold text-xs sm:text-sm truncate text-right">{{
+                                        teams_dict[match.home_team_id].name }}</span>
                                 </div>
-                                <span class="bg-white/10 px-3 py-1 rounded font-bold text-primary">{{ match.home_score
-                                    if match.is_completed else '-' }}</span>
-                                <span class="text-white/20">vs</span>
-                                <span class="bg-white/10 px-3 py-1 rounded font-bold text-primary">{{ match.away_score
-                                    if match.is_completed else '-' }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-sm">{{ teams_dict[match.away_team_id].name }}</span>
+                                <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                                    <span
+                                        class="bg-white/10 px-2 sm:px-3 py-1 rounded font-bold text-primary text-xs sm:text-base">{{
+                                        match.home_score
+                                        if match.is_completed else '-' }}</span>
+                                    <span class="text-white/20 text-xs sm:text-base">vs</span>
+                                    <span
+                                        class="bg-white/10 px-2 sm:px-3 py-1 rounded font-bold text-primary text-xs sm:text-base">{{
+                                        match.away_score
+                                        if match.is_completed else '-' }}</span>
+                                </div>
+                                <div class="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
+                                    <span class="font-bold text-xs sm:text-sm truncate text-left">{{
+                                        teams_dict[match.away_team_id].name }}</span>
                                     {% if teams_dict[match.away_team_id].shield_url %}
                                     <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                        class="w-5 h-5 rounded object-cover">
+                                        class="w-4 h-4 sm:w-5 sm:h-5 rounded object-cover flex-shrink-0">
                                     {% endif %}
                                 </div>
                             </div>

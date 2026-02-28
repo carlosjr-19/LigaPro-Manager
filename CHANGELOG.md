@@ -1,3 +1,19 @@
+## 0.9.8.3
+
+Mejoras de responsividad y UI en móviles.
+
+- **Navegación en Reportes**: Se agregó scroll horizontal a los menús de navegación en la sección de reportes para evitar que se desborden en pantallas pequeñas.
+- **Tarjetas de Partidos (Agenda)**: Se ajustó el diseño de las tarjetas de partidos en la vista de lista y de fechas. Los nombres largos de los equipos ahora se truncan correctamente sin empujar los marcadores fuera de la pantalla.
+- **Botones de Liguilla**: Se reorganizaron los botones de "Editar / Resultado" en las llaves de Liguilla y Repechaje para que se acomoden en la parte inferior de los nombres de los equipos en vista móvil.
+
+## Modificado
+* templates/report/summary.html
+* templates/report/history.html
+* templates/report/financials.html
+* templates/report/config.html
+* templates/report/global_schedule.html
+* templates/league_detail.html
+
 ## 0.9.8.2
 
 Refactorización de plantillas HTML y extracción de recursos estáticos.
