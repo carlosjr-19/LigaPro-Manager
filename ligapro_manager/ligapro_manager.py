@@ -120,7 +120,8 @@ def run_migrations():
                     "ALTER TABLE courts ADD COLUMN alignment VARCHAR(10) DEFAULT 'left'",
                     "ALTER TABLE leagues ADD COLUMN report_date_color VARCHAR(10) DEFAULT '#ffffff99'",
                     "ALTER TABLE leagues ADD COLUMN report_date_size INTEGER DEFAULT 14",
-                    "ALTER TABLE leagues ADD COLUMN auto_fill_prices BOOLEAN DEFAULT FALSE"
+                    "ALTER TABLE leagues ADD COLUMN auto_fill_prices BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE users ADD COLUMN financial_report_type VARCHAR(20) DEFAULT 'period'"
                 ]
                 
                 for migration in migrations:

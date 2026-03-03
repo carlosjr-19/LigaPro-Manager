@@ -569,6 +569,7 @@ def calculate_discrepancies(matches):
         diff_home = paid_home - default_team_price
         if diff_home != 0:
             events.append({
+                'date': match.match_date,
                 'league': match.league.name,
                 'entity_type': 'Team',
                 'entity_name': match.home_team.name,
@@ -580,6 +581,7 @@ def calculate_discrepancies(matches):
         diff_away = paid_away - default_team_price
         if diff_away != 0:
             events.append({
+                'date': match.match_date,
                 'league': match.league.name,
                 'entity_type': 'Team',
                 'entity_name': match.away_team.name,
@@ -591,6 +593,7 @@ def calculate_discrepancies(matches):
         diff_ref = paid_ref - default_ref_price
         if diff_ref != 0:
              events.append({
+                'date': match.match_date,
                 'league': match.league.name,
                 'entity_type': 'Referee',
                 'entity_name': 'Arbitro',
@@ -607,33 +610,47 @@ def global_schedule_summary():
 
     # Filters
     league_id = request.args.get('league_id')
+    cancha_name = request.args.get('cancha')
     
-    query = Match.query.join(League).filter(League.user_id == current_user.id)
+    query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
     if league_id:
         query = query.filter(Match.league_id == league_id)
         
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            query = query.filter(Match.court_id == None)
+        else:
+            query = query.filter(Court.name == cancha_name)
+            
     matches = query.all()
     
     discrepancies = calculate_discrepancies(matches)
     
     # Aggregate
-    teams_summary = {} # (league, team_name) -> total
-    referee_summary = {} # (league) -> total
+    teams_summary = {} # (league, date, team_name) -> total
+    referee_summary = {} # (league, date) -> total
     
     for item in discrepancies:
+        date_str = item['date'].strftime('%d/%m/%Y') if item['date'] else 'Sin Fecha'
+        date_sort = item['date'].strftime('%Y-%m-%d') if item['date'] else '0000-00-00'
+        
         if item['entity_type'] == 'Team':
-            key = (item['league'], item['entity_name'])
+            key = (item['league'], date_str, item['entity_name'], date_sort)
             teams_summary[key] = teams_summary.get(key, 0) + item['balance']
         elif item['entity_type'] == 'Referee':
-            league_name = item['league']
-            referee_summary[league_name] = referee_summary.get(league_name, 0) + item['balance']
+            key = (item['league'], date_str, date_sort)
+            referee_summary[key] = referee_summary.get(key, 0) + item['balance']
             
     # Convert to list for display
-    teams_list = [{'league': k[0], 'name': k[1], 'balance': v} for k, v in teams_summary.items()]
-    teams_list.sort(key=lambda x: (x['league'], x['name']))
+    teams_list = [{'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3]} for k, v in teams_summary.items()]
+    teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
     
-    referee_list = [{'league': k, 'balance': v} for k, v in referee_summary.items()]
-    referee_list.sort(key=lambda x: x['league'])
+    referee_list = [{'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2]} for k, v in referee_summary.items()]
+    referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
+    
+    # Get unique courts for dropdown
+    courts_query = db.session.query(Court.name).join(League).filter(League.user_id == current_user.id).distinct().all()
+    canchas = sorted([c[0] for c in courts_query if c[0]])
     
     leagues = League.query.filter_by(user_id=current_user.id).all()
     
@@ -641,7 +658,9 @@ def global_schedule_summary():
                          teams_summary=teams_list,
                          referee_summary=referee_list,
                          leagues=leagues, 
-                         selected_league=league_id)
+                         selected_league=league_id,
+                         canchas=canchas,
+                         selected_cancha=cancha_name)
 
 @report_bp.route('/global-schedule/summary/export')
 @login_required
@@ -652,10 +671,18 @@ def export_global_summary():
 
     # Filters
     league_id = request.args.get('league_id')
-    query = Match.query.join(League).filter(League.user_id == current_user.id)
+    cancha_name = request.args.get('cancha')
+    
+    query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
     if league_id:
         query = query.filter(Match.league_id == league_id)
         
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            query = query.filter(Match.court_id == None)
+        else:
+            query = query.filter(Court.name == cancha_name)
+            
     matches = query.all()
     discrepancies = calculate_discrepancies(matches)
     
@@ -664,33 +691,36 @@ def export_global_summary():
     referee_summary = {}
     
     for item in discrepancies:
+        date_str = item['date'].strftime('%d/%m/%Y') if item['date'] else 'Sin Fecha'
+        date_sort = item['date'].strftime('%Y-%m-%d') if item['date'] else '0000-00-00'
+        
         if item['entity_type'] == 'Team':
-            key = (item['league'], item['entity_name'])
+            key = (item['league'], date_str, item['entity_name'], date_sort)
             teams_summary[key] = teams_summary.get(key, 0) + item['balance']
         elif item['entity_type'] == 'Referee':
-            league_name = item['league']
-            referee_summary[league_name] = referee_summary.get(league_name, 0) + item['balance']
+            key = (item['league'], date_str, date_sort)
+            referee_summary[key] = referee_summary.get(key, 0) + item['balance']
             
-    teams_list = [{'league': k[0], 'name': k[1], 'balance': v} for k, v in teams_summary.items()]
-    teams_list.sort(key=lambda x: (x['league'], x['name']))
+    teams_list = [{'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3]} for k, v in teams_summary.items()]
+    teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
     
-    referee_list = [{'league': k, 'balance': v} for k, v in referee_summary.items()]
-    referee_list.sort(key=lambda x: x['league'])
+    referee_list = [{'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2]} for k, v in referee_summary.items()]
+    referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
 
     # Excel
     wb = openpyxl.Workbook()
     # Sheet 1: Teams
     ws1 = wb.active
     ws1.title = "Balance Equipos"
-    ws1.append(["Liga", "Equipo", "Balance Total"])
+    ws1.append(["Fecha", "Liga", "Equipo", "Deuda/Excedente del Día"])
     for t in teams_list:
-        ws1.append([t['league'], t['name'], t['balance']])
+        ws1.append([t['date'], t['league'], t['name'], t['balance']])
         
     # Sheet 2: Referees
     ws2 = wb.create_sheet("Balance Arbitraje")
-    ws2.append(["Liga", "Balance Total"])
+    ws2.append(["Fecha", "Liga", "Deuda/Excedente del Día"])
     for r in referee_list:
-        ws2.append([r['league'], r['balance']])
+        ws2.append([r['date'], r['league'], r['balance']])
         
     output = BytesIO()
     wb.save(output)
@@ -706,20 +736,64 @@ def global_schedule_financials():
         flash('Acceso denegado.', 'danger')
         return redirect(url_for('report.index'))
 
-    # Filters
-    month = request.args.get('month', type=int, default=datetime.now().month)
-    year = request.args.get('year', type=int, default=datetime.now().year)
+    # Determine report type
+    report_type = getattr(current_user, 'financial_report_type', 'period')
 
-    # Validate
-    if not 1 <= month <= 12: month = datetime.now().month
-    if year < 2000 or year > 2100: year = datetime.now().year
+    # Obtener todas las canchas únicas de todas las ligas del owner
+    leagues = current_user.leagues
+    court_names = set()
+    for league in leagues:
+        for court in league.courts:
+            if court.name:
+                court_names.add(court.name.strip())
+    court_names = sorted(list(court_names))
 
-    # Query Matches for the month
-    matches = Match.query.join(League).filter(
-        League.user_id == current_user.id,
-        func.extract('month', Match.match_date) == month,
-        func.extract('year', Match.match_date) == year
-    ).order_by(Match.match_date).all()
+    cancha_name = request.args.get('cancha')
+
+    query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
+    
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            query = query.filter(Match.court_id == None)
+        else:
+            query = query.filter(Court.name == cancha_name)
+    
+    # Store applied filters to pass to template
+    selected_month = None
+    selected_year = None
+    date_from_str = None
+    date_to_str = None
+
+    if report_type == 'date_range':
+        # Handles date ranges
+        default_from = datetime.now().replace(day=1).strftime('%Y-%m-%d')
+        default_to = datetime.now().strftime('%Y-%m-%d')
+        
+        date_from_str = request.args.get('date_from', default=default_from)
+        date_to_str = request.args.get('date_to', default=default_to)
+        
+        try:
+            d_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            d_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            query = query.filter(func.date(Match.match_date) >= d_from, func.date(Match.match_date) <= d_to)
+        except ValueError:
+            pass # fallback to no filter or default if desired, but here we just ignore invalid formats
+            
+    else:
+        # Handles period (month/year)
+        selected_month = request.args.get('month', type=int, default=datetime.now().month)
+        selected_year = request.args.get('year', type=int, default=datetime.now().year)
+
+        # Validate
+        if not 1 <= selected_month <= 12: selected_month = datetime.now().month
+        if selected_year < 2000 or selected_year > 2100: selected_year = datetime.now().year
+
+        query = query.filter(
+            func.extract('month', Match.match_date) == selected_month,
+            func.extract('year', Match.match_date) == selected_year
+        )
+
+    matches = query.order_by(Match.match_date).all()
 
     # Structure: dict[date_str] = { 'date_obj': date, 'courts': { 'court_name': { income, expense, profit } }, 'daily_total': 0 }
     financial_data = {}
@@ -751,7 +825,9 @@ def global_schedule_financials():
             financial_data[date_key] = {
                 'date_obj': match.match_date,
                 'courts': {},
-                'daily_total': 0
+                'daily_total': 0,
+                'daily_income': 0,
+                'daily_expense': 0
             }
             
         if court_name not in financial_data[date_key]['courts']:
@@ -762,6 +838,8 @@ def global_schedule_financials():
         financial_data[date_key]['courts'][court_name]['profit'] += profit
         
         financial_data[date_key]['daily_total'] += profit
+        financial_data[date_key]['daily_income'] += income
+        financial_data[date_key]['daily_expense'] += expense
         total_month_profit += profit
 
     # Convert to sorted list
@@ -775,15 +853,28 @@ def global_schedule_financials():
     
     # Years logic (current year -1 to +1)
     current_year = datetime.now().year
-    years = range(current_year - 1, current_year + 2)
+    years = [current_year - 1, current_year, current_year + 1]
+
+    filename_suffix = ""
+    if report_type == 'date_range':
+        filename_suffix = f"{date_from_str}_al_{date_to_str}"
+    else:
+        month_name = dict(months_es).get(selected_month, selected_month)
+        filename_suffix = f"{month_name}_{selected_year}"
 
     return render_template('report/financials.html', 
                          financial_data=sorted_data,
                          total_month_profit=total_month_profit,
-                         selected_month=month,
-                         selected_year=year,
+                         selected_month=selected_month,
+                         selected_year=selected_year,
+                         date_from=date_from_str,
+                         date_to=date_to_str,
+                         report_type=report_type,
                          months=months_es,
-                         years=years)
+                         years=years,
+                         court_names=court_names,
+                         selected_cancha=cancha_name,
+                         filename_suffix=filename_suffix)
 
 @report_bp.route('/global-schedule/financials/export')
 @login_required
@@ -792,14 +883,41 @@ def export_global_financials():
         flash('Acceso denegado.', 'danger')
         return redirect(url_for('report.index'))
 
-    month = request.args.get('month', type=int, default=datetime.now().month)
-    year = request.args.get('year', type=int, default=datetime.now().year)
+    report_type = getattr(current_user, 'financial_report_type', 'period')
+    cancha_name = request.args.get('cancha')
+    query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
+    
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            query = query.filter(Match.court_id == None)
+        else:
+            query = query.filter(Court.name == cancha_name)
+            
+    filename_suffix = ""
 
-    matches = Match.query.join(League).filter(
-        League.user_id == current_user.id,
-        func.extract('month', Match.match_date) == month,
-        func.extract('year', Match.match_date) == year
-    ).order_by(Match.match_date).all()
+    if report_type == 'date_range':
+        date_from_str = request.args.get('date_from', default="")
+        date_to_str = request.args.get('date_to', default="")
+        
+        try:
+            d_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            d_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            query = query.filter(func.date(Match.match_date) >= d_from, func.date(Match.match_date) <= d_to)
+            filename_suffix = f"{date_from_str}_al_{date_to_str}"
+        except ValueError:
+            pass
+            
+    else:
+        month = request.args.get('month', type=int, default=datetime.now().month)
+        year = request.args.get('year', type=int, default=datetime.now().year)
+
+        query = query.filter(
+            func.extract('month', Match.match_date) == month,
+            func.extract('year', Match.match_date) == year
+        )
+        filename_suffix = f"{month}_{year}"
+        
+    matches = query.order_by(Match.match_date).all()
 
     financial_data = {}
     def parse_cost(val):
@@ -836,10 +954,11 @@ def export_global_financials():
     # Excel
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = f"Finanzas {month}-{year}"
+    ws.title = f"Finanzas {filename_suffix}"[:31]  # Excel titles max 31 chars
     
     # Title
-    ws['A1'] = f"REPORTE FINANCIERO - {month}/{year}"
+    header_title = filename_suffix.replace('_', ' ').upper()
+    ws['A1'] = f"REPORTE FINANCIERO - {header_title}"
     ws['A1'].font = Font(size=14, bold=True)
     ws.merge_cells('A1:E1')
     ws['A1'].alignment = Alignment(horizontal='center')
@@ -855,6 +974,8 @@ def export_global_financials():
     for day in sorted_data:
         date_str = day['date_obj'].strftime('%d/%m/%Y')
         daily_profit = 0
+        daily_income = 0
+        daily_expense = 0
         
         for court_name, stats in day['courts'].items():
             ws.cell(row=current_row, column=1, value=date_str)
@@ -868,18 +989,24 @@ def export_global_financials():
             ws.cell(row=current_row, column=5).font = Font(color=color, bold=True)
             
             daily_profit += stats['profit']
+            daily_income += stats['income']
+            daily_expense += stats['expense']
             current_row += 1
             
         # Daily Total Row
-        ws.cell(row=current_row, column=4, value="TOTAL DIA:").alignment = Alignment(horizontal='right')
-        ws.cell(row=current_row, column=4).font = Font(bold=True)
+        ws.cell(row=current_row, column=2, value="TOTAL DÍA:").alignment = Alignment(horizontal='right')
+        ws.cell(row=current_row, column=2).font = Font(bold=True)
+        ws.cell(row=current_row, column=3, value=daily_income).font = Font(bold=True)
+        ws.cell(row=current_row, column=3).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
+        ws.cell(row=current_row, column=4, value=daily_expense).font = Font(color="FF0000", bold=True)
+        ws.cell(row=current_row, column=4).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
         ws.cell(row=current_row, column=5, value=daily_profit).font = Font(bold=True)
         ws.cell(row=current_row, column=5).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
         current_row += 1
         total_profit += daily_profit
         
     current_row += 1
-    ws.cell(row=current_row, column=4, value="GRAN TOTAL MES:").alignment = Alignment(horizontal='right')
+    ws.cell(row=current_row, column=4, value="GRAN TOTAL PERIODO:").alignment = Alignment(horizontal='right')
     ws.cell(row=current_row, column=5, value=total_profit).font = Font(bold=True, size=12)
     
     # Adjust widths
@@ -890,14 +1017,14 @@ def export_global_financials():
     wb.save(output)
     output.seek(0)
     
-    filename = f"Finanzas_{month}_{year}.xlsx"
+    filename = f"Finanzas_{filename_suffix}.xlsx"
     return send_file(output, download_name=filename, as_attachment=True)
 
 @report_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
-    if current_user.role not in ['owner', 'admin']:
-        flash('No tienes permiso para acceder a esta sección.', 'danger')
+    if not getattr(current_user, 'is_ultra', False):
+        flash('No tienes acceso a esta funcionalidad (Ultra Premium).', 'warning')
         return redirect(url_for('report.index'))
 
     # Obtener todas las canchas únicas de todas las ligas del owner
@@ -911,6 +1038,7 @@ def settings():
     court_names = sorted(list(court_names))
 
     if request.method == 'POST':
+        # Guardar configuraciones de canchas
         for court_name in court_names:
             color = request.form.get(f'color_{court_name}')
             if color:
@@ -919,6 +1047,11 @@ def settings():
                     setting = OwnerCourtSetting(user_id=current_user.id, court_name=court_name)
                     db.session.add(setting)
                 setting.color = color
+                
+        # Guardar configuración de tipo de reporte financiero
+        report_type = request.form.get('financial_report_type')
+        if report_type in ['period', 'date_range']:
+            current_user.financial_report_type = report_type
         
         db.session.commit()
         flash('Configuraciones generales de reportes guardadas con éxito.', 'success')

@@ -76,6 +76,31 @@
             {% endif %}
         </div>
 
+        <!-- Sección de Finanzas -->
+        <div class="card bg-white/5 border border-white/10 p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2 text-blue-400">
+                <i class="fas fa-chart-line"></i> Búsqueda en Reporte Financiero
+            </h2>
+            <p class="text-white/50 text-sm mb-6 max-w-3xl">
+                Define cómo deseas buscar y visualizar tus finanzas generales. "Por Periodo" permite buscar usando el
+                mes y año (versión simple), mientras que "Por Rango de Fechas" habilitará dos calendarios para buscar
+                desde y hasta un día en específico.
+            </p>
+
+            <div
+                class="bg-black/20 p-4 rounded-xl border border-white/5 inline-block min-w-xs md:min-w-md w-full md:w-auto">
+                <label for="financial_report_type" class="block text-sm font-bold text-white/80 mb-2">Tipo de
+                    Búsqueda:</label>
+                <select id="financial_report_type" name="financial_report_type"
+                    class="w-full bg-gray-800 border border-white/10 rounded px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                    <option value="period" {% if current_user.financial_report_type=='period' %}selected{% endif %}>Por
+                        Periodo (Mes exacto)</option>
+                    <option value="date_range" {% if current_user.financial_report_type=='date_range' %}selected{% endif
+                        %}>Por Rango de Fechas (Desde/Hasta)</option>
+                </select>
+            </div>
+        </div>
+
         <div class="flex justify-end gap-4 mt-8">
             <button type="submit"
                 class="btn-primary py-3 px-8 font-bold text-lg shadow-lg shadow-purple-500/20 transition-all hover:scale-[1.02]">
