@@ -75,13 +75,17 @@ function recalculateTotals(courtId) {
     const totalHomeEl = footer.querySelector('[data-type="total-home"]');
     const totalAwayEl = footer.querySelector('[data-type="total-away"]');
     const totalRefereeEl = footer.querySelector('[data-type="total-referee"]');
+    const totalTeamsIncomeEl = footer.querySelector('[data-type="total-teams-income"]');
     const profitEl = footer.querySelector('[data-type="total-profit"]');
 
     if (totalHomeEl) totalHomeEl.textContent = '$' + sumHome;
     if (totalAwayEl) totalAwayEl.textContent = '$' + sumAway;
     if (totalRefereeEl) totalRefereeEl.textContent = '$' + sumReferee;
 
-    const profit = (sumHome + sumAway) - sumReferee;
+    const teamsIncome = sumHome + sumAway;
+    if (totalTeamsIncomeEl) totalTeamsIncomeEl.textContent = '$' + teamsIncome;
+
+    const profit = teamsIncome - sumReferee;
     if (profitEl) {
         profitEl.textContent = '$' + profit;
         profitEl.className = profitEl.className.replace(/text-(green|red)-400/, '');

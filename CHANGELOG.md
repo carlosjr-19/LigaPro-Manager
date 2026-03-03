@@ -1,3 +1,23 @@
+## 0.9.8.4
+
+Autocompletado de precios y ajustes en Reporte de Finanzas.
+
+- **Autollenar Agenda Global**: Se añadió un nuevo interruptor en la configuración de precios por liga. Si está activado, los partidos nuevos generados (ya sea manuales o por liguilla) heredan automáticamente el costo de arbitraje definido para la liga, marcándose como pagados en la Agenda Global. También aplica al asignar fechas a partidos que previamente tenían costo cero.
+- **Edición directa en Agenda Global**: Se agregó un ícono de edición a cada partido dentro de la Agenda Global, permitiendo modificar datos clave (cancha, equipos, hora) por cancelaciones. Al guardar, el sistema redirecciona automáticamente a la agenda para un flujo ininterrumpido.
+- **Índice Numérico**: La Agenda Global ahora enumera secuencialmente cada partido por bloque de cancha para un mejor control visual.
+- **Claridad de Totales**: Se mejoró la lectura de las sumatorias agregando "Total Ingresos (Local + Visita)" por encima de la ganancia neta.
+- **Ajustes de Impresión/PDF**: Las vistas impresas de la Agenda Global ahora empaquetan cada cancha en una hoja nueva (salto de página) y reducen sus proporciones de forma responsiva para evitar cortes horizontales en el margen derecho. Los campos de edición son removidos de la impresión.
+
+## Modificado
+* models/league.py
+* routes/report.py, routes/match.py, routes/match_matrix.py
+* templates/report/config.html, templates/report/global_schedule.html, templates/match_form.html
+* ligapro_manager.py (migraciones)
+
+## Removido (Seguro de ignorar en despliegue)
+* alter_db.py
+* check_db_state.py
+
 ## 0.9.8.3
 
 Mejoras de responsividad y UI en móviles.

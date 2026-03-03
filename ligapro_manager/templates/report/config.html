@@ -54,6 +54,8 @@
                                 <th class="py-3 px-4">Liga</th>
                                 <th class="py-3 px-4 text-center">Pago por Equipo ($)</th>
                                 <th class="py-3 px-4 text-center">Pago al Árbitro ($)</th>
+                                <th class="py-3 px-4 text-center">Autollenar<br><span
+                                        class="text-[9px] opacity-70 normal-case">En Agenda Global</span></th>
                                 <th class="py-3 px-4 text-center whitespace-nowrap">Cobrar Desde</th>
                             </tr>
                         </thead>
@@ -74,6 +76,16 @@
                                         value="{{ league.price_referee }}"
                                         class="bg-black/20 border border-white/10 rounded px-3 py-2 text-white text-center w-32 focus:border-purple-500 focus:outline-none placeholder-white/20"
                                         placeholder="0">
+                                </td>
+                                <td class="py-4 px-4 text-center">
+                                    <label class="relative inline-flex items-center cursor-pointer group"
+                                        title="Si se activa, los nuevos partidos programados llevarán pre-cargados estos montos por defecto en la Agenda Global.">
+                                        <input type="checkbox" name="auto_fill_prices_{{ league.id }}"
+                                            class="sr-only peer" {% if league.auto_fill_prices %}checked{% endif %}>
+                                        <div
+                                            class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                                        </div>
+                                    </label>
                                 </td>
                                 <td class="py-4 px-4 text-center">
                                     <div class="flex flex-col items-center gap-2">

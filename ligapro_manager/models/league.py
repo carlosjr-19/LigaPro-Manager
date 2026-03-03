@@ -31,6 +31,7 @@ class League(db.Model):
     price_referee = db.Column(db.Integer, default=0) # Default payment to referee per match
     charge_from_start = db.Column(db.Boolean, default=True)
     charge_start_date = db.Column(db.Date, nullable=True)
+    auto_fill_prices = db.Column(db.Boolean, default=False) # Auto-fill prices on new matches
     
     # Premium Personalization for Reports
     highlight_standings = db.Column(db.Boolean, default=False)

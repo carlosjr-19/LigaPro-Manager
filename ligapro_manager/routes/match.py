@@ -37,6 +37,10 @@ def create_match(league_id):
                 court_id=form.court_id.data,
                 match_date=form.match_date.data
             )
+            if league.auto_fill_prices:
+                match.referee_cost_home = str(league.price_per_match)
+                match.referee_cost_away = str(league.price_per_match)
+                match.referee_cost = str(league.price_referee)
             db.session.add(match)
             db.session.commit()
             flash('Partido programado.', 'success')
@@ -150,6 +154,8 @@ def delete_match(match_id):
 @login_required
 @owner_required
 def edit_match(match_id):
+    next_action = request.args.get('next')
+    selected_date = request.args.get('selected_date')
     match = Match.query.get_or_404(match_id)
     league_id = match.league_id
     league = match.league
@@ -180,8 +186,20 @@ def edit_match(match_id):
             match.court_id = form.court_id.data
             match.match_date = form.match_date.data
             
+            if league.auto_fill_prices and match.referee_cost_home == '0' and match.referee_cost_away == '0' and match.referee_cost == '0':
+                match.referee_cost_home = str(league.price_per_match)
+                match.referee_cost_away = str(league.price_per_match)
+                match.referee_cost = str(league.price_referee)
+                
             db.session.commit()
             flash('Partido actualizado.', 'success')
+            
+            if next_action == 'global_schedule':
+                if selected_date:
+                    return redirect(url_for('report.global_schedule', date=selected_date))
+                else:
+                    return redirect(url_for('report.global_schedule'))
+                    
             anchor = 'playoff' if match.stage not in ['regular', None, ''] else 'matches'
             return redirect(url_for('league.league_detail', league_id=league_id, _anchor=anchor))
             
@@ -198,7 +216,7 @@ def edit_match(match_id):
     teams_map = {t.id: t.name for t in teams}
     
     return render_template('match_form.html', form=form, league=league, 
-                          title='Editar Partido', teams_history=teams_history, teams_map=teams_map)
+                          title='Editar Partido', teams_history=teams_history, teams_map=teams_map, next_action=next_action, selected_date=selected_date)
 
 
 @match_bp.route('/leagues/<league_id>/reset_season', methods=['POST'])
@@ -399,6 +417,10 @@ def generate_playoffs(league_id):
             stage=m['stage'],
             match_name=m['name'] + (" (Ida)" if playoff_type == 'double' else "")
         )
+        if league.auto_fill_prices:
+            match1.referee_cost_home = str(league.price_per_match)
+            match1.referee_cost_away = str(league.price_per_match)
+            match1.referee_cost = str(league.price_referee)
         db.session.add(match1)
         created_count += 1
 
@@ -413,6 +435,10 @@ def generate_playoffs(league_id):
                 stage=m['stage'],
                 match_name=m['name'].replace(m['home']['team'].name, "TEMP").replace(m['away']['team'].name, m['home']['team'].name).replace("TEMP", m['away']['team'].name) + " (Vuelta)"
             )
+            if league.auto_fill_prices:
+                match2.referee_cost_home = str(league.price_per_match)
+                match2.referee_cost_away = str(league.price_per_match)
+                match2.referee_cost = str(league.price_referee)
             db.session.add(match2)
             created_count += 1
     
@@ -594,6 +620,10 @@ def advance_playoff_round(league_id):
             stage=next_stage,
             match_name=f"{next_stage.capitalize()}: {teams_dict[home_id].name} vs {teams_dict[away_id].name}" + (" (Ida)" if (league.playoff_type == 'double' and next_stage != 'final') else "")
         )
+        if league.auto_fill_prices:
+            match1.referee_cost_home = str(league.price_per_match)
+            match1.referee_cost_away = str(league.price_per_match)
+            match1.referee_cost = str(league.price_referee)
         db.session.add(match1)
         created_count += 1
         
@@ -608,6 +638,10 @@ def advance_playoff_round(league_id):
                 stage=next_stage,
                 match_name=f"{next_stage.capitalize()}: {teams_dict[away_id].name} vs {teams_dict[home_id].name} (Vuelta)"
             )
+            if league.auto_fill_prices:
+                match2.referee_cost_home = str(league.price_per_match)
+                match2.referee_cost_away = str(league.price_per_match)
+                match2.referee_cost = str(league.price_referee)
             db.session.add(match2)
             created_count += 1
         
