@@ -155,6 +155,7 @@ def global_schedule_config():
             
             # Start Date Settings
             charge_from_start = request.form.get(f'charge_from_start_{league.id}') == 'on'
+            auto_fill_prices = request.form.get(f'auto_fill_prices_{league.id}') == 'on'
             charge_date_str = request.form.get(f'charge_start_date_{league.id}')
             
             try:
@@ -163,6 +164,8 @@ def global_schedule_config():
                 if price_ref is not None:
                     league.price_referee = int(price_ref)
                 
+                league.charge_from_start = charge_from_start
+                league.auto_fill_prices = auto_fill_prices
                 league.charge_from_start = charge_from_start
                 if not charge_from_start and charge_date_str:
                     league.charge_start_date = datetime.strptime(charge_date_str, '%Y-%m-%d').date()
@@ -333,7 +336,7 @@ def export_global_schedule():
         current_row += 1
         
         # Table Headers
-        headers = ["Hora", "Categoría", "Local", "$ Local", "vs", "$ Visita", "Visitante", "$ Arbitro"]
+        headers = ["#", "Hora", "Categoría", "Local", "$ Local", "vs", "$ Visita", "Visitante", "$ Arbitro"]
         for col_num, header in enumerate(headers, 1):
             cell = ws.cell(row=current_row, column=col_num, value=header)
             cell.font = header_font
@@ -345,40 +348,49 @@ def export_global_schedule():
         total_away = 0
         total_referee = 0
         
+        match_index = 1
         for match in matches:
-            ws.cell(row=current_row, column=1, value=match.match_date.strftime('%I:%M %p'))
-            ws.cell(row=current_row, column=2, value=match.league.name)
-            ws.cell(row=current_row, column=3, value=match.home_team.name).alignment = Alignment(horizontal='right')
+            ws.cell(row=current_row, column=1, value=match_index).alignment = Alignment(horizontal='center')
+            ws.cell(row=current_row, column=2, value=match.match_date.strftime('%I:%M %p'))
+            ws.cell(row=current_row, column=3, value=match.league.name)
+            ws.cell(row=current_row, column=4, value=match.home_team.name).alignment = Alignment(horizontal='right')
             
             c_home = parse_cost(match.referee_cost_home)
-            ws.cell(row=current_row, column=4, value=c_home)
+            ws.cell(row=current_row, column=5, value=c_home)
             total_home += c_home
             
-            ws.cell(row=current_row, column=5, value="-").alignment = Alignment(horizontal='center')
+            ws.cell(row=current_row, column=6, value="-").alignment = Alignment(horizontal='center')
             
             c_away = parse_cost(match.referee_cost_away)
-            ws.cell(row=current_row, column=6, value=c_away)
+            ws.cell(row=current_row, column=7, value=c_away)
             total_away += c_away
             
-            ws.cell(row=current_row, column=7, value=match.away_team.name)
+            ws.cell(row=current_row, column=8, value=match.away_team.name)
             
             c_ref = parse_cost(match.referee_cost)
-            ws.cell(row=current_row, column=8, value=c_ref)
+            ws.cell(row=current_row, column=9, value=c_ref)
             total_referee += c_ref
             
             current_row += 1
+            match_index += 1
             
         # Totals Row
-        ws.cell(row=current_row, column=3, value="TOTALES:").alignment = Alignment(horizontal='right')
-        ws.cell(row=current_row, column=4, value=total_home).font = Font(bold=True)
-        ws.cell(row=current_row, column=6, value=total_away).font = Font(bold=True)
-        ws.cell(row=current_row, column=8, value=total_referee).font = Font(bold=True)
+        ws.cell(row=current_row, column=4, value="TOTALES:").alignment = Alignment(horizontal='right')
+        ws.cell(row=current_row, column=5, value=total_home).font = Font(bold=True)
+        ws.cell(row=current_row, column=7, value=total_away).font = Font(bold=True)
+        ws.cell(row=current_row, column=9, value=total_referee).font = Font(bold=True)
+        current_row += 1
+        
+        # Teams Income
+        teams_income = total_home + total_away
+        ws.cell(row=current_row, column=8, value="TOTAL INGRESOS (Local + Visita):").alignment = Alignment(horizontal='right')
+        ws.cell(row=current_row, column=9, value=teams_income).font = Font(bold=True, color="0000FF") # Blue
         current_row += 1
         
         # Profit Row
-        profit = (total_home + total_away) - total_referee
-        ws.cell(row=current_row, column=7, value="GANANCIA:").alignment = Alignment(horizontal='right')
-        ws.cell(row=current_row, column=8, value=profit).font = Font(bold=True, color="008000" if profit >= 0 else "FF0000")
+        profit = teams_income - total_referee
+        ws.cell(row=current_row, column=8, value="GANANCIA NETA (Ingresos - Árbitros):").alignment = Alignment(horizontal='right')
+        ws.cell(row=current_row, column=9, value=profit).font = Font(bold=True, color="008000" if profit >= 0 else "FF0000")
         current_row += 2 # Space between courts
 
     # Auto-adjust column widths

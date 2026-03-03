@@ -5,10 +5,17 @@
 <div class="min-h-screen">
     <header class="bg-card border-b border-white/10">
         <div class="max-w-2xl mx-auto px-6 py-4">
+            {% if next_action == 'global_schedule' %}
+            <a href="{{ url_for('report.global_schedule', date=selected_date) if selected_date else url_for('report.global_schedule') }}"
+                class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
+                <i class="fas fa-arrow-left"></i> Volver a Agenda Global
+            </a>
+            {% else %}
             <a href="{{ url_for('league.league_detail', league_id=league.id) }}#matches"
                 class="inline-flex items-center gap-2 text-white/60 hover:text-white mb-4">
                 <i class="fas fa-arrow-left"></i> Volver a {{ league.name }}
             </a>
+            {% endif %}
             <h1 class="text-2xl font-bold">{{ title }}</h1>
         </div>
     </header>
@@ -64,8 +71,13 @@
                     <button type="submit" class="btn-primary flex-1">
                         <i class="fas fa-calendar-plus mr-2"></i>Programar Partido
                     </button>
+                    {% if next_action == 'global_schedule' %}
+                    <a href="{{ url_for('report.global_schedule', date=selected_date) if selected_date else url_for('report.global_schedule') }}"
+                        class="btn-secondary">Cancelar</a>
+                    {% else %}
                     <a href="{{ url_for('league.league_detail', league_id=league.id) }}#matches"
                         class="btn-secondary">Cancelar</a>
+                    {% endif %}
                 </div>
             </form>
         </div>

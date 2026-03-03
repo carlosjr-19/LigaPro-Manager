@@ -69,6 +69,11 @@ def save_match_matrix():
         
         if existing:
             match = existing
+            if league.auto_fill_prices and match.referee_cost_home == '0' and match.referee_cost_away == '0' and match.referee_cost == '0':
+                if match_datetime and match.match_date != match_datetime:
+                    match.referee_cost_home = str(league.price_per_match)
+                    match.referee_cost_away = str(league.price_per_match)
+                    match.referee_cost = str(league.price_referee)
         else:
             if not match_datetime:
                 flash('Debes seleccionar una fecha y hora para programar el partido.', 'danger')
@@ -82,6 +87,10 @@ def save_match_matrix():
                 match_round=match_round,
                 match_name=f"Jornada {match_round}"
             )
+            if league.auto_fill_prices:
+                match.referee_cost_home = str(league.price_per_match)
+                match.referee_cost_away = str(league.price_per_match)
+                match.referee_cost = str(league.price_referee)
             db.session.add(match)
 
     # Update Fields

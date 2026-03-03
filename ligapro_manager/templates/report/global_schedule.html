@@ -75,7 +75,7 @@
 
         <div class="space-y-8 print:space-y-8">
             {% for court_name, data in schedule.items() %}
-            <div class="break-inside-avoid">
+            <div class="break-inside-avoid {% if not loop.first %}print:break-before-page{% endif %}">
                 <!-- Court Header -->
                 <div
                     class="bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 text-center font-bold text-xl uppercase tracking-wider print:bg-none print:bg-gray-200 print:text-black print:border-y-2 print:border-black">
@@ -83,73 +83,91 @@
                 </div>
 
                 <!-- Matches Table -->
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left border-collapse">
+                <div class="overflow-x-auto print:overflow-visible">
+                    <table class="w-full text-sm text-left border-collapse print:text-[11px]">
                         <thead>
                             <tr
                                 class="bg-white/5 text-white/60 print:text-black print:bg-white print:border-b print:border-black">
-                                <th class="py-2 px-4 w-24 text-center font-bold whitespace-nowrap">HORA</th>
-                                <th class="py-2 px-4 font-bold">CATEGORÍA</th>
-                                <th class="py-2 px-4 font-bold text-right" style="width: 20%;">LOCAL</th>
-                                <th class="py-2 px-4 w-20 text-center text-white/20 print:text-black/20">$ LOCAL</th>
-                                <th class="py-2 px-4 w-24 text-center text-white/20 print:text-black/20">vs</th>
-                                <th class="py-2 px-4 w-20 text-center text-white/20 print:text-black/20">$ VISITA</th>
-                                <th class="py-2 px-4 font-bold text-left" style="width: 20%;">VISITANTE</th>
-                                <th class="py-2 px-4 w-24 text-center font-bold text-white/80 print:text-black">$
+                                <th class="py-2 px-1 w-8 text-center font-bold text-white/40 print:text-black/40">#</th>
+                                <th class="py-2 px-2 md:px-4 w-24 text-center font-bold whitespace-nowrap">HORA</th>
+                                <th class="py-2 px-2 md:px-4 font-bold">CATEGORÍA</th>
+                                <th class="py-2 px-2 md:px-4 font-bold text-right" style="width: 20%;">LOCAL</th>
+                                <th class="py-2 px-1 md:px-4 w-20 text-center text-white/20 print:text-black/20">$ LOCAL
+                                </th>
+                                <th class="py-2 px-1 md:px-4 w-16 text-center text-white/20 print:text-black/20">vs</th>
+                                <th class="py-2 px-1 md:px-4 w-20 text-center text-white/20 print:text-black/20">$
+                                    VISITA</th>
+                                <th class="py-2 px-2 md:px-4 font-bold text-left" style="width: 20%;">VISITANTE</th>
+                                <th class="py-2 px-1 md:px-4 w-24 text-center font-bold text-white/80 print:text-black">
+                                    $
                                     ARBITRO</th>
+                                <th class="py-2 px-2 w-10 text-center print:hidden"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5 print:divide-gray-300">
                             {% for match in data.matches %}
                             <tr class="hover:bg-white/5 print:hover:bg-transparent">
                                 <td
-                                    class="py-2 px-4 text-center font-mono font-bold text-white/80 print:text-black whitespace-nowrap">
+                                    class="py-1 px-1 text-center font-mono text-white/40 print:text-black/40 text-[10px] md:text-xs">
+                                    {{ loop.index }}
+                                </td>
+                                <td
+                                    class="py-1 px-2 md:px-4 text-center font-mono font-bold text-white/80 print:text-black whitespace-nowrap">
                                     {{ match.match_date.strftime('%I:%M %p') }}
                                 </td>
-                                <td class="py-2 px-4 text-white/60 print:text-black uppercase text-xs tracking-wide">
+                                <td
+                                    class="py-1 px-2 md:px-4 text-white/60 print:text-black uppercase text-[10px] md:text-xs tracking-wide">
                                     {{ match.league.name }}
                                 </td>
-                                <td class="py-2 px-4 text-right font-bold text-white print:text-black leading-tight">
+                                <td
+                                    class="py-1 px-2 md:px-4 text-right font-bold text-white print:text-black leading-tight">
                                     {{ match.home_team.name }}
                                 </td>
-                                <td class="py-2 px-1 text-center">
+                                <td class="py-1 px-1 text-center">
                                     <input type="text"
-                                        class="w-full bg-transparent text-center font-mono text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-red-400 print:text-black print:border-none uppercase"
+                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-red-400 print:text-black print:border-none uppercase"
                                         value="{{ match.referee_cost_home if match.referee_cost_home != '0' else '' }}"
                                         placeholder="-" data-field="referee_cost_home"
                                         onchange="updateMatchCost('{{ match.id }}', 'referee_cost_home', this.value, '{{ court_name|replace(' ', '_') }}')">
                                 </td>
-                                <td class="py-2 px-1 text-center whitespace-nowrap">
+                                <td class="py-1 px-1 text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-1">
                                         <input type="text"
-                                            class="w-10 bg-transparent text-center font-bold text-lg border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-white print:text-black"
+                                            class="w-8 md:w-10 bg-transparent text-center font-bold text-base md:text-lg border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-white print:text-black"
                                             value="{{ match.home_score if match.home_score is not none else '' }}"
                                             placeholder="-" inputmode="numeric"
                                             onchange="updateMatchScore('{{ match.id }}', 'home_score', this.value)">
                                         <span class="text-white/20 print:text-black/20 text-xs">-</span>
                                         <input type="text"
-                                            class="w-10 bg-transparent text-center font-bold text-lg border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-white print:text-black"
+                                            class="w-8 md:w-10 bg-transparent text-center font-bold text-base md:text-lg border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-white print:text-black"
                                             value="{{ match.away_score if match.away_score is not none else '' }}"
                                             placeholder="-" inputmode="numeric"
                                             onchange="updateMatchScore('{{ match.id }}', 'away_score', this.value)">
                                     </div>
                                 </td>
-                                <td class="py-2 px-1 text-center">
+                                <td class="py-1 px-1 text-center">
                                     <input type="text"
-                                        class="w-full bg-transparent text-center font-mono text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-red-400 print:text-black print:border-none uppercase"
+                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-red-400 print:text-black print:border-none uppercase"
                                         value="{{ match.referee_cost_away if match.referee_cost_away != '0' else '' }}"
                                         placeholder="-" data-field="referee_cost_away"
                                         onchange="updateMatchCost('{{ match.id }}', 'referee_cost_away', this.value, '{{ court_name|replace(' ', '_') }}')">
                                 </td>
-                                <td class="py-2 px-4 text-left font-bold text-white print:text-black leading-tight">
+                                <td
+                                    class="py-1 px-2 md:px-4 text-left font-bold text-white print:text-black leading-tight">
                                     {{ match.away_team.name }}
                                 </td>
-                                <td class="py-2 px-1 text-center">
+                                <td class="py-1 px-1 text-center">
                                     <input type="text"
-                                        class="w-full bg-transparent text-center font-mono text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-yellow-400 print:text-black print:border-none uppercase"
+                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-yellow-400 print:text-black print:border-none uppercase"
                                         value="{{ match.referee_cost if match.referee_cost != '0' else '' }}"
                                         placeholder="-" data-field="referee_cost"
                                         onchange="updateMatchCost('{{ match.id }}', 'referee_cost', this.value, '{{ court_name|replace(' ', '_') }}')">
+                                </td>
+                                <td class="py-1 px-2 text-center print:hidden">
+                                    <a href="{{ url_for('match.edit_match', match_id=match.id, next='global_schedule', selected_date=selected_date) }}"
+                                        class="text-white/40 hover:text-white transition-colors" title="Editar Partido">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -158,7 +176,7 @@
                             <!-- Totals Row -->
                             <tr
                                 class="bg-white/10 font-bold print:bg-gray-100 print:text-black border-t-2 border-white/20 print:border-black">
-                                <td colspan="3" class="py-2 px-4 text-right uppercase text-xs tracking-wider">Totales:
+                                <td colspan="4" class="py-2 px-4 text-right uppercase text-xs tracking-wider">Totales:
                                 </td>
                                 <td class="py-2 px-1 text-center font-mono text-green-400 print:text-black text-sm"
                                     data-type="total-home">
@@ -174,16 +192,31 @@
                                     data-type="total-referee">
                                     ${{ data.total_referee }}
                                 </td>
+                                <td class="print:hidden"></td>
+                            </tr>
+                            <!-- Teams Income Row -->
+                            <tr
+                                class="bg-white/5 print:bg-white print:text-black border-t border-white/10 print:border-gray-300">
+                                <td colspan="8"
+                                    class="py-2 px-4 text-right uppercase text-xs tracking-wider text-white/60 print:text-gray-600">
+                                    Total Ingresos (Local + Visita):</td>
+                                <td class="py-2 px-1 text-center font-mono text-blue-400 print:text-blue-600 text-sm font-bold"
+                                    data-type="total-teams-income">
+                                    ${{ data.total_cost_home + data.total_cost_away }}
+                                </td>
+                                <td class="print:hidden"></td>
                             </tr>
                             <!-- Profit Row -->
                             <tr
                                 class="bg-black/20 print:bg-gray-200 print:text-black border-t border-white/10 print:border-black">
-                                <td colspan="7" class="py-2 px-4 text-right uppercase text-xs tracking-wider">Ganancia
-                                    (Ingresos - Gastos):</td>
+                                <td colspan="8" class="py-2 px-4 text-right uppercase text-xs tracking-wider font-bold">
+                                    Ganancia Neta
+                                    (Ingresos - Árbitros):</td>
                                 <td class="py-2 px-1 text-center font-mono text-lg font-bold {{ 'text-green-400' if data.total_profit >= 0 else 'text-red-400' }} print:text-black"
                                     data-type="total-profit">
                                     ${{ data.total_profit }}
                                 </td>
+                                <td class="print:hidden"></td>
                             </tr>
                         </tfoot>
                     </table>
