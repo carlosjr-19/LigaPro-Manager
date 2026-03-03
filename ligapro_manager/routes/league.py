@@ -321,7 +321,9 @@ def edit_league(league_id):
             league.highlight_color = form.highlight_color.data
             league.report_date_color = form.report_date_color.data
             league.report_date_size = form.report_date_size.data
-        
+            league.custom_color_active = form.custom_color_active.data
+            league.custom_name_color = form.custom_name_color.data
+
         db.session.commit()
         flash('Liga actualizada.', 'success')
         return redirect(url_for('league.league_detail', league_id=league_id, _anchor='settings'))

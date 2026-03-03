@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda Global - {{ selected_date.strftime('%d/%m/%Y') }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/share_report.css') }}">
+</head>
+
+<body class="p-8 flex flex-col items-center justify-center min-h-screen bg-black">
+
+    <!-- Action Bar -->
+    <div class="mb-8 flex gap-4 no-print">
+        <a href="{{ url_for('report.global_schedule', date=selected_date) }}"
+            class="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-full font-bold transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Volver
+        </a>
+        <button onclick="downloadImages()"
+            class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-full font-bold transition-colors shadow-lg shadow-green-600/20">
+            <i class="fas fa-download mr-2"></i>Descargar {{ schedule|length }} Imágenes
+        </button>
+    </div>
+
+    <!-- Capture Wrapper -->
+    <div class="w-full max-w-full overflow-x-auto pb-8 flex flex-col items-center gap-12">
+        {% for court_name, data in schedule.items() %}
+        <!-- INDIVIDUAL MATCH BOARD (One per Court) -->
+        <div class="capture-target-court w-[800px] min-w-[800px] mx-auto bg-[#0f172a] rounded-xl border border-white/10 shadow-2xl relative overflow-hidden"
+            data-court="{{ court_name|replace(' ', '-')|lower }}">
+
+            <!-- Background Focus Lights -->
+            <div class="absolute top-0 right-0 w-96 h-96 bg-green-600/10 blur-[100px] rounded-full pointer-events-none">
+            </div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/10 blur-[80px] rounded-full pointer-events-none">
+            </div>
+
+            <!-- Header Panel -->
+            <div class="border-b border-white/5 p-6 flex items-center justify-between relative z-10"
+                style="{% if data.court_color and data.court_color != '#000000' %}background-color: {{ data.court_color }};{% else %}background-color: #1a2234;{% endif %}">
+                <div class="flex items-center gap-5">
+                    <div>
+                        <h1 class="text-3xl font-black uppercase tracking-wider text-white mb-1"
+                            style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">
+                            {{ court_name }}
+                        </h1>
+                        <p class="text-white/80 text-sm uppercase tracking-widest font-medium">REPORTE DE JUEGOS Y
+                            FINANZAS</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-mono font-bold text-white shadow-sm">{{ selected_date.strftime('%d/%m/%Y')
+                        }}</p>
+                    {% set days = {'Monday': 'LUNES', 'Tuesday': 'MARTES', 'Wednesday': 'MIÉRCOLES', 'Thursday':
+                    'JUEVES', 'Friday': 'VIERNES', 'Saturday': 'SÁBADO', 'Sunday': 'DOMINGO'} %}
+                    <p class="text-white/80 text-sm mt-1 uppercase tracking-widest font-bold font-mono">{{
+                        days[selected_date.strftime('%A')] }}</p>
+                </div>
+            </div>
+
+            <!-- Unified Table Layout (like PDF) -->
+            <div class="p-6 relative z-10">
+                <div class="overflow-hidden rounded-lg border border-white/10 bg-[#141d30]">
+                    <table class="w-full text-sm text-center border-collapse text-white">
+                        <thead>
+                            <tr
+                                class="bg-black/30 text-white/40 uppercase text-[11px] tracking-widest border-b border-white/10">
+                                <th class="py-3 px-2 font-bold w-12 text-center">#</th>
+                                <th class="py-3 px-2 font-bold w-24 text-center">HORA</th>
+                                <th class="py-3 px-2 font-bold text-left">LIGA / CATEGORÍA</th>
+                                <th class="py-3 px-2 font-bold text-right" style="width: 20%;">LOCAL</th>
+                                <th class="py-3 px-2 font-bold w-16 text-center text-white/30">$ LOC</th>
+                                <th class="py-3 px-2 font-bold w-12 text-center text-white/30">VS</th>
+                                <th class="py-3 px-2 font-bold w-16 text-center text-white/30">$ VIS</th>
+                                <th class="py-3 px-2 font-bold text-left" style="width: 20%;">VISITANTE</th>
+                                <th class="py-3 px-2 font-bold w-20 text-center text-white/80">$ ÁRB</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            {% for match in data.matches %}
+                            <tr class="hover:bg-white/5 transition-colors">
+                                <td class="py-3 px-2 text-center font-mono text-white/30 text-xs">{{ loop.index }}</td>
+                                <!-- Time -->
+                                <td
+                                    class="py-3 px-2 text-center font-mono font-bold whitespace-nowrap {% if match.id in conflicting_match_ids %}text-[#ff991f]{% else %}text-white/90{% endif %}">
+                                    {% if match.id in conflicting_match_ids %}<i
+                                        class="fas fa-exclamation-triangle mr-1 text-xs"></i>{% endif %}
+                                    {{ match.match_date.strftime('%I:%M %p') }}
+                                </td>
+                                <!-- League -->
+                                <td class="py-3 px-2 text-left uppercase text-[10px] tracking-wider font-bold" {% if
+                                    match.league.custom_color_active and match.league.custom_name_color
+                                    %}style="color: {{ match.league.custom_name_color }};" {% else
+                                    %}class="text-white/50" {% endif %}>
+                                    {{ match.league.name }}
+                                </td>
+                                <!-- Home Team -->
+                                <td class="py-3 px-2 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span class="font-bold text-white text-[13px] uppercase">{{ match.home_team.name
+                                            }}</span>
+                                        {% if match.league.show_team_logos and teams_dict[match.home_team_id].shield_url
+                                        %}
+                                        <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                            class="w-5 h-5 object-contain opacity-90">
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <!-- Home Cost -->
+                                <td class="py-3 px-2 text-center font-mono font-bold text-red-400 text-xs">
+                                    {{ match.referee_cost_home if match.referee_cost_home != '0' else '-' }}
+                                </td>
+                                <!-- Scores / VS -->
+                                <td
+                                    class="py-3 px-2 text-center whitespace-nowrap bg-black/20 text-white font-black text-sm">
+                                    {{ match.home_score if match.home_score is not none else '-' }} - {{
+                                    match.away_score if match.away_score is not none else '-' }}
+                                </td>
+                                <!-- Away Cost -->
+                                <td class="py-3 px-2 text-center font-mono font-bold text-red-400 text-xs">
+                                    {{ match.referee_cost_away if match.referee_cost_away != '0' else '-' }}
+                                </td>
+                                <!-- Away Team -->
+                                <td class="py-3 px-2 text-left">
+                                    <div class="flex items-center justify-start gap-2">
+                                        {% if match.league.show_team_logos and teams_dict[match.away_team_id].shield_url
+                                        %}
+                                        <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                            class="w-5 h-5 object-contain opacity-90">
+                                        {% endif %}
+                                        <span class="font-bold text-white text-[13px] uppercase">{{ match.away_team.name
+                                            }}</span>
+                                    </div>
+                                </td>
+                                <!-- Referee Cost (Total) -->
+                                <td class="py-3 px-2 text-center font-mono font-bold text-yellow-400 text-sm">
+                                    {{ match.referee_cost if match.referee_cost != '0' else '-' }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="border-t-2 border-white/10 bg-black/40">
+                            <!-- Totals Separated -->
+                            <tr>
+                                <td colspan="3"></td>
+                                <td
+                                    class="py-2 text-right font-bold text-[10px] text-white/50 uppercase tracking-widest pr-4">
+                                    TOTAL RECAUDADO P/EQUIPOS:</td>
+                                <td class="py-2 text-center font-mono font-bold text-green-400 text-sm">${{
+                                    data.total_cost_home }}</td>
+                                <td></td>
+                                <td class="py-2 text-center font-mono font-bold text-green-400 text-sm">${{
+                                    data.total_cost_away }}</td>
+                                <td
+                                    class="py-2 text-right font-bold text-[10px] text-white/50 uppercase tracking-widest pr-4">
+                                    TOTAL ÁRBITROS:</td>
+                                <td class="py-2 text-center font-mono font-black text-yellow-500 text-lg shadow-sm">${{
+                                    data.total_referee }}</td>
+                            </tr>
+                            <!-- Subtotals Combined -->
+                            <tr class="bg-black/20">
+                                <td colspan="5"></td>
+                                <td colspan="3"
+                                    class="py-2 text-right font-bold text-[10px] text-white/60 uppercase tracking-widest pr-4">
+                                    TOTAL EQUIPOS ($LOC + $VIS):
+                                </td>
+                                <td class="py-2 text-center font-mono font-bold text-green-400 text-sm">
+                                    ${{ data.total_cost_home + data.total_cost_away }}
+                                </td>
+                            </tr>
+                            <tr class="bg-black/20">
+                                <td colspan="5"></td>
+                                <td colspan="3"
+                                    class="py-2 text-right font-bold text-[10px] text-white/60 uppercase tracking-widest pr-4">
+                                    MENOS PAGO A ÁRBITROS:
+                                </td>
+                                <td class="py-2 text-center font-mono font-bold text-red-400 text-sm">
+                                    -${{ data.total_referee }}
+                                </td>
+                            </tr>
+                            <!-- Final Net Profit -->
+                            <tr>
+                                <td colspan="7"></td>
+                                <td
+                                    class="py-3 text-right font-bold text-[11px] text-white/80 uppercase tracking-widest pr-4 bg-white/5 border-t border-white/5 rounded-tl-lg">
+                                    GANANCIA NETA DEL DÍA:</td>
+                                <td
+                                    class="py-2 text-center font-mono font-black text-green-400 text-xl shadow-sm bg-white/5 border-t border-white/5 rounded-tr-lg">
+                                    ${{ data.total_profit }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Footer Signature -->
+                <div class="mt-6 text-center border-t border-white/5 pt-4">
+                    <p class="text-white/20 text-[10px] uppercase font-bold tracking-[0.2em]">POWERED BY LIGAPRO MANAGER
+                        | AGENDA FINANCIERA OFICIAL</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Script para Exportar Multiple Canvas -->
+    <script>
+        window.proxyImageUrl = "{{ url_for('league.proxy_image') }}";
+
+        async function downloadImages() {
+            const targets = document.querySelectorAll('.capture-target-court');
+            const btn = document.querySelector('button[onclick="downloadImages()"]');
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+            btn.disabled = true;
+
+            try {
+                // Preload all images in all targets sequentially to avoid overloading
+                for (const target of targets) {
+                    await preloadImages(target);
+                }
+
+                // Process each target board into a PNG
+                for (let i = 0; i < targets.length; i++) {
+                    const target = targets[i];
+                    const courtSafeName = target.getAttribute('data-court') || `cancha-${i + 1}`;
+
+                    const canvas = await html2canvas(target, {
+                        backgroundColor: '#0f172a',
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true
+                    });
+
+                    // Download the generated image immediately
+                    triggerDownload(canvas.toDataURL(), `agenda-${courtSafeName}-{{ selected_date.strftime('%Y-%m-%d') }}.png`);
+
+                    // Small delay to allow browser to handle multiple downloads safely without hanging
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i>¡Listo!';
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="fas fa-download mr-2"></i>Descargar {{ schedule|length }} Imágenes';
+                    btn.disabled = false;
+                }, 3000);
+
+            } catch (err) {
+                console.error(err);
+                alert('Error al generar las imágenes: ' + err.message);
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Error';
+                btn.disabled = false;
+            }
+        }
+
+        function triggerDownload(dataUrl, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        async function preloadImages(element) {
+            const images = element.querySelectorAll('img');
+            const promises = Array.from(images).map(img => {
+                if (img.src.startsWith('data:')) return Promise.resolve();
+
+                let fetchUrl = img.src;
+                if (img.src.startsWith('http') && !img.src.includes(window.location.origin)) {
+                    fetchUrl = window.proxyImageUrl + "?url=" + encodeURIComponent(img.src);
+                }
+
+                return fetch(fetchUrl)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network res not ok');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                img.src = reader.result;
+                                resolve();
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(blob);
+                        });
+                    })
+                    .catch(err => {
+                        console.warn('Could not load image Base64:', img.src, err);
+                        return Promise.resolve();
+                    });
+            });
+            await Promise.all(promises);
+        }
+    </script>
+</body>
+
+</html>

@@ -22,3 +22,5 @@ class LeagueForm(FlaskForm):
     highlight_color = StringField('Color de Resaltado', validators=[Optional(), Length(max=10)], default='#4ade80')
     report_date_color = StringField('Color de Fecha en Reporte', validators=[Optional(), Length(max=10)], default='#ffffff99')
     report_date_size = IntegerField('Tamaño de Fecha (px)', validators=[Optional(), NumberRange(min=12, max=20)], default=14)
+    custom_color_active = BooleanField('Color Personalizado para Nombre de Liga', default=False)
+    custom_name_color = StringField('Color del Nombre de Liga', validators=[Optional(), Length(max=10)], default='#ffffff')

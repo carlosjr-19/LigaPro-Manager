@@ -1,5 +1,21 @@
-## 0.9.8.4
+## 0.9.9.0
 
+Lanzamiento de Configuración Global de Reportes y Personalización de Colores.
+
+- **Configuración Global de Reportes**: Nuevo panel exclusivo para dueños (`/report/settings`) que permite centralizar y definir el color representativo de cada cancha. Las canchas homónimas en distintas ligas heredarán automáticamente esta configuración para mantener consistencia institucional.
+- **Exportación de Agenda a Imágenes (PNG)**: Nuevo formato de descarga visual. Al agrupar los partidos del día en la Agenda Global, ahora existe un botón para descargar *porciones independientes* de la sábana de partidos (separadas por cancha) en formato de imagen HD, ideal para compartir por redes sociales o WhatsApp con los administradores de los predios.
+- **Personalización de Ligas**: Se habilitó la opción de que cada Liga tenga un color de texto particular para su nombre. Este color se reflejará en el Dashboard, Tablas, Agenda Global y en la propia impresión a PDF o exportación a PNG.
+- **Colorización de Exportaciones Analíticas**: La exportación nativa a **Excel (.xlsx)** y a **PDF (Impresión web)** de la "Agenda Global" ahora absorben los mismos colores globales que configures para tus canchas y ligas.
+- **Remodelación Arquitectónica**: Eliminación de scripts remanentes de migraciones pre-automatizadas (`alter_db_leagues.py`, etc.) ya que `bootstrap.py` ahora resuelve dinámicamente la construcción de tablas (incluyendo el nuevo modelo `OwnerCourtSetting`) en los despliegues a la nube (Railway).
+
+## Modificado
+* models/owner_settings.py (NUEVO), models/__init__.py
+* routes/report.py, ligapro_manager.py
+* templates/report/*.html (settings, global_schedule, share_global_schedule)
+* templates/league_detail.html
+* templates/report.html
+
+## 0.9.8.4
 Autocompletado de precios y ajustes en Reporte de Finanzas.
 
 - **Autollenar Agenda Global**: Se añadió un nuevo interruptor en la configuración de precios por liga. Si está activado, los partidos nuevos generados (ya sea manuales o por liguilla) heredan automáticamente el costo de arbitraje definido para la liga, marcándose como pagados en la Agenda Global. También aplica al asignar fechas a partidos que previamente tenían costo cero.
