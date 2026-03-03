@@ -1,6 +1,20 @@
-## 0.9.9.0
+## 0.9.9.1
 
-Lanzamiento de Configuración Global de Reportes y Personalización de Colores.
+Mejoras avanzadas en los Reportes Financieros y exportaciones.
+
+- **Filtro por Rango de Fechas**: Se adaptó el panel general de configuración (`/report/settings`) para que el dueño elija su formato favorito de consulta (Por Mes o Por Fechas). La Tarjeta de Ganancias Netas y los reportes de Exportación modificarán sus encabezados respetando el rango elegido por el usuario (Desde X, Hasta Y). Las validaciones de bases de datos ahora procesan con precisión ambas consultas cruzadas.
+- **Exportación en PNG**: Se inyectó e iteró la librería visual `html2canvas` para habilitar el botón "PNG". Este botón descarga instantáneamente una captura fotográfica exacta y nítida ($resolución x2$) de todos los elementos visuales que componen el reporte con su propio color nativo sin afectar el ancho ni las proporciones al hacer scroll en el navegador. 
+- **Filtro de Canchas**: Se agregó en la cabecera un nuevo selector en tiempo real que captura inteligentemente la base de datos de los complejos pre-asignados del Dueño. Permite desglosar las variables aislando una Cancha del total (o "Sin Cancha"), recabando sus datos limpios al consultar en el navegador, en Excel y en el botón PNG.
+- **Optimización de Interfaz y Totales**: Se ajustó la estética móvil usando librerías nativas `.flex-col` para alinear limpiamente las dos columnas de inputs `Desde` y `Hasta`. Además se integraron nuevas sumatorias totales de las columnas individuales de Ingresos (+), y Egresos (-) para complementar el gran total de Ganancia.
+- **Estabilidad de Nombres**: Se unificaron los sufijos automáticos en backend (`filename_suffix`) previniendo excepciones Python ("UnboundLocalError") durante los flujos de impresión con variables incompletas.
+
+## Modificado
+* models/user.py
+* routes/report.py, ligapro_manager.py
+* templates/report/settings.html
+* templates/report/financials.html
+
+## 0.9.9.0
 
 - **Configuración Global de Reportes**: Nuevo panel exclusivo para dueños (`/report/settings`) que permite centralizar y definir el color representativo de cada cancha. Las canchas homónimas en distintas ligas heredarán automáticamente esta configuración para mantener consistencia institucional.
 - **Exportación de Agenda a Imágenes (PNG)**: Nuevo formato de descarga visual. Al agrupar los partidos del día en la Agenda Global, ahora existe un botón para descargar *porciones independientes* de la sábana de partidos (separadas por cancha) en formato de imagen HD, ideal para compartir por redes sociales o WhatsApp con los administradores de los predios.

@@ -40,6 +40,22 @@
         <div class="mb-8 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 print:hidden">
             <form method="GET"
                 class="flex flex-wrap justify-center gap-2 md:gap-4 items-center bg-gray-800 p-2 rounded-lg border border-white/10">
+                {% if report_type == 'date_range' %}
+                <div class="flex flex-col gap-3 w-full md:w-auto md:flex-row md:items-center">
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label
+                            class="text-white/60 text-sm font-bold w-14 text-right md:w-auto md:text-left">Desde:</label>
+                        <input type="date" name="date_from" value="{{ date_from }}"
+                            class="flex-1 md:flex-none bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
+                    </div>
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <label
+                            class="text-white/60 text-sm font-bold w-14 text-right md:w-auto md:text-left">Hasta:</label>
+                        <input type="date" name="date_to" value="{{ date_to }}"
+                            class="flex-1 md:flex-none bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
+                    </div>
+                </div>
+                {% else %}
                 <label class="text-white/60 text-sm font-bold md:ml-2">Periodo:</label>
                 <select name="month"
                     class="flex-1 md:flex-none bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
@@ -53,37 +69,72 @@
                     <option value="{{ y }}" {% if selected_year==y %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
                 </select>
+                {% endif %}
+                <!-- Cancha Selector -->
+                <select name="cancha"
+                    class="w-full md:w-auto bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
+                    <option value="">Todas las canchas</option>
+                    {% for cancha in court_names %}
+                    <option value="{{ cancha }}" {% if selected_cancha==cancha %}selected{% endif %}>{{ cancha }}
+                    </option>
+                    {% endfor %}
+                    <option value="Sin Cancha" {% if selected_cancha=="Sin Cancha" %}selected{% endif %}>Sin Cancha
+                    </option>
+                </select>
+
                 <button type="submit"
                     class="w-full md:w-auto mt-2 md:mt-0 bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded transition-colors text-center">
                     <i class="fas fa-search"></i> Buscar
                 </button>
             </form>
 
-            <div class="flex gap-2 md:gap-4 w-full md:w-auto">
+            <div class="flex flex-wrap justify-center gap-2 w-full md:w-auto">
                 <button onclick="triggerMobilePrint()" type="button"
-                    class="flex-1 justify-center bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
+                    class="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded border border-white/20 transition-colors flex items-center text-sm">
                     <i class="fas fa-print mr-2"></i>Imprimir
                 </button>
-                <a href="{{ url_for('report.export_global_financials', month=selected_month, year=selected_year) }}"
-                    class="flex-1 justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
+                <button onclick="downloadPNG()" type="button"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded border border-blue-400 transition-colors flex items-center text-sm shadow">
+                    <i class="fas fa-image mr-2"></i>PNG
+                </button>
+                {% if report_type == 'date_range' %}
+                <a href="{{ url_for('report.export_global_financials', date_from=date_from, date_to=date_to, cancha=selected_cancha) }}"
+                    class="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded border border-green-500 transition-colors flex items-center text-sm shadow">
                     <i class="fas fa-file-excel mr-2"></i>Excel
                 </a>
+                {% else %}
+                <a href="{{ url_for('report.export_global_financials', month=selected_month, year=selected_year, cancha=selected_cancha) }}"
+                    class="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded border border-green-500 transition-colors flex items-center text-sm shadow">
+                    <i class="fas fa-file-excel mr-2"></i>Excel
+                </a>
+                {% endif %}
             </div>
         </div>
 
         <!-- Print Header -->
         <div class="hidden print:block text-center mb-8 border-b-2 border-black pb-4 text-black">
             <h1 class="text-3xl font-black">REPORTE FINANCIERO MENSUAL</h1>
+            {% if report_type == 'date_range' %}
+            <p class="text-lg">Desde: {{ date_from }} / Hasta: {{ date_to }}</p>
+            {% else %}
             <p class="text-lg">Mes: {{ selected_month }} / Año: {{ selected_year }}</p>
+            {% endif %}
         </div>
 
         <!-- Dashboard Card -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 print:hidden">
             <div class="bg-gray-800 border border-white/10 rounded-xl p-6 shadow-xl flex items-center justify-between">
                 <div>
+                    {% if report_type == 'date_range' %}
+                    <p class="text-white/40 text-sm font-bold uppercase tracking-wider leading-tight max-w-[200px]">
+                        GANANCIAS NETAS DEL PERIODO <br> desde <span class="text-white/80">{{ date_from }}</span> hasta
+                        <span class="text-white/80">{{ date_to }}</span>
+                    </p>
+                    {% else %}
                     <p class="text-white/40 text-sm font-bold uppercase tracking-wider">Ganancia Neta del Mes</p>
+                    {% endif %}
                     <h2
-                        class="text-3xl font-bold {{ 'text-green-400' if total_month_profit >= 0 else 'text-red-400' }}">
+                        class="text-3xl font-bold {{ 'text-green-400' if total_month_profit >= 0 else 'text-red-400' }} mt-2">
                         ${{ total_month_profit }}
                     </h2>
                 </div>
@@ -141,9 +192,15 @@
                         {% endfor %}
                         <!-- Daily Total Row -->
                         <tr class="bg-white/5 font-bold border-b border-white/10 print:bg-gray-100 print:border-black">
-                            <td colspan="4"
+                            <td colspan="2"
                                 class="py-2 px-6 text-right text-xs uppercase tracking-wider text-white/50 print:text-black">
                                 Total Día:</td>
+                            <td class="py-2 px-6 text-right font-mono text-blue-400 print:text-black">${{
+                                day.daily_income
+                                }}</td>
+                            <td class="py-2 px-6 text-right font-mono text-red-400 print:text-black">${{
+                                day.daily_expense
+                                }}</td>
                             <td class="py-2 px-6 text-right font-mono text-white print:text-black">${{ day.daily_total
                                 }}</td>
                         </tr>
@@ -177,7 +234,7 @@
 
             const opt = {
                 margin: 0.2,
-                filename: 'finanzas_{{ selected_month }}_{{ selected_year }}.pdf',
+                filename: 'finanzas_{{ filename_suffix }}.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, backgroundColor: '#111827' },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
@@ -200,5 +257,74 @@
             window.print();
         }
     }
+
+    function downloadPNG() {
+        if (typeof html2canvas === 'undefined') {
+            alert('Cargando librería de captura, intenta de nuevo en un segundo.');
+            return;
+        }
+        const btn = document.querySelector('button[onclick="downloadPNG()"]');
+        const oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+        btn.disabled = true;
+
+        const element = document.querySelector('main');
+
+        // Prevent scroll clipping by scrolling to top
+        const currentScrollY = window.scrollY;
+        window.scrollTo(0, 0);
+
+        // Avoid flex/auto-margin text shifting and wrapping during capture
+        const originalBg = element.style.background;
+        const originalWidth = element.style.width;
+        const originalMaxWidth = element.style.maxWidth;
+        const originalMargin = element.style.margin;
+        const rect = element.getBoundingClientRect();
+
+        element.style.background = '#111827'; // match text colors perfectly
+        element.style.width = rect.width + 'px';
+        element.style.maxWidth = 'none';
+        element.style.margin = '0';
+        element.classList.remove('mx-auto');
+
+        const opt = {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#111827',
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: document.documentElement.offsetWidth,
+            windowHeight: document.documentElement.offsetHeight
+        };
+
+        html2canvas(element, opt).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `finanzas_{{ filename_suffix }}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            // Restore
+            btn.innerHTML = oldHtml;
+            btn.disabled = false;
+            window.scrollTo(0, currentScrollY);
+            element.style.background = originalBg;
+            element.style.width = originalWidth;
+            element.style.maxWidth = originalMaxWidth;
+            element.style.margin = originalMargin;
+            element.classList.add('mx-auto');
+        }).catch(err => {
+            console.error("PNG generation failed", err);
+            btn.innerHTML = oldHtml;
+            btn.disabled = false;
+            window.scrollTo(0, currentScrollY);
+            element.style.background = originalBg;
+            element.style.width = originalWidth;
+            element.style.maxWidth = originalMaxWidth;
+            element.style.margin = originalMargin;
+            element.classList.add('mx-auto');
+            alert("Error al generar imagen");
+        });
+    }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 {% endblock %}
