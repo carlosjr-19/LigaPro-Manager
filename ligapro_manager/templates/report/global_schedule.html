@@ -39,7 +39,13 @@
                     onchange="this.form.submit()"
                     class="w-full sm:w-auto bg-white/10 border border-white/20 rounded px-4 py-2 text-white focus:outline-none focus:border-purple-500">
 
-                <div class="flex gap-2 md:gap-4 w-full sm:w-auto">
+                <div class="flex flex-wrap gap-2 md:gap-4 w-full sm:w-auto">
+                    <a href="{{ url_for('report.share_global_schedule', date=selected_date.strftime('%Y-%m-%d')) }}"
+                        target="_blank" title="Generar Imágenes"
+                        class="flex-none justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
+                        <i class="fas fa-image"></i>
+                    </a>
+
                     <button type="button" onclick="triggerMobilePrint()"
                         class="flex-1 sm:flex-none justify-center bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
                         <i class="fas fa-print mr-2"></i>Imprimir
@@ -77,8 +83,8 @@
             {% for court_name, data in schedule.items() %}
             <div class="break-inside-avoid {% if not loop.first %}print:break-before-page{% endif %}">
                 <!-- Court Header -->
-                <div
-                    class="bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 text-center font-bold text-xl uppercase tracking-wider print:bg-none print:bg-gray-200 print:text-black print:border-y-2 print:border-black">
+                <div class="py-2 px-4 text-center font-bold text-xl uppercase tracking-wider text-white print:border-y-2 print:border-black"
+                    style="{% if data.court_color and data.court_color != '#000000' %}background-color: {{ data.court_color }};{% else %}background: linear-gradient(to right, #16a34a, #15803d);{% endif %} -webkit-print-color-adjust: exact; print-color-adjust: exact;">
                     CANCHA: {{ court_name }}
                 </div>
 
@@ -111,12 +117,23 @@
                                     class="py-1 px-1 text-center font-mono text-white/40 print:text-black/40 text-[10px] md:text-xs">
                                     {{ loop.index }}
                                 </td>
-                                <td
-                                    class="py-1 px-2 md:px-4 text-center font-mono font-bold text-white/80 print:text-black whitespace-nowrap">
+                                <td class="py-1 px-2 md:px-4 text-center font-mono font-bold whitespace-nowrap
+                                    {% if match.id in conflicting_match_ids %}
+                                        print:text-black animate-pulse
+                                    {% else %}
+                                        text-white/80 print:text-black
+                                    {% endif %}" {% if match.id in conflicting_match_ids %}style="color: #ff991f;"
+                                    title="⛔ Choque de Horario" {% endif %}>
+                                    {% if match.id in conflicting_match_ids %}
+                                    <i class="fas fa-exclamation-triangle mr-1 print:hidden"
+                                        style="color: #ff991f;"></i>
+                                    {% endif %}
                                     {{ match.match_date.strftime('%I:%M %p') }}
                                 </td>
-                                <td
-                                    class="py-1 px-2 md:px-4 text-white/60 print:text-black uppercase text-[10px] md:text-xs tracking-wide">
+                                <td class="py-1 px-2 md:px-4 uppercase text-[10px] md:text-xs tracking-wide font-bold {% if not (match.league.custom_color_active and match.league.custom_name_color) %}print:text-black text-white/60{% endif %}"
+                                    {% if match.league.custom_color_active and match.league.custom_name_color %}
+                                    style="color: {{ match.league.custom_name_color }} !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;"
+                                    {% endif %}>
                                     {{ match.league.name }}
                                 </td>
                                 <td

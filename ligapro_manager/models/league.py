@@ -40,6 +40,8 @@ class League(db.Model):
     highlight_color = db.Column(db.String(10), default='#4ade80') # Tailwind green-400
     report_date_color = db.Column(db.String(10), default='#ffffff99') # White with opacity
     report_date_size = db.Column(db.Integer, default=14) # Default size in px
+    custom_color_active = db.Column(db.Boolean, default=False) # Switch for custom name color
+    custom_name_color = db.Column(db.String(10), default='#ffffff') # Color for league name in reports
 
     @property
     def active_teams_count(self):

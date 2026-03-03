@@ -5,3 +5,4 @@ from .player import Player
 from .court import Court
 from .match import Match
 from .stats import SeasonStat
+from .owner_settings import OwnerCourtSetting

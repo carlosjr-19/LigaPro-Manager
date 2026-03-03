@@ -77,7 +77,8 @@
                         </div>
                         {% endif %}
                         <div>
-                            <h3 class="text-xl font-bold">{{ league.name }}</h3>
+                            <h3 class="text-xl font-bold" {% if league.custom_color_active and league.custom_name_color
+                                %}style="color: {{ league.custom_name_color }}" {% endif %}>{{ league.name }}</h3>
                             <p class="text-white/60 text-sm">{{ league.active_teams_count }} / {{ league.max_teams }}
                                 equipos</p>
                         </div>

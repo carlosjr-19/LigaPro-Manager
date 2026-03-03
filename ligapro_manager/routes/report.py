@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
-from models import Match, League, Court, Team
+from models import Match, League, Court, Team, OwnerCourtSetting
 from extensions import db
 from sqlalchemy import func
 from datetime import datetime
@@ -47,21 +47,28 @@ def global_schedule():
     # Group by Court Name (String Select)
     grouped_schedule = {}
     
+    # Pre-load owner settings to avoid N+1 queries
+    owner_settings = OwnerCourtSetting.query.filter_by(user_id=current_user.id).all()
+    owner_colors = {s.court_name: s.color for s in owner_settings}
+    
     for match in matches:
         # Determine Court Name
         if match.court:
             court_name = match.court.name
+            # Si hay configuración guardada del Dueño, toma esa. Si no, toma la por defecto.
+            court_color = owner_colors.get(court_name, match.court.color)
         else:
             court_name = "Sin Cancha Asignada"
+            court_color = None
             
         if court_name not in grouped_schedule:
             grouped_schedule[court_name] = {
                 'matches': [],
-                'matches': [],
                 'total_cost_home': 0,
                 'total_cost_away': 0,
                 'total_referee': 0,
-                'total_profit': 0
+                'total_profit': 0,
+                'court_color': court_color
             }
         
         # Helper to convert to int safely
@@ -81,12 +88,119 @@ def global_schedule():
         grouped_schedule[court_name]['total_referee'] += exp_ref
         grouped_schedule[court_name]['total_profit'] += ((vis_home + vis_away) - exp_ref)
 
+    # Detect conflicts (same date+time in same court)
+    conflicting_match_ids = set()
+    for court_name, data in grouped_schedule.items():
+        time_counts = {}
+        for match in data['matches']:
+            if not match.match_date: continue
+            time_counts[match.match_date] = time_counts.get(match.match_date, 0) + 1
+            
+        for match in data['matches']:
+            if match.match_date and time_counts[match.match_date] > 1:
+                conflicting_match_ids.add(match.id)
+
     # Sort groups by name (optional)
     sorted_schedule = dict(sorted(grouped_schedule.items()))
 
     return render_template('report/global_schedule.html', 
                          schedule=sorted_schedule, 
-                         selected_date=selected_date)
+                         selected_date=selected_date,
+                         conflicting_match_ids=conflicting_match_ids)
+
+@report_bp.route('/global-schedule/share')
+@login_required
+def share_global_schedule():
+    # Ultra Premium Check
+    if not getattr(current_user, 'is_ultra', False):
+        flash('No tienes acceso a esta funcionalidad (Ultra Premium).', 'warning')
+        return redirect(url_for('report.index'))
+
+    # Date Parameter
+    date_str = request.args.get('date')
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = datetime.now().date()
+    else:
+        selected_date = datetime.now().date()
+
+    # Query Matches for ALL leagues owned by current_user on selected_date
+    matches = Match.query.join(League).filter(
+        League.user_id == current_user.id,
+        func.date(Match.match_date) == selected_date
+    ).order_by(Match.match_date).all()
+
+    # Group by Court Name (String Select)
+    grouped_schedule = {}
+    
+    owner_settings = OwnerCourtSetting.query.filter_by(user_id=current_user.id).all()
+    owner_colors = {s.court_name: s.color for s in owner_settings}
+
+    for match in matches:
+        if match.court:
+            court_name = match.court.name
+            court_color = owner_colors.get(court_name, match.court.color)
+        else:
+            court_name = "Sin Cancha Asignada"
+            court_color = None
+            
+        if court_name not in grouped_schedule:
+            grouped_schedule[court_name] = {
+                'matches': [],
+                'total_cost_home': 0,
+                'total_cost_away': 0,
+                'total_referee': 0,
+                'total_profit': 0,
+                'court_color': court_color
+            }
+        
+        # Helper to convert to int safely
+        def safe_int(val):
+            try:
+                return int(val)
+            except (ValueError, TypeError):
+                return 0
+
+        grouped_schedule[court_name]['matches'].append(match)
+        vis_home = safe_int(match.referee_cost_home)
+        vis_away = safe_int(match.referee_cost_away)
+        exp_ref = safe_int(match.referee_cost)
+        
+        grouped_schedule[court_name]['total_cost_home'] += vis_home
+        grouped_schedule[court_name]['total_cost_away'] += vis_away
+        grouped_schedule[court_name]['total_referee'] += exp_ref
+        grouped_schedule[court_name]['total_profit'] += ((vis_home + vis_away) - exp_ref)
+
+    # Detect conflicts
+    conflicting_match_ids = set()
+    for court_name, data in grouped_schedule.items():
+        time_counts = {}
+        for match in data['matches']:
+            if not match.match_date: continue
+            time_counts[match.match_date] = time_counts.get(match.match_date, 0) + 1
+            
+        for match in data['matches']:
+            if match.match_date and time_counts[match.match_date] > 1:
+                conflicting_match_ids.add(match.id)
+
+    sorted_schedule = dict(sorted(grouped_schedule.items()))
+
+    # Build teams dict for easy shield retrieval in template (optional, but good for aesthetics)
+    teams_dict = {}
+    for match in matches:
+        if match.home_team_id not in teams_dict:
+            teams_dict[match.home_team_id] = Team.query.get(match.home_team_id)
+        if match.away_team_id not in teams_dict:
+            teams_dict[match.away_team_id] = Team.query.get(match.away_team_id)
+
+    return render_template('report/share_global_schedule.html', 
+                         schedule=sorted_schedule, 
+                         selected_date=selected_date,
+                         conflicting_match_ids=conflicting_match_ids,
+                         teams_dict=teams_dict,
+                         today=datetime.now().strftime('%d/%m/%Y'))
 
 @report_bp.route('/api/match/update_costs', methods=['POST'])
 @login_required
@@ -304,6 +418,9 @@ def export_global_schedule():
     
     sorted_schedule = dict(sorted(grouped_schedule.items()))
 
+    # Fetch Owner Court Settings
+    owner_settings = {setting.court_name: setting.color for setting in OwnerCourtSetting.query.filter_by(user_id=current_user.id).all()}
+
     # Create Excel
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -312,7 +429,7 @@ def export_global_schedule():
     # Title
     ws['A1'] = f"AGENDA DE PARTIDOS - {selected_date.strftime('%d/%m/%Y')}"
     ws['A1'].font = Font(size=14, bold=True)
-    ws.merge_cells('A1:H1')
+    ws.merge_cells('A1:I1')
     ws['A1'].alignment = Alignment(horizontal='center')
     
     current_row = 3
@@ -331,8 +448,15 @@ def export_global_schedule():
         # Court Header
         ws.cell(row=current_row, column=1, value=f"CANCHA: {court_name}")
         ws.cell(row=current_row, column=1).font = Font(bold=True, size=12, color="FFFFFF")
-        ws.cell(row=current_row, column=1).fill = PatternFill(start_color="2F855A", end_color="2F855A", fill_type="solid") # Green
-        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=8)
+        
+        court_color_hex = "2F855A" # Default green
+        if court_name in owner_settings:
+            raw_color = owner_settings[court_name]
+            if raw_color and raw_color.startswith('#'):
+                court_color_hex = raw_color[1:].upper()
+                
+        ws.cell(row=current_row, column=1).fill = PatternFill(start_color=court_color_hex, end_color=court_color_hex, fill_type="solid")
+        ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=9)
         current_row += 1
         
         # Table Headers
@@ -352,7 +476,12 @@ def export_global_schedule():
         for match in matches:
             ws.cell(row=current_row, column=1, value=match_index).alignment = Alignment(horizontal='center')
             ws.cell(row=current_row, column=2, value=match.match_date.strftime('%I:%M %p'))
-            ws.cell(row=current_row, column=3, value=match.league.name)
+            
+            league_cell = ws.cell(row=current_row, column=3, value=match.league.name)
+            if match.league.custom_color_active and match.league.custom_name_color:
+                league_color_hex = match.league.custom_name_color.lstrip('#').upper()
+                league_cell.font = Font(bold=True, color=league_color_hex)
+                
             ws.cell(row=current_row, column=4, value=match.home_team.name).alignment = Alignment(horizontal='right')
             
             c_home = parse_cost(match.referee_cost_home)
@@ -763,3 +892,40 @@ def export_global_financials():
     
     filename = f"Finanzas_{month}_{year}.xlsx"
     return send_file(output, download_name=filename, as_attachment=True)
+
+@report_bp.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if current_user.role not in ['owner', 'admin']:
+        flash('No tienes permiso para acceder a esta sección.', 'danger')
+        return redirect(url_for('report.index'))
+
+    # Obtener todas las canchas únicas de todas las ligas del owner
+    leagues = current_user.leagues
+    court_names = set()
+    for league in leagues:
+        for court in league.courts:
+            if court.name:
+                court_names.add(court.name.strip())
+
+    court_names = sorted(list(court_names))
+
+    if request.method == 'POST':
+        for court_name in court_names:
+            color = request.form.get(f'color_{court_name}')
+            if color:
+                setting = OwnerCourtSetting.query.filter_by(user_id=current_user.id, court_name=court_name).first()
+                if not setting:
+                    setting = OwnerCourtSetting(user_id=current_user.id, court_name=court_name)
+                    db.session.add(setting)
+                setting.color = color
+        
+        db.session.commit()
+        flash('Configuraciones generales de reportes guardadas con éxito.', 'success')
+        return redirect(url_for('report.index'))
+
+    # Cargar configuraciones existentes
+    existing_settings = OwnerCourtSetting.query.filter_by(user_id=current_user.id).all()
+    court_colors = {s.court_name: s.color for s in existing_settings}
+
+    return render_template('report/settings.html', court_names=court_names, court_colors=court_colors)
