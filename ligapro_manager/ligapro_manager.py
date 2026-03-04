@@ -45,7 +45,9 @@ def create_app(config_class=Config):
                 
         return {
             'stripe_public_key': app.config.get('STRIPE_PUBLIC_KEY'),
-            'app_version': app_version
+            'app_version': app_version,
+            'cloudinary_cloud_name': app.config.get('CLOUDINARY_CLOUD_NAME'),
+            'cloudinary_upload_preset': app.config.get('CLOUDINARY_UPLOAD_PRESET')
         }
 
     return app

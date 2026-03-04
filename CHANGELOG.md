@@ -1,6 +1,20 @@
-## 0.9.9.2
+## 0.9.9.3
 
-Mejoras en el módulo de equipos y emisión de credenciales (registros).
+Integración nativa con Cloudinary para subida y almacenamiento de imágenes desde dispositivos móviles y web.
+
+- **Cámara Directa**: Se inyectó la librería y flujo de Cloudinary permitiendo a capitanes y administradores subir fotos de jugadores, escudos de equipos y logos de ligas usando directamente la cámara de su teléfono móvil o seleccionando archivos locales.
+- **Seguridad Backend**: Implementación de inyección de variables de entorno seguras (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_UPLOAD_PRESET`) en el motor de renderizado de Flask sin exponer dependencias ni originar brechas en el respositorio.
+- **Ajustes Visuales Premium**: Expandida la zona de *Personalización Visual* dentro de Ligas Premium para incluir subidas directas del Logo.
+
+## Modificado
+* `ligapro_manager/config.py`
+* `ligapro_manager/ligapro_manager.py` (context processor)
+* `ligapro_manager/templates/player_form.html`
+* `ligapro_manager/templates/team_form.html`
+* `ligapro_manager/templates/league_form.html`
+* `ligapro_manager/templates/league_detail.html`
+
+## 0.9.9.2
 
 - **Frase Personalizada en Credenciales**: Se añadió la posibilidad de incluir un eslogan o frase personalizada en la base de la tarjeta de jugador al imprimirse. Si se configura, la foto se adapta orgánicamente y el nombre de la liga incrementa su visibilidad.
 - **Formato Oficial PVC**: Se reajustaron las medidas base de las credenciales, unificándolas globalmente a las dimensiones estándar CR80 (8.6cm x 5.4cm) para ser impresas directamente sobre tarjetas plásticas.
