@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Financiero - {{ header_title }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/share_report.css') }}">
+</head>
+
+<body class="bg-black flex flex-col min-h-screen">
+
+    <!-- Action Bar -->
+    <div
+        class="w-full pt-6 pb-4 mb-4 flex flex-wrap justify-center gap-3 px-4 no-print flex-shrink-0 border-b border-white/10 bg-[#0a0f1c]">
+        <a href="{{ url_for('report.global_schedule_financials') }}"
+            class="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded-full font-bold transition-colors text-sm md:text-base shadow">
+            <i class="fas fa-arrow-left mr-2"></i>Volver
+        </a>
+        <button onclick="downloadImage()"
+            class="bg-green-600 hover:bg-green-500 text-white px-5 py-2 rounded-full font-bold transition-colors shadow-lg shadow-green-600/20 text-sm md:text-base">
+            <i class="fas fa-download mr-2"></i>Descargar Imagen
+        </button>
+    </div>
+
+    <!-- Capture Target Wrapper (Responsivo) -->
+    <div class="w-full overflow-x-auto p-4 md:p-8 flex-1">
+        <!-- Capture Target -->
+        <div id="capture-financials"
+            class="w-[900px] min-w-[900px] mx-auto bg-[#0f172a] rounded-xl border border-white/10 shadow-2xl relative overflow-hidden mb-8">
+
+            <!-- Background Focus Lights -->
+            <div class="absolute top-0 right-0 w-96 h-96 bg-green-600/10 blur-[100px] rounded-full pointer-events-none">
+            </div>
+            <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/10 blur-[80px] rounded-full pointer-events-none">
+            </div>
+
+            <!-- Header Panel -->
+            <div class="border-b border-white/5 p-8 flex items-center justify-between relative z-10"
+                style="background-color: #1a2234;">
+                <div class="flex items-center gap-5">
+                    <div>
+                        <h1 class="text-3xl font-black uppercase tracking-wider text-green-400 mb-1"
+                            style="text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);">
+                            REPORTE FINANCIERO
+                        </h1>
+                        <p class="text-white/80 text-sm uppercase tracking-widest font-medium">LIGA PRO MANAGER</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-2xl font-mono font-bold text-white shadow-sm">{{ header_title }}</p>
+                    <p class="text-white/50 text-xs mt-1 uppercase tracking-widest font-bold font-mono">
+                        {% if cancha_name %}{{ cancha_name }}{% else %}TODAS LAS CANCHAS{% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Dashboard Cards -->
+            <div class="p-6 relative z-10 grid grid-cols-3 gap-6">
+                <!-- Ingresos -->
+                <div class="bg-black/40 border border-white/5 rounded-xl p-5 flex flex-col items-center text-center">
+                    <p class="text-white/40 text-[11px] font-bold uppercase tracking-widest mb-1"><i
+                            class="fas fa-arrow-trend-up text-blue-400 mr-1"></i> INGRESOS TOTALES</p>
+                    <p class="text-3xl font-mono font-bold text-blue-400">${{ total_income }}</p>
+                </div>
+
+                <!-- Egresos -->
+                <div class="bg-black/40 border border-white/5 rounded-xl p-5 flex flex-col items-center text-center">
+                    <p class="text-white/40 text-[11px] font-bold uppercase tracking-widest mb-1"><i
+                            class="fas fa-arrow-trend-down text-red-400 mr-1"></i> EGRESOS (ÁRBITROS)</p>
+                    <p class="text-3xl font-mono font-bold text-red-400">${{ total_expense }}</p>
+                </div>
+
+                <!-- Ganancia -->
+                <div
+                    class="bg-black/40 border border-white/5 rounded-xl p-5 flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-green-500/5 z-0"></div>
+                    <p class="text-white/60 text-[11px] font-bold uppercase tracking-widest mb-1 relative z-10"><i
+                            class="fas fa-sack-dollar text-green-400 mr-1"></i> GANANCIA NETA</p>
+                    <p class="text-4xl font-mono font-black {{ 'text-green-400' if total_profit >= 0 else 'text-red-400' }} relative z-10"
+                        style="text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);">${{ total_profit }}</p>
+                </div>
+            </div>
+
+            <!-- Details Table -->
+            <div class="p-6 pt-0 relative z-10">
+                {% if not financial_data %}
+                <div class="p-12 text-center text-white/40 bg-black/20 rounded-lg border border-white/5">
+                    <i class="fas fa-folder-open text-4xl mb-4 opacity-50"></i>
+                    <p>No hay registros para este periodo.</p>
+                </div>
+                {% else %}
+                <div class="overflow-hidden rounded-lg border border-white/10 bg-[#141d30]">
+                    <table class="w-full text-sm text-center border-collapse text-white">
+                        <thead>
+                            <tr
+                                class="bg-black/40 text-white/40 uppercase text-[11px] tracking-widest border-b border-white/10">
+                                <th class="py-3 px-4 font-bold text-left">FECHA</th>
+                                <th class="py-3 px-4 font-bold text-left">CANCHA</th>
+                                <th class="py-3 px-4 font-bold text-center text-blue-400">INGRESOS (+)</th>
+                                <th class="py-3 px-4 font-bold text-center text-red-400">EGRESOS (-)</th>
+                                <th class="py-3 px-4 font-bold text-center text-white/80">GANANCIA (=)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            {% for day in financial_data %}
+                            {% for court, stats in day.courts.items() %}
+                            <tr class="hover:bg-white/5 transition-colors text-xs">
+                                <td class="py-3 px-4 text-left font-mono text-white/60 font-bold whitespace-nowrap">
+                                    {{ day.date_obj.strftime('%d/%m/%Y') }}
+                                </td>
+                                <td class="py-3 px-4 text-left font-bold uppercase tracking-wider text-white/90">
+                                    {{ court }}
+                                </td>
+                                <td class="py-3 px-4 text-center font-mono font-bold text-blue-300">
+                                    ${{ stats.income }}
+                                </td>
+                                <td class="py-3 px-4 text-center font-mono font-bold text-red-300">
+                                    ${{ stats.expense }}
+                                </td>
+                                <td
+                                    class="py-3 px-4 text-center font-mono font-bold {{ 'text-green-400' if stats.profit >= 0 else 'text-red-400' }}">
+                                    ${{ stats.profit }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                            <!-- Daily Subtotal -->
+                            <tr class="bg-black/20">
+                                <td colspan="2"
+                                    class="py-2 px-4 text-right text-[10px] font-bold uppercase tracking-widest text-white/40">
+                                    TOTAL DÍA {{ day.date_obj.strftime('%d/%m') }}:
+                                </td>
+                                <td class="py-2 px-4 text-center font-mono font-bold text-blue-400/80 text-xs">${{
+                                    day.daily_income }}</td>
+                                <td class="py-2 px-4 text-center font-mono font-bold text-red-400/80 text-xs">${{
+                                    day.daily_expense }}</td>
+                                <td class="py-2 px-4 text-center font-mono font-bold text-green-400 text-sm">${{
+                                    day.daily_profit }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                <!-- Footer Signature -->
+                <div class="mt-8 text-center border-t border-white/5 pt-4">
+                    <p class="text-white/20 text-[10px] uppercase font-bold tracking-[0.2em]">POWERED BY LIGAPRO MANAGER
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Script para Exportar Canvas -->
+        <script>
+            async function downloadImage() {
+                const target = document.getElementById('capture-financials');
+                const btn = document.querySelector('button[onclick="downloadImage()"]');
+
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+                btn.disabled = true;
+
+                try {
+                    const canvas = await html2canvas(target, {
+                        backgroundColor: '#0f172a',
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true
+                    });
+
+                    const link = document.createElement('a');
+                    link.download = `Reporte_Financiero_{{ header_title|replace(' ', '_') }}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i>¡Listo!';
+                    setTimeout(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                    }, 3000);
+
+                } catch (err) {
+                    console.error(err);
+                    alert('Error al generar la imagen: ' + err.message);
+                    btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Error';
+                    btn.disabled = false;
+                }
+            }
+        </script>
+</body>
+
+</html>

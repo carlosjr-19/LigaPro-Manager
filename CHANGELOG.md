@@ -1,3 +1,18 @@
+## 0.9.9.4
+
+Estabilización de exportaciones y diseño responsivo en interfaces móviles para reportes y resúmenes.
+
+- **Vistas Previas Independientes**: Se implementaron vistas dedicadas (`share_summary.html` y `share_financials.html`) para las exportaciones en imagen/PDF, lo que garantiza el formato estructurado y clásico sin que sea afectado por el tamaño de pantalla del dispositivo desde el cual se descarga.
+- **Correcciones Responsivas**: Los botones de acción en las vistas de detalles y previsualizaciones (`Vista Previa PNG`, `Volver`) dejaron de usar posicionamiento estático flotante que bloqueaba la visibilidad en teléfonos móviles. Ahora se emplean selectores flex responsivos (`overflow-x-auto`) que respetan la estructura de la aplicación.
+- **Ajustes de Interfaz Limpia**: Se retiró JS incrustado antiguo (`triggerMobilePrint`) causante de errores de renderización, dando paso a librerías asíncronas modernas como `html2pdf.js` y `html2canvas` para los reportes limpios, manteniendo la posibilidad de guardar fotos temáticas o PDFs con fondo blanco tradicional para impresión.
+
+## Modificado
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/templates/report/summary.html`
+* `ligapro_manager/templates/report/financials.html`
+* `ligapro_manager/templates/report/share_summary.html` (Nuevo)
+* `ligapro_manager/templates/report/share_financials.html` (Nuevo)
+
 ## 0.9.9.3
 
 Integración nativa con Cloudinary para subida y almacenamiento de imágenes desde dispositivos móviles y web.
