@@ -56,7 +56,7 @@
                         </h2>
                         <div class="flex flex-wrap justify-center gap-2">
                             {% if league.owner.is_active_premium %}
-                            <a href="{{ url_for('team.generate_credentials', team_id=team.id) }}" target="_blank"
+                            <a href="{{ url_for('team.generate_credentials', team_id=team.id) }}"
                                 class="btn-secondary text-sm">
                                 <i class="fas fa-print mr-1"></i>Todos
                             </a>
@@ -326,7 +326,8 @@
         });
 
         url += '?' + params.toString();
-        window.open(url, '_blank');
+        // window.open es bloqueado por Safari/Opera en móviles si es asíncrono o interpretado como popup. Se usar href.
+        window.location.href = url;
     }
 </script>
 {% endif %}
