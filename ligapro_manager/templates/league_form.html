@@ -107,8 +107,20 @@
                         <div class="mb-4">
                             <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Logo de la
                                 Liga</label>
-                            {{ form.logo_url(class="input-field", placeholder="URL de la imagen del logo", disabled=not
-                            current_user.is_active_premium) }}
+                            <div class="flex gap-2">
+                                {{ form.logo_url(class="input-field", placeholder="URL de la imagen del logo",
+                                disabled=not current_user.is_active_premium, id="photo_url_input") }}
+                                <button type="button" id="camera-btn"
+                                    class="btn-secondary px-4 flex items-center justify-center" {% if not
+                                    current_user.is_active_premium %}disabled{% endif %}>
+                                    <i class="fas fa-camera"></i>
+                                </button>
+                            </div>
+                            <input type="file" accept="image/*" capture="camera" id="player-camera-input"
+                                class="hidden">
+                            <img id="player-photo-preview" src="#" alt="Vista previa"
+                                class="hidden mt-3 w-32 h-32 object-cover rounded-lg border border-white/20">
+                            <p id="upload-status" class="hidden text-sm mt-2"></p>
                         </div>
 
                         <div class="mb-4">
@@ -158,4 +170,73 @@
 </div>
 </main>
 </div>
+
+<script>
+    const CLOUDINARY_CLOUD_NAME = '{{ cloudinary_cloud_name }}';
+    const CLOUDINARY_UPLOAD_PRESET = '{{ cloudinary_upload_preset }}';
+
+    const cameraBtn = document.getElementById('camera-btn');
+    const cameraInput = document.getElementById('player-camera-input');
+    const photoUrlInput = document.getElementById('photo_url_input');
+    const photoPreview = document.getElementById('player-photo-preview');
+    const uploadStatus = document.getElementById('upload-status');
+
+    if (cameraBtn) {
+        cameraBtn.addEventListener('click', () => {
+            cameraInput.click();
+        });
+
+        cameraInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Mostrar vista previa local
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                photoPreview.src = e.target.result;
+                photoPreview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+
+            // Actualizar estado y bloquear botón
+            uploadStatus.textContent = "Subiendo logo... ⏳";
+            uploadStatus.className = "text-sm mt-2 text-blue-400 block";
+            cameraBtn.disabled = true;
+            cameraBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // Subir a Cloudinary
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+            try {
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Error en la subida');
+
+                const data = await response.json();
+
+                // Asignar URL al input
+                photoUrlInput.value = data.secure_url;
+
+                // Estado de éxito
+                uploadStatus.textContent = "¡Logo subido! ✅";
+                uploadStatus.className = "text-sm mt-2 text-green-400 block";
+
+            } catch (error) {
+                console.error('Error:', error);
+                uploadStatus.textContent = "Error al subir el logo ❌";
+                uploadStatus.className = "text-sm mt-2 text-red-400 block";
+            } finally {
+                // Limpiar input y rehabilitar botón
+                cameraInput.value = '';
+                cameraBtn.disabled = false;
+                cameraBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    }
+</script>
 {% endblock %}

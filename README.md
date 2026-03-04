@@ -76,13 +76,13 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.9.9.0)
+## 🔄 Últimas Actualizaciones (v0.9.9.3)
 
+- **Cámara Cloudinary Directa**: Ahora los capitanes y administradores pueden capturar y subir fotos de jugadores y escudos institucionales usando directamente la cámara de su teléfono, los archivos se almacenan en un bucket nativo de Cloudinary.
+- **Configuración Sensible Backend**: Los tokens de subida (`CLOUDINARY_CLOUD_NAME` y `CLOUDINARY_UPLOAD_PRESET`) se procesan ahora a través del motor seguro de contexto nativo de Flask y no existen expuestos en repositorios.
+- **Registros Oficiales PVC**: Los reportes y pases de juego (`/credentials`) ahora se renderizan respetando el estándar global CR80 para ser impresos en tarjetas plásticas.
 - **Configuración Global por Owner**: Nuevo panel de control inteligente para dueños de ligas donde definir los colores base representativos de cada "Cancha". Todas las competencias heredarán automáticamente dichos lineamientos para ahorro de tiempo y consistencia institucional.
-- **Reportes Colorizados Nativos**: El reporte de Agenda Global ahora imprime sus PDF y descarga su "Sábana" de .xlsx aplicando con precisión el color personalizado de cada predio deportivo.
 - **Exportación HD Independiente (PNG)**: Además del Excel y PDF, ahora el reporte diario de Agenda ofrece separar automáticamente el tablero de partidos de cada cancha para descargar de forma simultánea múltiples imágenes limpias ideales para compartir por redes.
-- **Color de Identidad de Ligas**: Integración de coloreo particular para los nombres de los torneos, reflejado en toda interfaz pública, administrativa y exportaciones fotográficas, permitiendo resaltes ultra-visuales en agendas saturadas.
-- **Autollenado Financiero (v0.9.8.4)**: Para las ligas que lo configuren, el alta de nuevos encuentros cobrará automáticamente el costo de arbitraje establecido previamente para aligerar la carga operativa de las asociaciones deportivas.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager
