@@ -1,5 +1,23 @@
-## 0.9.9.1
+## 0.9.9.2
 
+Mejoras en el módulo de equipos y emisión de credenciales (registros).
+
+- **Frase Personalizada en Credenciales**: Se añadió la posibilidad de incluir un eslogan o frase personalizada en la base de la tarjeta de jugador al imprimirse. Si se configura, la foto se adapta orgánicamente y el nombre de la liga incrementa su visibilidad.
+- **Formato Oficial PVC**: Se reajustaron las medidas base de las credenciales, unificándolas globalmente a las dimensiones estándar CR80 (8.6cm x 5.4cm) para ser impresas directamente sobre tarjetas plásticas.
+- **Impresión Selectiva**: Se agregó una nueva interfaz dentro de los detalles del equipo. Los capitanes dueños de liga Premium ahora encontrarán casillas de selección junto a cada jugador, permitiéndoles generar una hoja de impresión única exclusivamente con las tarjetas seleccionadas (ideal para reposiciones o registros tardíos).
+
+## Modificado
+* models/league.py
+* forms/league.py
+* ligapro_manager.py (migración `credential_phrase`)
+* routes/league.py
+* routes/team.py
+* templates/league_detail.html
+* templates/team_detail.html
+* templates/credentials.html
+* static/css/credentials.css
+
+## 0.9.9.1
 Mejoras avanzadas en los Reportes Financieros y exportaciones.
 
 - **Filtro por Rango de Fechas**: Se adaptó el panel general de configuración (`/report/settings`) para que el dueño elija su formato favorito de consulta (Por Mes o Por Fechas). La Tarjeta de Ganancias Netas y los reportes de Exportación modificarán sus encabezados respetando el rango elegido por el usuario (Desde X, Hasta Y). Las validaciones de bases de datos ahora procesan con precisión ambas consultas cruzadas.
