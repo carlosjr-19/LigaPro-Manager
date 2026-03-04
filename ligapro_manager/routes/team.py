@@ -315,6 +315,13 @@ def generate_credentials(team_id):
         else:
             return redirect(url_for('premium.premium'))
             
-    players = Player.query.filter_by(team_id=team_id).order_by(Player.number.asc(), Player.name.asc()).all()
+    # Recolectar parámetros 'p' (IDs de jugadores seleccionados a imprimir)
+    selected_player_ids = request.args.getlist('p')
+    
+    query = Player.query.filter_by(team_id=team_id)
+    if selected_player_ids:
+        query = query.filter(Player.id.in_(selected_player_ids))
+        
+    players = query.order_by(Player.number.asc(), Player.name.asc()).all()
     
     return render_template('credentials.html', team=team, players=players, league=league)

@@ -58,8 +58,11 @@
                             {% if league.owner.is_active_premium %}
                             <a href="{{ url_for('team.generate_credentials', team_id=team.id) }}" target="_blank"
                                 class="btn-secondary text-sm">
-                                <i class="fas fa-id-card mr-1"></i>Registros
+                                <i class="fas fa-print mr-1"></i>Todos
                             </a>
+                            <button onclick="printSelectedPlayers()" class="btn-secondary text-sm">
+                                <i class="fas fa-id-card mr-1"></i>Seleccionados
+                            </button>
                             {% else %}
                             <span class="btn-secondary text-sm opacity-50 cursor-not-allowed" title="Función Premium">
                                 <i class="fas fa-crown text-yellow-500 mr-1"></i>Registros
@@ -77,6 +80,11 @@
                         {% for player in players %}
                         <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                             <div class="flex items-center gap-3">
+                                {% if league.owner.is_active_premium %}
+                                <input type="checkbox"
+                                    class="player-print-cb w-4 h-4 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2"
+                                    value="{{ player.id }}">
+                                {% endif %}
                                 {% if player.photo_url %}
                                 <img src="{{ player.photo_url }}" class="w-10 h-10 rounded-full object-cover">
                                 {% else %}
@@ -301,4 +309,26 @@
         </div>
     </main>
 </div>
+
+{% if league.owner.is_active_premium %}
+<script>
+    function printSelectedPlayers() {
+        const checkboxes = document.querySelectorAll('.player-print-cb:checked');
+        if (checkboxes.length === 0) {
+            alert('Por favor selecciona al menos un jugador para imprimir.');
+            return;
+        }
+
+        let url = "{{ url_for('team.generate_credentials', team_id=team.id) }}";
+        const params = new URLSearchParams();
+        checkboxes.forEach(cb => {
+            params.append('p', cb.value);
+        });
+
+        url += '?' + params.toString();
+        window.open(url, '_blank');
+    }
+</script>
+{% endif %}
+
 {% endblock %}

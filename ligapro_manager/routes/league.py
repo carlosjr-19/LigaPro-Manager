@@ -323,6 +323,7 @@ def edit_league(league_id):
             league.report_date_size = form.report_date_size.data
             league.custom_color_active = form.custom_color_active.data
             league.custom_name_color = form.custom_name_color.data
+            league.credential_phrase = form.credential_phrase.data
 
         db.session.commit()
         flash('Liga actualizada.', 'success')

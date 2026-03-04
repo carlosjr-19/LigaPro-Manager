@@ -1430,6 +1430,15 @@
                         </div>
                     </div>
 
+                    <div class="mb-4">
+                        <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Frase para Registro
+                            (Opcional)</label>
+                        {{ form.credential_phrase(class="input-field", placeholder="Ej: VARONIL LIBRE",
+                        form="leagueSettingsForm") }}
+                        <p class="text-[10px] text-white/40 mt-1">Si dejas este campo vacío, se usará el formato
+                            predeterminado.</p>
+                    </div>
+
                     <div class="flex items-center gap-3 pt-2 border-t border-white/10">
                         {{ form.show_stats(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary
                         focus:ring-primary", form="leagueSettingsForm") }}
