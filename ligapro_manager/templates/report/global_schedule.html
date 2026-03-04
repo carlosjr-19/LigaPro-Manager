@@ -41,7 +41,7 @@
 
                 <div class="flex flex-wrap gap-2 md:gap-4 w-full sm:w-auto">
                     <a href="{{ url_for('report.share_global_schedule', date=selected_date.strftime('%Y-%m-%d')) }}"
-                        target="_blank" title="Generar Imágenes"
+                        title="Generar Imágenes"
                         class="flex-none justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
                         <i class="fas fa-image"></i>
                     </a>
@@ -247,7 +247,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
     function triggerMobilePrint() {
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Opera/i.test(navigator.userAgent)) {
             const btn = document.querySelector('button[onclick="triggerMobilePrint()"]');
             const oldHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>PDF...';
