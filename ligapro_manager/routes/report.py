@@ -658,9 +658,67 @@ def global_schedule_summary():
                          teams_summary=teams_list,
                          referee_summary=referee_list,
                          leagues=leagues, 
+                         selected_league_id=league_id,
                          selected_league=league_id,
                          canchas=canchas,
                          selected_cancha=cancha_name)
+
+@report_bp.route('/global-schedule/summary/share')
+@login_required
+def share_global_schedule_summary():
+    if not getattr(current_user, 'is_ultra', False):
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('report.index'))
+
+    # Filters
+    league_id = request.args.get('league_id')
+    cancha_name = request.args.get('cancha')
+    
+    query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
+    if league_id:
+        query = query.filter(Match.league_id == league_id)
+        
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            query = query.filter(Match.court_id == None)
+        else:
+            query = query.filter(Court.name == cancha_name)
+            
+    matches = query.all()
+    
+    discrepancies = calculate_discrepancies(matches)
+    
+    # Aggregate
+    teams_summary = {} # (league, date, team_name) -> total
+    referee_summary = {} # (league, date) -> total
+    
+    for item in discrepancies:
+        date_str = item['date'].strftime('%d/%m/%Y') if item['date'] else 'Sin Fecha'
+        date_sort = item['date'].strftime('%Y-%m-%d') if item['date'] else '0000-00-00'
+        
+        if item['entity_type'] == 'Team':
+            key = (item['league'], date_str, item['entity_name'], date_sort)
+            teams_summary[key] = teams_summary.get(key, 0) + item['balance']
+        elif item['entity_type'] == 'Referee':
+            key = (item['league'], date_str, date_sort)
+            referee_summary[key] = referee_summary.get(key, 0) + item['balance']
+            
+    # Convert to list for display
+    teams_list = [{'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3]} for k, v in teams_summary.items()]
+    teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
+    
+    referee_list = [{'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2]} for k, v in referee_summary.items()]
+    referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
+    
+    leagues = League.query.filter_by(user_id=current_user.id).all()
+    selected_league_name = next((l.name for l in leagues if str(l.id) == league_id), None)
+
+    return render_template('report/share_summary.html', 
+                         teams_summary=teams_list,
+                         referee_summary=referee_list,
+                         selected_league=selected_league_name,
+                         selected_cancha=cancha_name,
+                         today=datetime.now().strftime('%d/%m/%Y'))
 
 @report_bp.route('/global-schedule/summary/export')
 @login_required
@@ -1019,6 +1077,103 @@ def export_global_financials():
     
     filename = f"Finanzas_{filename_suffix}.xlsx"
     return send_file(output, download_name=filename, as_attachment=True)
+
+@report_bp.route('/global-schedule/financials/share')
+@login_required
+def share_global_financials():
+    if not getattr(current_user, 'is_ultra', False):
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('report.index'))
+
+    report_type = getattr(current_user, 'financial_report_type', 'period')
+    cancha_name = request.args.get('cancha')
+    query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
+    
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            query = query.filter(Match.court_id == None)
+        else:
+            query = query.filter(Court.name == cancha_name)
+            
+    header_title = ""
+
+    if report_type == 'date_range':
+        date_from_str = request.args.get('date_from', default="")
+        date_to_str = request.args.get('date_to', default="")
+        try:
+            d_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            d_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            query = query.filter(func.date(Match.match_date) >= d_from, func.date(Match.match_date) <= d_to)
+            header_title = f"DESDE {date_from_str} AL {date_to_str}"
+        except ValueError:
+            header_title = "RANGO DE FECHAS"
+            pass
+    else:
+        month = request.args.get('month', type=int, default=datetime.now().month)
+        year = request.args.get('year', type=int, default=datetime.now().year)
+
+        query = query.filter(
+            func.extract('month', Match.match_date) == month,
+            func.extract('year', Match.match_date) == year
+        )
+        months_es = {1:"ENERO",2:"FEBRERO",3:"MARZO",4:"ABRIL",5:"MAYO",6:"JUNIO",7:"JULIO",8:"AGOSTO",9:"SEPTIEMBRE",10:"OCTUBRE",11:"NOVIEMBRE",12:"DICIEMBRE"}
+        month_name = months_es.get(month, "")
+        header_title = f"{month_name} {year}"
+        
+    matches = query.order_by(Match.match_date).all()
+
+    financial_data = {}
+    total_income = 0
+    total_expense = 0
+    total_profit = 0
+
+    def parse_cost(val):
+        if not val: return 0
+        if isinstance(val, str) and not val.isdigit(): return 0 
+        try: return int(val)
+        except: return 0
+
+    for match in matches:
+        if not match.league: continue
+        
+        # Respect Charge Start Date
+        if not match.league.charge_from_start and match.league.charge_start_date:
+            if match.match_date.date() < match.league.charge_start_date:
+                continue
+
+        date_key = match.match_date.strftime('%Y-%m-%d')
+        court_name = match.court.name if match.court else "Sin Cancha"
+        income = parse_cost(match.referee_cost_home) + parse_cost(match.referee_cost_away)
+        expense = parse_cost(match.referee_cost)
+        profit = income - expense
+        
+        if date_key not in financial_data:
+            financial_data[date_key] = {'date_obj': match.match_date, 'courts': {}, 'daily_income': 0, 'daily_expense': 0, 'daily_profit': 0}
+        if court_name not in financial_data[date_key]['courts']:
+            financial_data[date_key]['courts'][court_name] = {'income': 0, 'expense': 0, 'profit': 0}
+            
+        financial_data[date_key]['courts'][court_name]['income'] += income
+        financial_data[date_key]['courts'][court_name]['expense'] += expense
+        financial_data[date_key]['courts'][court_name]['profit'] += profit
+        
+        financial_data[date_key]['daily_income'] += income
+        financial_data[date_key]['daily_expense'] += expense
+        financial_data[date_key]['daily_profit'] += profit
+
+        total_income += income
+        total_expense += expense
+        total_profit += profit
+
+    sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
+
+    return render_template('report/share_financials.html', 
+                         financial_data=sorted_data,
+                         header_title=header_title,
+                         cancha_name=cancha_name,
+                         total_income=total_income,
+                         total_expense=total_expense,
+                         total_profit=total_profit,
+                         today=datetime.now().strftime('%d/%m/%Y'))
 
 @report_bp.route('/settings', methods=['GET', 'POST'])
 @login_required

@@ -30,7 +30,7 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 
 *   **Backend:** Python 3, Flask, SQLAlchemy.
 *   **Frontend:** HTML5, Jinja2, Tailwind CSS (Diseño moderno "Glassmorphism").
-*   **Herramientas:** `html2canvas` (Generación de imágenes), `requests` (Proxy de imágenes).
+*   **Herramientas:** `html2canvas` y `html2pdf.js` (Exportaciones PDF/PNG asíncronas de escritorio y móvil), `requests` (Proxy).
 *   **Base de Datos:** SQLite (Desarrollo), PostgreSQL (Producción).
 
 ## ⚙️ Instalación y Ejecución

@@ -254,10 +254,13 @@
             btn.disabled = true;
 
             const element = document.querySelector('main');
+            const originalWidth = element.style.width;
+
             // Remove padding to maximize space
             element.classList.remove('max-w-7xl', 'md:px-6');
             element.style.padding = '0';
             element.style.background = '#111827';
+            element.style.width = '1200px';
 
             // Hide elements we don't want in the PDF
             const noPrintElements = element.querySelectorAll('.print\\:hidden');
@@ -267,7 +270,7 @@
                 margin: 0.2,
                 filename: 'agenda_{{ selected_date.strftime("%Y-%m-%d") }}.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                html2canvas: { windowWidth: 1200, scale: 2, useCORS: true, backgroundColor: '#ffffff' },
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
             };
 
@@ -278,6 +281,7 @@
                 element.classList.add('max-w-7xl', 'md:px-6');
                 element.style.padding = '';
                 element.style.background = '';
+                element.style.width = originalWidth;
                 noPrintElements.forEach(el => el.style.display = '');
             }).catch(err => {
                 console.error(err);

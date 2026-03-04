@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Vista Previa de Resumen{% endblock %}
+
+{% block content %}
+<!-- Barra de Acciones (No Flotante) -->
+<div class="w-full bg-gray-800 border-b border-white/10 p-4 flex flex-wrap justify-center gap-3 no-print print:hidden">
+    <a href="{{ url_for('report.global_schedule_summary', league_id=request.args.get('league_id', ''), cancha=request.args.get('cancha', '')) }}"
+        class="bg-gray-600 hover:bg-gray-500 text-white px-5 py-2 rounded-full font-bold shadow transition-colors flex items-center text-sm md:text-base">
+        <i class="fas fa-arrow-left mr-2"></i> Volver
+    </a>
+    <button onclick="downloadImage('resumen_global')"
+        class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full font-bold shadow-lg shadow-blue-600/20 transition-colors flex items-center text-sm md:text-base">
+        <i class="fas fa-image mr-2"></i> Guardar Imagen
+    </button>
+    <button onclick="window.print()"
+        class="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2 rounded-full font-bold shadow-lg shadow-purple-600/20 transition-colors flex items-center text-sm md:text-base">
+        <i class="fas fa-print mr-2"></i> Guardar PDF
+    </button>
+</div>
+
+<!-- Contenedor optimizado para captura -->
+<div class="bg-gray-900 min-h-screen py-8 overflow-x-auto print:bg-white print:py-0">
+    <div id="capture-area" class="mx-auto bg-gray-900 print:bg-white pb-8"
+        style="width: 1200px; min-height: 800px; padding: 40px; transform-origin: top left;">
+
+        <!-- Header del Reporte -->
+        <div class="text-center mb-8 border-b border-white/20 pb-6 print:border-black/20">
+            <h1 class="text-4xl font-black text-white uppercase tracking-wider print:text-black">RESUMEN DE DEUDAS Y
+                EXCEDENTES</h1>
+            <p class="text-xl text-white/70 mt-2 print:text-black/70">
+                {{ 'Todas las Ligas' if not selected_league else selected_league }}
+                {% if selected_cancha %}
+                | {{ selected_cancha }}
+                {% else %}
+                | Todas las Canchas
+                {% endif %}
+            </p>
+            <p class="text-sm text-white/50 mt-1 print:text-black/50">Generado el {{ today }}</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8 print:block print:space-y-8">
+            <!-- Balance Equipos -->
+            <div
+                class="bg-gray-800 border border-white/10 rounded-xl overflow-hidden print:bg-white print:border-gray-300">
+                <div class="bg-black/30 px-6 py-4 border-b border-white/10 print:bg-gray-100 print:border-gray-200">
+                    <h2 class="font-bold text-xl text-white print:text-black">Balance de Equipos</h2>
+                </div>
+                {% if not teams_summary %}
+                <div class="p-8 text-center text-white/40 print:text-black/60">Sin discrepancias</div>
+                {% else %}
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-black/20 text-white/60 uppercase text-xs print:bg-gray-50 print:text-gray-600">
+                        <tr>
+                            <th class="py-3 px-4">Fecha</th>
+                            <th class="py-3 px-4">Liga</th>
+                            <th class="py-3 px-4">Equipo</th>
+                            <th class="py-3 px-4 text-right">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 text-white/80 print:divide-gray-200 print:text-black">
+                        {% for item in teams_summary %}
+                        <tr>
+                            <td class="py-3 px-4 text-xs font-mono text-white/50 print:text-gray-500">{{ item.date }}
+                            </td>
+                            <td class="py-3 px-4 text-xs font-bold uppercase text-white/60 print:text-gray-600">{{
+                                item.league }}</td>
+                            <td class="py-3 px-4 font-medium">{{ item.name }}</td>
+                            <td
+                                class="py-3 px-4 text-right font-mono font-bold {{ 'text-green-400' if item.balance > 0 else 'text-red-400' }} print:{{ 'text-green-600' if item.balance > 0 else 'text-red-600' }}">
+                                {{ '+' if item.balance > 0 else '' }}{{ item.balance }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+
+            <!-- Balance Arbitraje -->
+            <div
+                class="bg-gray-800 border border-white/10 rounded-xl overflow-hidden print:bg-white print:border-gray-300 print:break-inside-avoid">
+                <div class="bg-black/30 px-6 py-4 border-b border-white/10 print:bg-gray-100 print:border-gray-200">
+                    <h2 class="font-bold text-xl text-white print:text-black">Balance de Arbitraje</h2>
+                </div>
+                {% if not referee_summary %}
+                <div class="p-8 text-center text-white/40 print:text-black/60">Sin discrepancias</div>
+                {% else %}
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-black/20 text-white/60 uppercase text-xs print:bg-gray-50 print:text-gray-600">
+                        <tr>
+                            <th class="py-3 px-4">Fecha</th>
+                            <th class="py-3 px-4">Liga</th>
+                            <th class="py-3 px-4 text-right">Balance Total</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 text-white/80 print:divide-gray-200 print:text-black">
+                        {% for item in referee_summary %}
+                        <tr>
+                            <td class="py-3 px-4 text-xs font-mono text-white/50 print:text-gray-500">{{ item.date }}
+                            </td>
+                            <td class="py-3 px-4 font-bold">{{ item.league }}</td>
+                            <td
+                                class="py-3 px-4 text-right font-mono font-bold {{ 'text-green-400' if item.balance > 0 else 'text-red-400' }} print:{{ 'text-green-600' if item.balance > 0 else 'text-red-600' }}">
+                                {{ '+' if item.balance > 0 else '' }}{{ item.balance }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    function downloadImage(prefix) {
+        const btn = document.querySelector('button[onclick="downloadImage(\'' + prefix + '\')"]');
+        const oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+        btn.disabled = true;
+
+        const node = document.getElementById('capture-area');
+
+        html2canvas(node, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#111827', // dark gray-900 background to match layout
+        }).then(canvas => {
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.download = prefix + '_' + dateStr + '.png';
+            link.href = dataUrl;
+            link.click();
+
+            btn.innerHTML = oldHtml;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error(err);
+            btn.innerHTML = oldHtml;
+            btn.disabled = false;
+            alert("Error al generar la imagen");
+        });
+    }
+
+    // Adapt layout strictly for print mimicking browser behavior precisely
+    window.addEventListener('beforeprint', () => {
+        const area = document.getElementById('capture-area');
+        area.style.width = '100%';
+        area.style.padding = '0';
+        area.classList.remove('bg-gray-900');
+        area.classList.add('bg-white');
+    });
+
+    window.addEventListener('afterprint', () => {
+        const area = document.getElementById('capture-area');
+        area.style.width = '1200px';
+        area.style.padding = '40px';
+        area.classList.add('bg-gray-900');
+        area.classList.remove('bg-white');
+    });
+</script>
+{% endblock %}
