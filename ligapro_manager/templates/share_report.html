@@ -127,6 +127,12 @@
                         <i class="fas fa-calendar-alt"></i> Próximos Partidos
                     </h3>
                     <div class="space-y-8">
+                        {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles', 'Thursday':
+                        'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday': 'Domingo'} %}
+                        {% set months = {'January': 'Enero', 'February': 'Febrero', 'March': 'Marzo', 'April': 'Abril',
+                        'May': 'Mayo', 'June': 'Junio', 'July': 'Julio', 'August': 'Agosto', 'September': 'Septiembre',
+                        'October': 'Octubre', 'November': 'Noviembre', 'December': 'Diciembre'} %}
+
                         {% for court_name, matches in matches_by_court.items() %}
                         {% set court_obj = matches[0].court if matches and matches[0].court else None %}
                         {% set alignment_class = 'justify-start' %}
@@ -142,7 +148,24 @@
                                 <i class="fas fa-map-marker-alt"></i>{{ court_name }}
                             </h4>
                             <div class="grid grid-cols-1 gap-4">
+                                {% set date_tracker = namespace(prev_date=None) %}
                                 {% for match in matches %}
+                                {% set current_date = match.match_date.strftime('%Y-%m-%d') %}
+                                {% if date_tracker.prev_date != current_date %}
+                                {% if date_tracker.prev_date != None %}
+                                <div class="col-span-1 border-t border-white/10 my-1"></div>
+                                {% endif %}
+                                {% set date_tracker.prev_date = current_date %}
+                                <div class="col-span-1 -mb-2 mt-1">
+                                    <span
+                                        class="bg-black/40 border border-white/10 text-white/80 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
+                                        <i class="far fa-calendar-alt text-orange-400"></i>
+                                        {{ days[match.match_date.strftime('%A')] }} {{ match.match_date.strftime('%d')
+                                        }} de {{ months[match.match_date.strftime('%B')] }}
+                                    </span>
+                                </div>
+                                {% endif %}
+
                                 <div
                                     class="bg-white/5 p-4 rounded-lg border border-white/5 relative overflow-hidden group">
                                     <div class="absolute top-0 left-0 w-1 h-full bg-orange-500/50"></div>
@@ -167,18 +190,9 @@
                                         </div>
                                         <div class="text-white/60 text-sm font-medium"
                                             style="{% if is_premium %}color: {{ league.report_date_color }}; font-size: {{ league.report_date_size }}px;{% else %}color: #ffffff99; font-size: 14px;{% endif %}">
-                                            {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday':
-                                            'Miércoles',
-                                            'Thursday': 'Jueves', 'Friday': 'Viernes', 'Saturday': 'Sábado', 'Sunday':
-                                            'Domingo'} %}
-                                            {% set months = {'January': 'Enero', 'February': 'Febrero', 'March':
-                                            'Marzo',
-                                            'April': 'Abril', 'May': 'Mayo', 'June': 'Junio', 'July': 'Julio', 'August':
-                                            'Agosto', 'September': 'Septiembre', 'October': 'Octubre', 'November':
-                                            'Noviembre', 'December': 'Diciembre'} %}
                                             {{ days[match.match_date.strftime('%A')] }} {{
-                                            match.match_date.strftime('%d')
-                                            }} de {{ months[match.match_date.strftime('%B')] }}
+                                            match.match_date.strftime('%d') }} de {{
+                                            months[match.match_date.strftime('%B')] }}
                                         </div>
                                     </div>
 

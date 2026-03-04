@@ -16,25 +16,8 @@ async function downloadImage() {
             allowTaint: true
         });
 
-        // Try Web Share API with file (Best for mobile)
-        try {
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const file = new File([blob], `reporte-${window.leagueName}.png`, { type: 'image/png' });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: `Reporte ${window.leagueName}`,
-                });
-            } else {
-                triggerDownload(canvas.toDataURL());
-            }
-        } catch (err) {
-            // AbortError is typical when user cancels share, don't show error
-            if (err.name !== 'AbortError') {
-                triggerDownload(canvas.toDataURL());
-            }
-        }
+        const dataUrl = canvas.toDataURL('image/png');
+        triggerDownload(dataUrl);
 
         btn.innerHTML = '<i class="fas fa-download mr-2"></i>Descargar Imagen';
         btn.disabled = false;
