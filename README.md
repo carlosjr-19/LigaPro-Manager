@@ -76,7 +76,7 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.9.9.3)
+## 🔄 Últimas Actualizaciones (v0.9.9.4)
 
 - **Cámara Cloudinary Directa**: Ahora los capitanes y administradores pueden capturar y subir fotos de jugadores y escudos institucionales usando directamente la cámara de su teléfono, los archivos se almacenan en un bucket nativo de Cloudinary.
 - **Configuración Sensible Backend**: Los tokens de subida (`CLOUDINARY_CLOUD_NAME` y `CLOUDINARY_UPLOAD_PRESET`) se procesan ahora a través del motor seguro de contexto nativo de Flask y no existen expuestos en repositorios.

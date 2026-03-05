@@ -1,2 +1,3 @@
 # Ignorar los archivos de la carpeta templates en las estadísticas
 **/templates/*.html linguist-detectable=false
+*.html linguist-detectable=false
