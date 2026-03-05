@@ -274,21 +274,32 @@
                 jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
+            const restoreUI = () => {
                 btn.innerHTML = oldHtml;
                 btn.disabled = false;
-                // Restore
                 element.classList.add('max-w-7xl', 'md:px-6');
                 element.style.padding = '';
                 element.style.background = '';
                 element.style.width = originalWidth;
                 noPrintElements.forEach(el => el.style.display = '');
-            }).catch(err => {
+            };
+
+            const handleError = (err) => {
                 console.error(err);
-                btn.innerHTML = oldHtml;
-                btn.disabled = false;
+                restoreUI();
                 alert("Error al generar PDF");
-            });
+            };
+
+            if (window.FlutterDownloader) {
+                html2pdf().set(opt).from(element).outputPdf('datauristring').then(function(pdfBase64) {
+                    window.FlutterDownloader.postMessage(opt.filename + "|" + pdfBase64);
+                    restoreUI();
+                }).catch(handleError);
+            } else {
+                html2pdf().set(opt).from(element).save().then(() => {
+                    restoreUI();
+                }).catch(handleError);
+            }
         } else {
             window.print();
         }

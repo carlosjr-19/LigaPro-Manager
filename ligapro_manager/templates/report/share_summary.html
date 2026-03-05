@@ -130,12 +130,17 @@
             backgroundColor: '#111827', // dark gray-900 background to match layout
         }).then(canvas => {
             const dataUrl = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-
             const dateStr = new Date().toISOString().split('T')[0];
-            link.download = prefix + '_' + dateStr + '.png';
-            link.href = dataUrl;
-            link.click();
+            const fileName = prefix + '_' + dateStr + '.png';
+
+            if (window.FlutterDownloader) {
+                window.FlutterDownloader.postMessage(fileName + '|' + dataUrl);
+            } else {
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = dataUrl;
+                link.click();
+            }
 
             btn.innerHTML = oldHtml;
             btn.disabled = false;

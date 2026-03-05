@@ -173,12 +173,19 @@
                         allowTaint: true
                     });
 
-                    const link = document.createElement('a');
-                    link.download = `Reporte_Financiero_{{ header_title|replace(' ', '_') }}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    const fileName = `Reporte_Financiero_{{ header_title|replace(' ', '_') }}.png`;
+                    const dataUrl = canvas.toDataURL('image/png');
+
+                    if (window.FlutterDownloader) {
+                        window.FlutterDownloader.postMessage(fileName + '|' + dataUrl);
+                    } else {
+                        const link = document.createElement('a');
+                        link.download = fileName;
+                        link.href = dataUrl;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
 
                     btn.innerHTML = '<i class="fas fa-check mr-2"></i>¡Listo!';
                     setTimeout(() => {

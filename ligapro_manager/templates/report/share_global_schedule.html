@@ -256,12 +256,16 @@
         }
 
         function triggerDownload(dataUrl, filename) {
-            const link = document.createElement('a');
-            link.download = filename;
-            link.href = dataUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            if (window.FlutterDownloader) {
+                window.FlutterDownloader.postMessage(filename + '|' + dataUrl);
+            } else {
+                const link = document.createElement('a');
+                link.download = filename;
+                link.href = dataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         }
 
         async function preloadImages(element) {
