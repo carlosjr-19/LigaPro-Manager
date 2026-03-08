@@ -1690,22 +1690,36 @@
                 </div>
 
                 <!-- Upcoming -->
-                <label
-                    class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer {% if not upcoming_matches %}opacity-50 pointer-events-none{% endif %}">
-                    <input type="checkbox" name="include_upcoming" value="on" {% if upcoming_matches %}checked{% else
-                        %}disabled{% endif %}
-                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                    <span class="flex-1">Próximos Partidos</span>
-                    {% if not upcoming_matches %}<span class="text-xs text-red-400">Sin datos</span>{% endif %}
-                </label>
+                <div
+                    class="border border-white/10 rounded p-3 {% if not upcoming_matches %}opacity-50 pointer-events-none{% endif %}">
+                    <label class="flex items-center gap-3 mb-3 cursor-pointer">
+                        <input type="checkbox" name="include_upcoming" value="on" id="check_upcoming"
+                            onchange="toggleUpcomingDateInputs()" {% if not upcoming_matches %}disabled{% endif %}
+                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                        <span class="flex-1">Próximos Partidos</span>
+                        {% if not upcoming_matches %}<span class="text-xs text-red-400">Sin datos</span>{% endif %}
+                    </label>
+                    <div id="upcoming_date_inputs" class="grid grid-cols-2 gap-2 text-sm hidden pl-7">
+                        <div>
+                            <label class="block text-white/40 text-xs mb-1">Desde</label>
+                            <input type="date" name="upcoming_date_start"
+                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-white/40 text-xs mb-1">Hasta</label>
+                            <input type="date" name="upcoming_date_end"
+                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Stats -->
                 <div class="grid grid-cols-2 gap-4">
                     <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
                         {% if not current_user.is_active_premium %}opacity-50{% endif %} 
                         {% if not top_scorers %}pointer-events-none opacity-30{% endif %}">
-                        <input type="checkbox" name="include_scorers" value="on" {% if current_user.is_active_premium
-                            %}checked{% else %}disabled{% endif %}
+                        <input type="checkbox" name="include_scorers" value="on" {% if not
+                            current_user.is_active_premium %}disabled{% endif %}
                             class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                         <div class="flex flex-col">
                             <span class="flex-1">Goleadores</span>
@@ -1718,8 +1732,8 @@
                     <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
                         {% if not current_user.is_active_premium %}opacity-50{% endif %} 
                         {% if not top_goalkeepers %}pointer-events-none opacity-30{% endif %}">
-                        <input type="checkbox" name="include_keepers" value="on" {% if current_user.is_active_premium
-                            %}checked{% else %}disabled{% endif %}
+                        <input type="checkbox" name="include_keepers" value="on" {% if not
+                            current_user.is_active_premium %}disabled{% endif %}
                             class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                         <div class="flex flex-col">
                             <span class="flex-1">Arqueros</span>

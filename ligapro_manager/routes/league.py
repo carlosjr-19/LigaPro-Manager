@@ -450,6 +450,8 @@ def generate_share_report(league_id):
     date_start_str = request.values.get('date_start')
     date_end_str = request.values.get('date_end')
     include_upcoming = request.values.get('include_upcoming') is not None
+    upcoming_date_start_str = request.values.get('upcoming_date_start')
+    upcoming_date_end_str = request.values.get('upcoming_date_end')
     include_scorers = request.values.get('include_scorers') is not None
     include_keepers = request.values.get('include_keepers') is not None
     report_note = request.values.get('report_note')
@@ -499,10 +501,34 @@ def generate_share_report(league_id):
         recent_matches = query.order_by(Match.match_date.desc()).all()
         
     if include_upcoming:
-        upcoming_matches = Match.query.filter(
+        query_upcoming = Match.query.filter(
             Match.league_id == league_id,
             Match.is_completed == False
-        ).order_by(Match.match_date.asc()).limit(10).all()
+        )
+        
+        has_upcoming_date_filter = False
+        if upcoming_date_start_str:
+            try:
+                date_start_upc = datetime.strptime(upcoming_date_start_str, '%Y-%m-%d')
+                query_upcoming = query_upcoming.filter(Match.match_date >= date_start_upc)
+                has_upcoming_date_filter = True
+            except ValueError:
+                pass
+                
+        if upcoming_date_end_str:
+            try:
+                date_end_upc = datetime.strptime(upcoming_date_end_str, '%Y-%m-%d')
+                query_upcoming = query_upcoming.filter(Match.match_date <= date_end_upc.replace(hour=23, minute=59))
+                has_upcoming_date_filter = True
+            except ValueError:
+                pass
+
+        query_upcoming = query_upcoming.order_by(Match.match_date.asc())
+        
+        if not has_upcoming_date_filter:
+            upcoming_matches = query_upcoming.limit(10).all()
+        else:
+            upcoming_matches = query_upcoming.all()
 
     # Group upcoming matches by court
     matches_by_court = {}

@@ -176,6 +176,18 @@ function toggleDateInputs() {
     }
 }
 
+function toggleUpcomingDateInputs() {
+    const isChecked = document.getElementById('check_upcoming')?.checked;
+    const inputs = document.getElementById('upcoming_date_inputs');
+    if (inputs) {
+        if (isChecked) {
+            inputs.classList.remove('hidden');
+        } else {
+            inputs.classList.add('hidden');
+        }
+    }
+}
+
 function toggleMatchView(view) {
     const listView = document.getElementById('matches-list-view');
     const matrixView = document.getElementById('matches-matrix-view');
