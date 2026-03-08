@@ -122,6 +122,24 @@
         </div>
 
         <!-- Dashboard Card -->
+        {% if report_type == 'por_cancha' %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8 print:hidden">
+            {% for court, c_stats in court_totals.items() %}
+            <div class="bg-gray-800 border border-white/10 rounded-xl p-6 shadow-xl flex items-center justify-between">
+                <div>
+                    <p class="text-white/40 text-sm font-bold uppercase tracking-wider">{{ court }}</p>
+                    <h2
+                        class="text-3xl font-bold {{ 'text-green-400' if c_stats.profit >= 0 else 'text-red-400' }} mt-2">
+                        ${{ c_stats.profit }}
+                    </h2>
+                </div>
+                <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <i class="fas fa-sack-dollar text-green-400 text-xl"></i>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 print:hidden">
             <div class="bg-gray-800 border border-white/10 rounded-xl p-6 shadow-xl flex items-center justify-between">
                 <div>
@@ -143,6 +161,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Print Total -->
         <div class="hidden print:block mb-6 text-right">
@@ -172,10 +191,44 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-white/5 text-white/80 print:text-black print:divide-gray-300">
+                        {% if report_type == 'por_cancha' %}
+                        {% for court, c_stats in court_totals.items() %}
+                        <tr class="bg-black/40 print:bg-gray-100">
+                            <td colspan="5" class="py-3 px-6 font-bold uppercase text-green-400 print:text-black">{{
+                                court }}</td>
+                        </tr>
+                        {% for date_str, d_stats in c_stats.dates.items()|sort(attribute='1.date_obj') %}
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="py-3 px-6 font-mono text-white/60 print:text-black">
+                                {{ d_stats.date_obj.strftime('%d/%m/%Y') }}
+                            </td>
+                            <td class="py-3 px-6 font-bold uppercase">{{ court }}</td>
+                            <td class="py-3 px-6 text-right font-mono text-blue-300 print:text-black">${{ d_stats.income
+                                }}</td>
+                            <td class="py-3 px-6 text-right font-mono text-red-300 print:text-black">${{ d_stats.expense
+                                }}</td>
+                            <td
+                                class="py-3 px-6 text-right font-mono font-bold {{ 'text-green-400' if d_stats.profit >= 0 else 'text-red-400' }} print:text-black">
+                                ${{ d_stats.profit }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="bg-white/5 font-bold border-b border-white/10 print:bg-gray-100 print:border-black">
+                            <td colspan="2"
+                                class="py-2 px-6 text-right text-xs uppercase tracking-wider text-white/50 print:text-black">
+                                Subtotal Cancha:</td>
+                            <td class="py-2 px-6 text-right font-mono text-blue-400 print:text-black">${{ c_stats.income
+                                }}</td>
+                            <td class="py-2 px-6 text-right font-mono text-red-400 print:text-black">${{ c_stats.expense
+                                }}</td>
+                            <td class="py-2 px-6 text-right font-mono text-white print:text-black">${{ c_stats.profit }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
                         {% for day in financial_data %}
                         {% for court, stats in day.courts.items() %}
                         <tr class="hover:bg-white/5 transition-colors">
-                            <!-- Group Date only on first row of the day -->
                             <td class="py-3 px-6 font-mono text-white/60 print:text-black">
                                 {{ day.date_obj.strftime('%d/%m/%Y') }}
                             </td>
@@ -196,22 +249,20 @@
                                 class="py-2 px-6 text-right text-xs uppercase tracking-wider text-white/50 print:text-black">
                                 Total Día:</td>
                             <td class="py-2 px-6 text-right font-mono text-blue-400 print:text-black">${{
-                                day.daily_income
-                                }}</td>
+                                day.daily_income }}</td>
                             <td class="py-2 px-6 text-right font-mono text-red-400 print:text-black">${{
-                                day.daily_expense
-                                }}</td>
+                                day.daily_expense }}</td>
                             <td class="py-2 px-6 text-right font-mono text-white print:text-black">${{ day.daily_total
                                 }}</td>
                         </tr>
                         {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
             {% endif %}
         </div>
 
-    </main>
     </main>
 </div>
 

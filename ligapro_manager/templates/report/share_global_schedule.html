@@ -110,7 +110,12 @@
                                     </div>
                                 </td>
                                 <!-- Home Cost -->
-                                <td class="py-3 px-2 text-center font-mono font-bold text-red-400 text-xs">
+                                {% set expected_price = match.league.price_per_match or 0 %}
+                                {% set actual_home = match.referee_cost_home|default('0', true) %}
+                                {% set is_paid_home = actual_home|int(default=-1) >= expected_price and expected_price >
+                                0 %}
+                                <td
+                                    class="py-3 px-2 text-center font-mono font-bold {{ 'text-green-500' if is_paid_home else 'text-red-400' }} text-xs">
                                     {{ match.referee_cost_home if match.referee_cost_home != '0' else '-' }}
                                 </td>
                                 <!-- Scores / VS -->
@@ -120,7 +125,11 @@
                                     match.away_score if match.away_score is not none else '-' }}
                                 </td>
                                 <!-- Away Cost -->
-                                <td class="py-3 px-2 text-center font-mono font-bold text-red-400 text-xs">
+                                {% set actual_away = match.referee_cost_away|default('0', true) %}
+                                {% set is_paid_away = actual_away|int(default=-1) >= expected_price and expected_price >
+                                0 %}
+                                <td
+                                    class="py-3 px-2 text-center font-mono font-bold {{ 'text-green-500' if is_paid_away else 'text-red-400' }} text-xs">
                                     {{ match.referee_cost_away if match.referee_cost_away != '0' else '-' }}
                                 </td>
                                 <!-- Away Team -->
@@ -188,7 +197,7 @@
                                     class="py-3 text-right font-bold text-[11px] text-white/80 uppercase tracking-widest pr-4 bg-white/5 border-t border-white/5 rounded-tl-lg">
                                     GANANCIA NETA DEL DÍA:</td>
                                 <td
-                                    class="py-2 text-center font-mono font-black text-green-400 text-xl shadow-sm bg-white/5 border-t border-white/5 rounded-tr-lg">
+                                    class="py-2 text-center font-mono font-black {{ 'text-blue-400' if data.total_profit >= 0 else 'text-red-400' }} text-xl shadow-sm bg-white/5 border-t border-white/5 rounded-tr-lg">
                                     ${{ data.total_profit }}</td>
                             </tr>
                         </tfoot>

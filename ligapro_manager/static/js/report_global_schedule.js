@@ -20,10 +20,21 @@ function updateMatchScore(matchId, field, value) {
         .catch(error => console.error('Error:', error));
 }
 
-function updateMatchCost(matchId, field, value, courtId) {
+function updateMatchCost(matchId, field, value, courtId, inputElement) {
     // Optimistic UI update for totals can be complex, for now we rely on explicit user input.
     // We will just send the data and allow the user to see the value they typed.
     // To update totals immediately, we can parse the DOM inputs for this table.
+    if (inputElement && (field === 'referee_cost_home' || field === 'referee_cost_away')) {
+        const expectedPrice = parseInt(inputElement.getAttribute('data-price') || "0");
+        const actualValue = parseValue(value);
+        inputElement.classList.remove('text-red-400', 'text-green-500');
+        if (expectedPrice > 0 && actualValue >= expectedPrice) {
+            inputElement.classList.add('text-green-500');
+        } else {
+            inputElement.classList.add('text-red-400');
+        }
+    }
+
     recalculateTotals(courtId);
 
     fetch(window.updateMatchCostsUrl, {
@@ -88,8 +99,8 @@ function recalculateTotals(courtId) {
     const profit = teamsIncome - sumReferee;
     if (profitEl) {
         profitEl.textContent = '$' + profit;
-        profitEl.className = profitEl.className.replace(/text-(green|red)-400/, '');
-        profitEl.classList.add(profit >= 0 ? 'text-green-400' : 'text-red-400');
+        profitEl.className = profitEl.className.replace(/text-(green|blue|red)-400/, '');
+        profitEl.classList.add(profit >= 0 ? 'text-blue-400' : 'text-red-400');
     }
 }
 
