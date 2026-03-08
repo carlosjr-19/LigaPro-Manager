@@ -7,6 +7,7 @@ Agrupamiento financiero por cancha e indicador visual de pagos de arbitraje. Mod
 - **Indicador Visual de Pagos**: En la Agenda Global, los montos de arbitraje ahora se colorean verde oscuro si el equipo cubrió el total establecido, y en rojo si existe un adeudo, agilizando la identificación de morosos. 
 - **Ajustes Estéticos**: Reordenamiento de colores en el resumen general para destacar en verde el ingreso total bruto y en azul la ganancia neta.
 - **Eliminar partido**: En la agenda global se implemento en editar partido la opción para eliminar el partido.
+- **Ajustes Estéticos**: Se ajusto el diseño de las credenciales para que se muestren de manera mas limpia y ordenada.
 
 ## Modificado
 * `ligapro_manager/routes/report.py`
