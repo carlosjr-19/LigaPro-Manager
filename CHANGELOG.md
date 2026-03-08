@@ -7,11 +7,19 @@ Agrupamiento financiero por cancha e indicador visual de pagos de arbitraje. Mod
 - **Indicador Visual de Pagos**: En la Agenda Global, los montos de arbitraje ahora se colorean verde oscuro si el equipo cubrió el total establecido, y en rojo si existe un adeudo, agilizando la identificación de morosos. 
 - **Ajustes Estéticos**: Reordenamiento de colores en el resumen general para destacar en verde el ingreso total bruto y en azul la ganancia neta.
 - **Eliminar partido**: En la agenda global se implemento en editar partido la opción para eliminar el partido.
-- **Ajustes Estéticos**: Se ajusto el diseño de las credenciales para que se muestren de manera mas limpia y ordenada.
+- **Credenciales Mejoradas**: Se centró el escudo y el nombre del equipo en el formato impreso de credenciales, y se configuró un ícono por defecto ("silueta de persona") para los jugadores que no tienen fotografía cargada. Además, se eliminó el código de barras y se centró la frase del registro de la liga.
+- **Filtro de Fechas en Reportes**: Se agregó la funcionalidad para elegir un rango de fechas ("Desde" y "Hasta") aplicable a "***Próximos Partidos***" al momento de generar el reporte de la jornada a compartir (tanto desde Panel General como Liguilla).
+- **Reporte de Jornada Limpio por Defecto**: Las casillas de Goleadores, Arqueros y Próximos Partidos ahora vienen desmarcadas por defecto al abrir el menú de Compartir / Generar Reporte. Dejando como principal información la Tabla de Posiciones.
 
 ## Modificado
 * `ligapro_manager/routes/report.py`
+* `ligapro_manager/routes/league.py`
 * `ligapro_manager/templates/report/settings.html`
+* `ligapro_manager/templates/credentials.html`
+* `ligapro_manager/templates/share_modal_fragment.html`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/static/js/share_modal.js`
+* `ligapro_manager/static/js/league_detail.js`
 * `ligapro_manager/templates/report/financials.html`
 * `ligapro_manager/templates/report/share_financials.html`
 * `ligapro_manager/templates/report/global_schedule.html`
