@@ -141,11 +141,19 @@ def delete_match(match_id):
         flash('No tienes acceso.', 'danger')
         return redirect(url_for('main.dashboard'))
         
-    # Removed check for is_completed to allow deleting finalized matches
+    next_action = request.form.get('next_action')
+    selected_date = request.form.get('selected_date')
         
     db.session.delete(match)
     db.session.commit()
     flash('Partido eliminado.', 'success')
+    
+    if next_action == 'global_schedule':
+        if selected_date and selected_date != 'None':
+            return redirect(url_for('report.global_schedule', date=selected_date))
+        else:
+            return redirect(url_for('report.global_schedule'))
+            
     anchor = 'playoff' if match.stage not in ['regular', None, ''] else 'matches'
     return redirect(url_for('league.league_detail', league_id=league_id, _anchor=anchor))
 
@@ -215,7 +223,7 @@ def edit_match(match_id):
             
     teams_map = {t.id: t.name for t in teams}
     
-    return render_template('match_form.html', form=form, league=league, 
+    return render_template('match_form.html', form=form, league=league, match=match,
                           title='Editar Partido', teams_history=teams_history, teams_map=teams_map, next_action=next_action, selected_date=selected_date)
 
 

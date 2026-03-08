@@ -1,11 +1,12 @@
 ## 0.9.9.5
 
-Agrupamiento financiero por cancha e indicador visual de pagos de arbitraje.
+Agrupamiento financiero por cancha e indicador visual de pagos de arbitraje. Modificación de edición de partidos desde agenda global para poder eliminar partido
 
 - **Reporte Financiero "Por Cancha"**: Nueva configuración en Panel Ultra que agrupa el reporte de finanzas estructurándolo primero por Cancha, y desglosando posteriormente los días jugados. Incluye generación de subtotales independientes por establecimiento.
 - **Exportaciones Agrupadas**: Al seleccionar la opción "Por Cancha", tanto la exportación a Excel (.xlsx) como la generación de imagen PNG respetan el formato agrupado (Cancha -> Fechas -> Subtotal).
 - **Indicador Visual de Pagos**: En la Agenda Global, los montos de arbitraje ahora se colorean verde oscuro si el equipo cubrió el total establecido, y en rojo si existe un adeudo, agilizando la identificación de morosos. 
 - **Ajustes Estéticos**: Reordenamiento de colores en el resumen general para destacar en verde el ingreso total bruto y en azul la ganancia neta.
+- **Eliminar partido**: En la agenda global se implemento en editar partido la opción para eliminar el partido.
 
 ## Modificado
 * `ligapro_manager/routes/report.py`

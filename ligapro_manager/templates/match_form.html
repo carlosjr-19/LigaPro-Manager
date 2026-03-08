@@ -80,6 +80,49 @@
                     {% endif %}
                 </div>
             </form>
+
+            {% if match %}
+            <!-- Delete Action (Only for editing existing matches) -->
+            <div class="mt-8 pt-6 border-t border-white/10 text-right">
+                <button type="button" onclick="document.getElementById('deleteModal').classList.remove('hidden')"
+                    class="text-red-400 hover:text-red-300 text-sm font-bold uppercase tracking-wider transition-colors inline-flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 px-4 py-2 rounded-lg">
+                    <i class="fas fa-trash-alt"></i> Eliminar Partido
+                </button>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div id="deleteModal"
+                class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div
+                    class="bg-gray-900 border border-red-500/30 rounded-2xl max-w-md w-full p-6 shadow-2xl transform transition-all">
+                    <div class="text-center">
+                        <div class="w-16 h-16 rounded-full bg-red-500/20 mx-auto flex items-center justify-center mb-4">
+                            <i class="fas fa-exclamation-triangle text-3xl text-red-400"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">¿Eliminar Partido?</h3>
+                        <p class="text-white/60 mb-8">Esta acción no se puede deshacer. El partido se borrará de la
+                            agenda y de las estadísticas.</p>
+
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button type="button"
+                                onclick="document.getElementById('deleteModal').classList.add('hidden')"
+                                class="btn-secondary flex-1">
+                                Cancelar
+                            </button>
+                            <form action="{{ url_for('match.delete_match', match_id=match.id) }}" method="POST"
+                                class="flex-1">
+                                <input type="hidden" name="next_action" value="{{ next_action }}">
+                                <input type="hidden" name="selected_date" value="{{ selected_date }}">
+                                <button type="submit"
+                                    class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center shadow-lg shadow-red-500/20">
+                                    <i class="fas fa-trash-alt mr-2"></i> Sí, Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </main>
 </div>
