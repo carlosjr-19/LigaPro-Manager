@@ -59,6 +59,20 @@
             </div>
 
             <!-- Dashboard Cards -->
+            {% if report_type == 'por_cancha' %}
+            <div class="p-6 relative z-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {% for court, c_stats in court_totals.items() %}
+                <div
+                    class="bg-black/40 border border-white/5 rounded-xl p-5 flex flex-col items-center text-center relative overflow-hidden">
+                    <div class="absolute inset-0 bg-green-500/5 z-0"></div>
+                    <p class="text-white/60 text-[11px] font-bold uppercase tracking-widest mb-1 relative z-10"><i
+                            class="fas fa-map-marker-alt text-green-400 mr-1"></i> {{ court }}</p>
+                    <p class="text-4xl font-mono font-black {{ 'text-green-400' if c_stats.profit >= 0 else 'text-red-400' }} relative z-10"
+                        style="text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);">${{ c_stats.profit }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
             <div class="p-6 relative z-10 grid grid-cols-3 gap-6">
                 <!-- Ingresos -->
                 <div class="bg-black/40 border border-white/5 rounded-xl p-5 flex flex-col items-center text-center">
@@ -84,6 +98,7 @@
                         style="text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);">${{ total_profit }}</p>
                 </div>
             </div>
+            {% endif %}
 
             <!-- Details Table -->
             <div class="p-6 pt-0 relative z-10">
@@ -106,6 +121,47 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-white/5">
+                            {% if report_type == 'por_cancha' %}
+                            {% for court, c_stats in court_totals.items() %}
+                            <tr class="bg-black/80">
+                                <td colspan="5"
+                                    class="py-3 px-4 text-left font-bold uppercase tracking-wider text-green-400">{{
+                                    court }}</td>
+                            </tr>
+                            {% for date_str, d_stats in c_stats.dates.items()|sort(attribute='1.date_obj') %}
+                            <tr class="hover:bg-white/5 transition-colors text-xs">
+                                <td class="py-3 px-4 text-left font-mono text-white/60 font-bold whitespace-nowrap">
+                                    {{ d_stats.date_obj.strftime('%d/%m/%Y') }}
+                                </td>
+                                <td class="py-3 px-4 text-left font-bold uppercase tracking-wider text-white/90">
+                                    {{ court }}
+                                </td>
+                                <td class="py-3 px-4 text-center font-mono font-bold text-blue-300">
+                                    ${{ d_stats.income }}
+                                </td>
+                                <td class="py-3 px-4 text-center font-mono font-bold text-red-300">
+                                    ${{ d_stats.expense }}
+                                </td>
+                                <td
+                                    class="py-3 px-4 text-center font-mono font-bold {{ 'text-green-400' if d_stats.profit >= 0 else 'text-red-400' }}">
+                                    ${{ d_stats.profit }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="bg-black/20 border-t border-white/10 border-b-2">
+                                <td colspan="2"
+                                    class="py-2 px-4 text-right text-[10px] font-bold uppercase tracking-widest text-white/40">
+                                    SUBTOTAL CANCHA:
+                                </td>
+                                <td class="py-2 px-4 text-center font-mono font-bold text-blue-400/80 text-xs">${{
+                                    c_stats.income }}</td>
+                                <td class="py-2 px-4 text-center font-mono font-bold text-red-400/80 text-xs">${{
+                                    c_stats.expense }}</td>
+                                <td class="py-2 px-4 text-center font-mono font-bold text-green-400 text-sm">${{
+                                    c_stats.profit }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
                             {% for day in financial_data %}
                             {% for court, stats in day.courts.items() %}
                             <tr class="hover:bg-white/5 transition-colors text-xs">
@@ -142,6 +198,7 @@
                                     day.daily_profit }}</td>
                             </tr>
                             {% endfor %}
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>

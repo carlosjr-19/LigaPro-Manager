@@ -141,11 +141,15 @@
                                     {{ match.home_team.name }}
                                 </td>
                                 <td class="py-1 px-1 text-center">
+                                    {% set expected_price = match.league.price_per_match or 0 %}
+                                    {% set actual_home = match.referee_cost_home|default('0', true) %}
+                                    {% set is_paid_home = actual_home|int(default=-1) >= expected_price and
+                                    expected_price > 0 %}
                                     <input type="text"
-                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-red-400 print:text-black print:border-none uppercase"
+                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none {{ 'text-green-500' if is_paid_home else 'text-red-400' }} print:text-black print:border-none uppercase"
                                         value="{{ match.referee_cost_home if match.referee_cost_home != '0' else '' }}"
-                                        placeholder="-" data-field="referee_cost_home"
-                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost_home', this.value, '{{ court_name|replace(' ', '_') }}')">
+                                        placeholder="-" data-field="referee_cost_home" data-price="{{ expected_price }}"
+                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost_home', this.value, '{{ court_name|replace(' ', '_') }}', this)">
                                 </td>
                                 <td class="py-1 px-1 text-center whitespace-nowrap">
                                     <div class="flex items-center justify-center gap-1">
@@ -163,11 +167,14 @@
                                     </div>
                                 </td>
                                 <td class="py-1 px-1 text-center">
+                                    {% set actual_away = match.referee_cost_away|default('0', true) %}
+                                    {% set is_paid_away = actual_away|int(default=-1) >= expected_price and
+                                    expected_price > 0 %}
                                     <input type="text"
-                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-red-400 print:text-black print:border-none uppercase"
+                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none {{ 'text-green-500' if is_paid_away else 'text-red-400' }} print:text-black print:border-none uppercase"
                                         value="{{ match.referee_cost_away if match.referee_cost_away != '0' else '' }}"
-                                        placeholder="-" data-field="referee_cost_away"
-                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost_away', this.value, '{{ court_name|replace(' ', '_') }}')">
+                                        placeholder="-" data-field="referee_cost_away" data-price="{{ expected_price }}"
+                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost_away', this.value, '{{ court_name|replace(' ', '_') }}', this)">
                                 </td>
                                 <td
                                     class="py-1 px-2 md:px-4 text-left font-bold text-white print:text-black leading-tight">
@@ -178,7 +185,7 @@
                                         class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none text-yellow-400 print:text-black print:border-none uppercase"
                                         value="{{ match.referee_cost if match.referee_cost != '0' else '' }}"
                                         placeholder="-" data-field="referee_cost"
-                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost', this.value, '{{ court_name|replace(' ', '_') }}')">
+                                        onchange="updateMatchCost('{{ match.id }}', 'referee_cost', this.value, '{{ court_name|replace(' ', '_') }}', this)">
                                 </td>
                                 <td class="py-1 px-2 text-center print:hidden">
                                     <a href="{{ url_for('match.edit_match', match_id=match.id, next='global_schedule', selected_date=selected_date) }}"
@@ -217,7 +224,7 @@
                                 <td colspan="8"
                                     class="py-2 px-4 text-right uppercase text-xs tracking-wider text-white/60 print:text-gray-600">
                                     Total Ingresos (Local + Visita):</td>
-                                <td class="py-2 px-1 text-center font-mono text-blue-400 print:text-blue-600 text-sm font-bold"
+                                <td class="py-2 px-1 text-center font-mono text-green-400 print:text-green-600 text-sm font-bold"
                                     data-type="total-teams-income">
                                     ${{ data.total_cost_home + data.total_cost_away }}
                                 </td>
@@ -229,7 +236,7 @@
                                 <td colspan="8" class="py-2 px-4 text-right uppercase text-xs tracking-wider font-bold">
                                     Ganancia Neta
                                     (Ingresos - Árbitros):</td>
-                                <td class="py-2 px-1 text-center font-mono text-lg font-bold {{ 'text-green-400' if data.total_profit >= 0 else 'text-red-400' }} print:text-black"
+                                <td class="py-2 px-1 text-center font-mono text-lg font-bold {{ 'text-blue-400' if data.total_profit >= 0 else 'text-red-400' }} print:text-black"
                                     data-type="total-profit">
                                     ${{ data.total_profit }}
                                 </td>
@@ -291,7 +298,7 @@
             };
 
             if (window.FlutterDownloader) {
-                html2pdf().set(opt).from(element).outputPdf('datauristring').then(function(pdfBase64) {
+                html2pdf().set(opt).from(element).outputPdf('datauristring').then(function (pdfBase64) {
                     window.FlutterDownloader.postMessage(opt.filename + "|" + pdfBase64);
                     restoreUI();
                 }).catch(handleError);

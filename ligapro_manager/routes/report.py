@@ -863,6 +863,7 @@ def global_schedule_financials():
         except: return 0
 
     total_month_profit = 0
+    court_totals = {} # Store total profit per court for the entire period
 
     for match in matches:
         date_key = match.match_date.strftime('%Y-%m-%d')
@@ -899,6 +900,26 @@ def global_schedule_financials():
         financial_data[date_key]['daily_income'] += income
         financial_data[date_key]['daily_expense'] += expense
         total_month_profit += profit
+        
+        # Accumulate total profit per court
+        if court_name not in court_totals:
+            court_totals[court_name] = {'income': 0, 'expense': 0, 'profit': 0, 'dates': {}}
+            
+        court_totals[court_name]['income'] += income
+        court_totals[court_name]['expense'] += expense
+        court_totals[court_name]['profit'] += profit
+        
+        if date_key not in court_totals[court_name]['dates']:
+            court_totals[court_name]['dates'][date_key] = {
+                'date_obj': match.match_date,
+                'income': 0,
+                'expense': 0,
+                'profit': 0
+            }
+        
+        court_totals[court_name]['dates'][date_key]['income'] += income
+        court_totals[court_name]['dates'][date_key]['expense'] += expense
+        court_totals[court_name]['dates'][date_key]['profit'] += profit
 
     # Convert to sorted list
     sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
@@ -932,7 +953,8 @@ def global_schedule_financials():
                          years=years,
                          court_names=court_names,
                          selected_cancha=cancha_name,
-                         filename_suffix=filename_suffix)
+                         filename_suffix=filename_suffix,
+                         court_totals=court_totals)
 
 @report_bp.route('/global-schedule/financials/export')
 @login_required
@@ -978,6 +1000,7 @@ def export_global_financials():
     matches = query.order_by(Match.match_date).all()
 
     financial_data = {}
+    court_totals = {}
     def parse_cost(val):
         if not val: return 0
         if isinstance(val, str) and not val.isdigit(): return 0 
@@ -1006,6 +1029,26 @@ def export_global_financials():
         financial_data[date_key]['courts'][court_name]['income'] += income
         financial_data[date_key]['courts'][court_name]['expense'] += expense
         financial_data[date_key]['courts'][court_name]['profit'] += profit
+        
+        # Accumulate total profit per court
+        if court_name not in court_totals:
+            court_totals[court_name] = {'income': 0, 'expense': 0, 'profit': 0, 'dates': {}}
+            
+        court_totals[court_name]['income'] += income
+        court_totals[court_name]['expense'] += expense
+        court_totals[court_name]['profit'] += profit
+        
+        if date_key not in court_totals[court_name]['dates']:
+            court_totals[court_name]['dates'][date_key] = {
+                'date_obj': match.match_date,
+                'income': 0,
+                'expense': 0,
+                'profit': 0
+            }
+        
+        court_totals[court_name]['dates'][date_key]['income'] += income
+        court_totals[court_name]['dates'][date_key]['expense'] += expense
+        court_totals[court_name]['dates'][date_key]['profit'] += profit
 
     sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
 
@@ -1029,39 +1072,78 @@ def export_global_financials():
     
     total_profit = 0
     
-    for day in sorted_data:
-        date_str = day['date_obj'].strftime('%d/%m/%Y')
-        daily_profit = 0
-        daily_income = 0
-        daily_expense = 0
-        
-        for court_name, stats in day['courts'].items():
-            ws.cell(row=current_row, column=1, value=date_str)
-            ws.cell(row=current_row, column=2, value=court_name)
-            ws.cell(row=current_row, column=3, value=stats['income'])
-            ws.cell(row=current_row, column=4, value=stats['expense'])
-            ws.cell(row=current_row, column=5, value=stats['profit'])
-            
-            # Color profit
-            color = "008000" if stats['profit'] >= 0 else "FF0000"
-            ws.cell(row=current_row, column=5).font = Font(color=color, bold=True)
-            
-            daily_profit += stats['profit']
-            daily_income += stats['income']
-            daily_expense += stats['expense']
+    if report_type == 'por_cancha':
+        for court_name, c_stats in court_totals.items():
+            # Court Header Row
+            ws.cell(row=current_row, column=1, value=court_name.upper())
+            ws.cell(row=current_row, column=1).font = Font(bold=True, color="008000")
+            ws.merge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=5)
+            ws.cell(row=current_row, column=1).fill = PatternFill(start_color="333333", end_color="333333", fill_type="solid")
             current_row += 1
             
-        # Daily Total Row
-        ws.cell(row=current_row, column=2, value="TOTAL DÍA:").alignment = Alignment(horizontal='right')
-        ws.cell(row=current_row, column=2).font = Font(bold=True)
-        ws.cell(row=current_row, column=3, value=daily_income).font = Font(bold=True)
-        ws.cell(row=current_row, column=3).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
-        ws.cell(row=current_row, column=4, value=daily_expense).font = Font(color="FF0000", bold=True)
-        ws.cell(row=current_row, column=4).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
-        ws.cell(row=current_row, column=5, value=daily_profit).font = Font(bold=True)
-        ws.cell(row=current_row, column=5).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
-        current_row += 1
-        total_profit += daily_profit
+            # Sorted inner dates
+            sorted_dates = sorted(c_stats['dates'].values(), key=lambda x: x['date_obj'])
+            
+            for d_stats in sorted_dates:
+                date_str = d_stats['date_obj'].strftime('%d/%m/%Y')
+                
+                ws.cell(row=current_row, column=1, value=date_str)
+                ws.cell(row=current_row, column=2, value=court_name)
+                ws.cell(row=current_row, column=3, value=d_stats['income'])
+                ws.cell(row=current_row, column=4, value=d_stats['expense'])
+                ws.cell(row=current_row, column=5, value=d_stats['profit'])
+                
+                # Color profit
+                color = "008000" if d_stats['profit'] >= 0 else "FF0000"
+                ws.cell(row=current_row, column=5).font = Font(color=color, bold=True)
+                current_row += 1
+                
+            # Court Subtotal Row
+            ws.cell(row=current_row, column=2, value="SUBTOTAL CANCHA:").alignment = Alignment(horizontal='right')
+            ws.cell(row=current_row, column=2).font = Font(bold=True)
+            ws.cell(row=current_row, column=3, value=c_stats['income']).font = Font(color="0000FF", bold=True)
+            ws.cell(row=current_row, column=3).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
+            ws.cell(row=current_row, column=4, value=c_stats['expense']).font = Font(color="FF0000", bold=True)
+            ws.cell(row=current_row, column=4).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
+            ws.cell(row=current_row, column=5, value=c_stats['profit']).font = Font(bold=True)
+            ws.cell(row=current_row, column=5).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
+            current_row += 1
+            total_profit += c_stats['profit']
+            
+    else:
+        for day in sorted_data:
+            date_str = day['date_obj'].strftime('%d/%m/%Y')
+            daily_profit = 0
+            daily_income = 0
+            daily_expense = 0
+            
+            for court_name, stats in day['courts'].items():
+                ws.cell(row=current_row, column=1, value=date_str)
+                ws.cell(row=current_row, column=2, value=court_name)
+                ws.cell(row=current_row, column=3, value=stats['income'])
+                ws.cell(row=current_row, column=4, value=stats['expense'])
+                ws.cell(row=current_row, column=5, value=stats['profit'])
+                
+                # Color profit
+                color = "008000" if stats['profit'] >= 0 else "FF0000"
+                ws.cell(row=current_row, column=5).font = Font(color=color, bold=True)
+                
+                daily_profit += stats['profit']
+                daily_income += stats['income']
+                daily_expense += stats['expense']
+                current_row += 1
+                
+            # Daily Total Row
+            ws.cell(row=current_row, column=2, value="TOTAL DÍA:").alignment = Alignment(horizontal='right')
+            ws.cell(row=current_row, column=2).font = Font(bold=True)
+            ws.cell(row=current_row, column=3, value=daily_income).font = Font(bold=True)
+            ws.cell(row=current_row, column=3).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
+            ws.cell(row=current_row, column=4, value=daily_expense).font = Font(color="FF0000", bold=True)
+            ws.cell(row=current_row, column=4).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
+            ws.cell(row=current_row, column=5, value=daily_profit).font = Font(bold=True)
+            ws.cell(row=current_row, column=5).fill = PatternFill(start_color="EEEEEE", end_color="EEEEEE", fill_type="solid")
+            current_row += 1
+            total_profit += daily_profit
         
     current_row += 1
     ws.cell(row=current_row, column=4, value="GRAN TOTAL PERIODO:").alignment = Alignment(horizontal='right')
@@ -1126,6 +1208,7 @@ def share_global_financials():
     total_income = 0
     total_expense = 0
     total_profit = 0
+    court_totals = {}
 
     def parse_cost(val):
         if not val: return 0
@@ -1159,6 +1242,26 @@ def share_global_financials():
         financial_data[date_key]['daily_income'] += income
         financial_data[date_key]['daily_expense'] += expense
         financial_data[date_key]['daily_profit'] += profit
+        
+        # Accumulate total profit per court
+        if court_name not in court_totals:
+            court_totals[court_name] = {'income': 0, 'expense': 0, 'profit': 0, 'dates': {}}
+            
+        court_totals[court_name]['income'] += income
+        court_totals[court_name]['expense'] += expense
+        court_totals[court_name]['profit'] += profit
+        
+        if date_key not in court_totals[court_name]['dates']:
+            court_totals[court_name]['dates'][date_key] = {
+                'date_obj': match.match_date,
+                'income': 0,
+                'expense': 0,
+                'profit': 0
+            }
+        
+        court_totals[court_name]['dates'][date_key]['income'] += income
+        court_totals[court_name]['dates'][date_key]['expense'] += expense
+        court_totals[court_name]['dates'][date_key]['profit'] += profit
 
         total_income += income
         total_expense += expense
@@ -1173,7 +1276,9 @@ def share_global_financials():
                          total_income=total_income,
                          total_expense=total_expense,
                          total_profit=total_profit,
-                         today=datetime.now().strftime('%d/%m/%Y'))
+                         today=datetime.now().strftime('%d/%m/%Y'),
+                         report_type=report_type,
+                         court_totals=court_totals)
 
 @report_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -1205,7 +1310,7 @@ def settings():
                 
         # Guardar configuración de tipo de reporte financiero
         report_type = request.form.get('financial_report_type')
-        if report_type in ['period', 'date_range']:
+        if report_type in ['period', 'date_range', 'por_cancha']:
             current_user.financial_report_type = report_type
         
         db.session.commit()

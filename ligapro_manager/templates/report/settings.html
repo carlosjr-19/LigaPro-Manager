@@ -97,6 +97,8 @@
                         Periodo (Mes exacto)</option>
                     <option value="date_range" {% if current_user.financial_report_type=='date_range' %}selected{% endif
                         %}>Por Rango de Fechas (Desde/Hasta)</option>
+                    <option value="por_cancha" {% if current_user.financial_report_type=='por_cancha' %}selected{% endif
+                        %}>Por Cancha (Desglose por Canchas)</option>
                 </select>
             </div>
         </div>
