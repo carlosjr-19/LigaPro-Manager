@@ -1,3 +1,17 @@
+## 0.9.9.6
+
+Eliminación permanente de filas en el Resumen General.
+
+- **Eliminación Persistente**: Se implementó la capacidad de ocultar filas de discrepancias en el Resumen General de forma definitiva. Al pulsar la "X", la elección se guarda en la base de datos vinculada al usuario.
+- **Filtrado Automático**: Las filas eliminadas se omiten automáticamente tanto en la vista web como en todas las exportaciones (Imagen/PDF y Excel) sin necesidad de parámetros adicionales en el URL.
+- **Nueva Infraestructura**: Creación del modelo `IgnoredDiscrepancy` para gestionar los descartes de forma eficiente y segura por cada dueño de liga.
+
+## Modificado
+* `ligapro_manager/models/ignored_discrepancy.py` (Nuevo)
+* `ligapro_manager/models/__init__.py`
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/templates/report/summary.html`
+
 ## 0.9.9.5
 
 Agrupamiento financiero por cancha e indicador visual de pagos de arbitraje. Modificación de edición de partidos desde agenda global para poder eliminar partido
