@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
-from models import Match, League, Court, Team, OwnerCourtSetting
+from models import Match, League, Court, Team, OwnerCourtSetting, IgnoredDiscrepancy
 from extensions import db
 from sqlalchemy import func
 from datetime import datetime
@@ -9,6 +9,7 @@ from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 from io import BytesIO
 from flask import send_file
+import hashlib
 
 report_bp = Blueprint('report', __name__)
 
@@ -601,6 +602,29 @@ def calculate_discrepancies(matches):
             })
     return events
 
+
+@report_bp.route('/api/report/ignore_discrepancy', methods=['POST'])
+@login_required
+def ignore_discrepancy():
+    if not getattr(current_user, 'is_ultra', False):
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    data = request.get_json()
+    hash_id = data.get('hash_id')
+    
+    if not hash_id:
+        return jsonify({'error': 'No info provided'}), 400
+        
+    # Check if already ignored to prevent duplicates
+    existing = IgnoredDiscrepancy.query.filter_by(user_id=current_user.id, hash_id=hash_id).first()
+    if not existing:
+        new_ignore = IgnoredDiscrepancy(user_id=current_user.id, hash_id=hash_id)
+        db.session.add(new_ignore)
+        db.session.commit()
+        
+    return jsonify({'success': True})
+
+
 @report_bp.route('/global-schedule/summary')
 @login_required
 def global_schedule_summary():
@@ -641,12 +665,26 @@ def global_schedule_summary():
             key = (item['league'], date_str, date_sort)
             referee_summary[key] = referee_summary.get(key, 0) + item['balance']
             
-    # Convert to list for display
-    teams_list = [{'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3]} for k, v in teams_summary.items()]
+    # Convert to list for display, add hash ID
+    teams_list = []
+    for k, v in teams_summary.items():
+        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{k[2]}_{k[3]}".encode('utf-8')).hexdigest()
+        teams_list.append({'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3], 'id': id_str})
     teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
     
-    referee_list = [{'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2]} for k, v in referee_summary.items()]
+    referee_list = []
+    for k, v in referee_summary.items():
+        id_str = hashlib.md5(f"ref_{k[0]}_{k[1]}_{k[2]}".encode('utf-8')).hexdigest()
+        referee_list.append({'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2], 'id': id_str})
     referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
+    
+    # Filter out excluded rows permanently from DB
+    ignored_records = IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).all()
+    excluded_ids = [record.hash_id for record in ignored_records]
+    
+    if excluded_ids:
+        teams_list = [t for t in teams_list if t['id'] not in excluded_ids]
+        referee_list = [r for r in referee_list if r['id'] not in excluded_ids]
     
     # Get unique courts for dropdown
     courts_query = db.session.query(Court.name).join(League).filter(League.user_id == current_user.id).distinct().all()
@@ -703,12 +741,26 @@ def share_global_schedule_summary():
             key = (item['league'], date_str, date_sort)
             referee_summary[key] = referee_summary.get(key, 0) + item['balance']
             
-    # Convert to list for display
-    teams_list = [{'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3]} for k, v in teams_summary.items()]
+    # Convert to list for display, add hash ID
+    teams_list = []
+    for k, v in teams_summary.items():
+        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{k[2]}_{k[3]}".encode('utf-8')).hexdigest()
+        teams_list.append({'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3], 'id': id_str})
     teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
     
-    referee_list = [{'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2]} for k, v in referee_summary.items()]
+    referee_list = []
+    for k, v in referee_summary.items():
+        id_str = hashlib.md5(f"ref_{k[0]}_{k[1]}_{k[2]}".encode('utf-8')).hexdigest()
+        referee_list.append({'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2], 'id': id_str})
     referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
+    
+    # Filter out excluded rows permanently from DB
+    ignored_records = IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).all()
+    excluded_ids = [record.hash_id for record in ignored_records]
+    
+    if excluded_ids:
+        teams_list = [t for t in teams_list if t['id'] not in excluded_ids]
+        referee_list = [r for r in referee_list if r['id'] not in excluded_ids]
     
     leagues = League.query.filter_by(user_id=current_user.id).all()
     selected_league_name = next((l.name for l in leagues if str(l.id) == league_id), None)
@@ -759,11 +811,26 @@ def export_global_summary():
             key = (item['league'], date_str, date_sort)
             referee_summary[key] = referee_summary.get(key, 0) + item['balance']
             
-    teams_list = [{'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3]} for k, v in teams_summary.items()]
+    # Convert to list for display, add hash ID
+    teams_list = []
+    for k, v in teams_summary.items():
+        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{k[2]}_{k[3]}".encode('utf-8')).hexdigest()
+        teams_list.append({'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3], 'id': id_str})
     teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
     
-    referee_list = [{'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2]} for k, v in referee_summary.items()]
+    referee_list = []
+    for k, v in referee_summary.items():
+        id_str = hashlib.md5(f"ref_{k[0]}_{k[1]}_{k[2]}".encode('utf-8')).hexdigest()
+        referee_list.append({'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2], 'id': id_str})
     referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
+    
+    # Filter out excluded rows permanently from DB
+    ignored_records = IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).all()
+    excluded_ids = [record.hash_id for record in ignored_records]
+    
+    if excluded_ids:
+        teams_list = [t for t in teams_list if t['id'] not in excluded_ids]
+        referee_list = [r for r in referee_list if r['id'] not in excluded_ids]
 
     # Excel
     wb = openpyxl.Workbook()
