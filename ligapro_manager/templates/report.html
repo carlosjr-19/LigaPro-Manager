@@ -77,18 +77,38 @@
         </div>
         {% endif %}
 
-        <!-- Placeholder for future reports (can stay as is or be improved) -->
-        <div class="card opacity-30 border-dashed border-2 border-white/10">
-            <div class="flex items-start justify-between mb-4">
-                <div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center text-white/20">
-                    <i class="fas fa-chart-pie text-2xl"></i>
+        <!-- Financial Stats Card -->
+        {% if current_user.is_ultra %}
+        <a href="{{ url_for('report.financial_charts') }}"
+            class="card hover:bg-white/5 transition-all group border-l-4 border-emerald-500">
+            {% else %}
+            <div class="card opacity-60 border-l-4 border-gray-600 grayscale cursor-not-allowed group">
+                {% endif %}
+                <div class="flex items-start justify-between mb-4">
+                    <div
+                        class="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                    </div>
+                    {% if current_user.is_ultra %}
+                    <span
+                        class="bg-emerald-500/10 text-emerald-400 text-xs px-2 py-1 rounded border border-emerald-500/20">Ultra</span>
+                    {% else %}
+                    <span
+                        class="bg-gray-500/10 text-gray-400 text-xs px-2 py-1 rounded border border-gray-500/20"><i
+                            class="fas fa-lock mr-1"></i>Bloqueado</span>
+                    {% endif %}
                 </div>
-            </div>
-            <h3 class="text-xl font-bold mb-2 text-white/40">Próximamente</h3>
-            <p class="text-white/20 text-sm">
-                Más reportes avanzados en desarrollo.
-            </p>
-        </div>
+                <h3
+                    class="text-xl font-bold mb-2 {% if current_user.is_ultra %}group-hover:text-emerald-400{% endif %} transition-colors">
+                    Gráficas Financieras</h3>
+                <p class="text-white/40 text-sm">
+                    Visualiza el rendimiento económico de tus ligas con gráficas de ganancias por día, semana o mes.
+                </p>
+                {% if current_user.is_ultra %}
+        </a>
+        {% else %}
+    </div>
+    {% endif %}
 </div>
 </main>
 </div>

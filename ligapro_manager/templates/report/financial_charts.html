@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+{% block title %}Gráficas Financieras{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('report.index') }}" class="text-white/40 hover:text-white transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-teal-600 bg-clip-text text-transparent">
+                    <i class="fas fa-chart-line mr-2"></i>Estadísticas Financieras
+                </h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/20">
+                    <i class="fas fa-crown mr-1"></i>Ultra
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Controls Container -->
+        <div class="bg-card/50 backdrop-blur-md rounded-2xl border border-white/10 p-6 mb-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Period Selector -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs uppercase tracking-wider text-white/40 font-semibold ml-1">Periodo</label>
+                    <div class="grid grid-cols-3 bg-black/30 rounded-xl p-1 border border-white/5">
+                        <button onclick="updatePeriod('day', this)" class="period-btn active py-2 rounded-lg text-sm font-medium transition-all" data-period="day">Día</button>
+                        <button onclick="updatePeriod('week', this)" class="period-btn py-2 rounded-lg text-sm font-medium transition-all" data-period="week">Semana</button>
+                        <button onclick="updatePeriod('month', this)" class="period-btn py-2 rounded-lg text-sm font-medium transition-all" data-period="month">Mes</button>
+                    </div>
+                </div>
+
+                <!-- Court Selector -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs uppercase tracking-wider text-white/40 font-semibold ml-1">Cancha</label>
+                    <select id="court-select" onchange="loadChartData()" class="bg-black/30 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-emerald-500/50 transition-colors">
+                        <option value="">Todas las canchas</option>
+                        {% for name in court_names %}
+                        <option value="{{ name }}">{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Range -->
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs uppercase tracking-wider text-white/40 font-semibold ml-1">Rango de Fechas</label>
+                    <div class="flex items-center gap-2">
+                        <input type="date" id="date-from" onchange="loadChartData()" class="bg-black/30 border border-white/10 rounded-xl px-2 py-2 text-white text-[10px] focus:outline-none focus:border-emerald-500/50 transition-colors w-full min-w-0">
+                        <span class="text-white/20">-</span>
+                        <input type="date" id="date-to" onchange="loadChartData()" class="bg-black/30 border border-white/10 rounded-xl px-2 py-2 text-white text-[10px] focus:outline-none focus:border-emerald-500/50 transition-colors w-full min-w-0">
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="flex items-end justify-start sm:justify-end lg:col-start-4">
+                    <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-6 py-3 flex flex-col items-end w-full sm:w-auto">
+                        <span class="text-[10px] uppercase tracking-tighter text-emerald-400/80 font-bold">Total Ganancia Neta</span>
+                        <span id="total-profit-display" class="text-2xl font-bold text-white">$0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="bg-card/50 backdrop-blur-md rounded-2xl border border-white/10 p-8 min-h-[500px] flex flex-col relative overflow-hidden">
+            <div id="loading-overlay" class="absolute inset-0 bg-card/80 backdrop-blur-sm z-10 flex items-center justify-center opacity-0 pointer-events-none transition-opacity">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+                    <span class="text-emerald-400 font-medium animate-pulse">Cargando datos...</span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-lg font-semibold text-white/80">Evolución de Ganancias</h2>
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-info-circle text-white/20" title="Ganancia Neta = Ingresos - Pagos a Árbitros"></i>
+                </div>
+            </div>
+            
+            <div class="flex-1 w-full relative">
+                <canvas id="financialChart"></canvas>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    .bg-card { background-color: rgba(20, 20, 20, 1); }
+    .period-btn { color: rgba(255, 255, 255, 0.4); }
+    .period-btn:hover { color: rgba(255, 255, 255, 0.8); }
+    .period-btn.active { 
+        background-color: rgba(16, 185, 129, 0.1); 
+        color: #10b981; 
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+    }
+</style>
+
+<script>
+    let currentPeriod = 'day';
+    let myChart = null;
+
+    function updatePeriod(period, el) {
+        currentPeriod = period;
+        
+        // Update UI
+        document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+        el.classList.add('active');
+        
+        loadChartData();
+    }
+
+    async function loadChartData() {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.opacity = '1';
+        loadingOverlay.style.pointerEvents = 'all';
+
+        const courtName = document.getElementById('court-select').value;
+        const dateFrom = document.getElementById('date-from').value;
+        const dateTo = document.getElementById('date-to').value;
+        
+        let url = `/api/report/financial-stats?period=${currentPeriod}&court_name=${encodeURIComponent(courtName)}`;
+        if (dateFrom) url += `&date_from=${dateFrom}`;
+        if (dateTo) url += `&date_to=${dateTo}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.error) {
+                console.error("Error from API:", data.error);
+                return;
+            }
+
+            renderChart(data.labels, data.values);
+            
+            // Update total profit display
+            const total = data.values.reduce((a, b) => a + b, 0);
+            document.getElementById('total-profit-display').innerText = '$' + total.toLocaleString();
+
+        } catch (error) {
+            console.error("Fetch error:", error);
+        } finally {
+            loadingOverlay.style.opacity = '0';
+            loadingOverlay.style.pointerEvents = 'none';
+        }
+    }
+
+    function renderChart(labels, values) {
+        const ctx = document.getElementById('financialChart').getContext('2d');
+        
+        // Destruir chart previo si existe
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        // Create gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ganancia Neta ($)',
+                    data: values,
+                    borderColor: '#10b981',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: 'rgba(255,255,255,0.2)',
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#fff',
+                    fill: true,
+                    backgroundColor: gradient,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#10b981',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Ganancia: $' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: 'rgba(255, 255, 255, 0.4)', font: { size: 10 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { 
+                            color: 'rgba(255, 255, 255, 0.4)', 
+                            font: { size: 10 },
+                            callback: function(value) { return '$' + value; }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Initial load
+    window.addEventListener('load', () => {
+        // Set default date range to current month
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        document.getElementById('date-from').value = firstDay.toISOString().split('T')[0];
+        document.getElementById('date-to').value = lastDay.toISOString().split('T')[0];
+        
+        loadChartData();
+    });
+</script>
+{% endblock %}
