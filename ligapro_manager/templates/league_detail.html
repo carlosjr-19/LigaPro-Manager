@@ -1638,8 +1638,13 @@
                 </div>
             </div>
         </div> <!-- End Settings Tab -->
-</div>
-</main>
+    <!-- Global Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100] backdrop-blur-sm">
+        <div class="bg-[#1a2234] p-6 rounded-2xl border border-white/10 shadow-2xl flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+            <p class="text-white font-medium">Procesando...</p>
+        </div>
+    </div>
 </div>
 
 <!-- Players Data for JS -->

@@ -98,6 +98,23 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Global Form Submission Loader
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        document.querySelectorAll('form').forEach(form => {
+            // Skip forms that open in new tabs (like some reports)
+            if (form.target === '_blank') return;
+
+            form.addEventListener('submit', function() {
+                // For forms with "confirm", only show if they confirmed
+                // Some forms use inline "onsubmit", we need to be careful
+                // But usually, if we reach this listener, the submission is starting.
+                loadingOverlay.classList.remove('hidden');
+                loadingOverlay.classList.add('flex');
+            });
+        });
+    }
 });
 
 function showTab(tabId) {
