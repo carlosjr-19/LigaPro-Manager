@@ -1389,3 +1389,95 @@ def settings():
     court_colors = {s.court_name: s.color for s in existing_settings}
 
     return render_template('report/settings.html', court_names=court_names, court_colors=court_colors)
+
+@report_bp.route('/financial-report/charts')
+@login_required
+def financial_charts():
+    if not getattr(current_user, 'is_ultra', False):
+        flash('No tienes acceso a esta funcionalidad (Ultra Premium).', 'warning')
+        return redirect(url_for('report.index'))
+    
+    # Get all unique court names for filtering
+    leagues = League.query.filter_by(user_id=current_user.id).all()
+    court_names = set()
+    for l in leagues:
+        for c in l.courts:
+            if c.name:
+                court_names.add(c.name.strip())
+    
+    sorted_court_names = sorted(list(court_names))
+    
+    return render_template('report/financial_charts.html', court_names=sorted_court_names)
+
+@report_bp.route('/api/report/financial-stats')
+@login_required
+def api_financial_stats():
+    if not getattr(current_user, 'is_ultra', False):
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    period = request.args.get('period', 'day') # day, week, month
+    court_name = request.args.get('court_name') # optional
+    date_from_str = request.args.get('date_from') # optional (YYYY-MM-DD)
+    date_to_str = request.args.get('date_to') # optional (YYYY-MM-DD)
+    
+    # Base query: matches from leagues owned by current_user
+    query = Match.query.join(League).filter(League.user_id == current_user.id)
+    
+    if court_name:
+        query = query.outerjoin(Court, Match.court_id == Court.id).filter(Court.name == court_name)
+    
+    if date_from_str:
+        try:
+            d_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            query = query.filter(func.date(Match.match_date) >= d_from)
+        except ValueError:
+            pass
+            
+    if date_to_str:
+        try:
+            d_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            query = query.filter(func.date(Match.match_date) <= d_to)
+        except ValueError:
+            pass
+        
+    matches = query.order_by(Match.match_date).all()
+    
+    stats_data = {} # label -> profit
+    
+    def parse_cost(val):
+        if not val: return 0
+        if isinstance(val, str) and not val.isdigit(): return 0 
+        try: return int(val)
+        except: return 0
+
+    for match in matches:
+        if not match.match_date: continue
+        
+        # Respect Charge Start Date
+        if not match.league.charge_from_start and match.league.charge_start_date:
+            if match.match_date.date() < match.league.charge_start_date:
+                continue
+                
+        # Grouping label
+        if period == 'day':
+            label = match.match_date.strftime('%Y-%m-%d')
+        elif period == 'week':
+            # ISO format: YYYY-Www
+            label = match.match_date.strftime('%G-W%V')
+        elif period == 'month':
+            label = match.match_date.strftime('%Y-%m')
+        else:
+            label = match.match_date.strftime('%Y-%m-%d')
+            
+        profit = (parse_cost(match.referee_cost_home) + parse_cost(match.referee_cost_away)) - parse_cost(match.referee_cost)
+        
+        stats_data[label] = stats_data.get(label, 0) + profit
+        
+    # Sort byproduct by label
+    sorted_labels = sorted(stats_data.keys())
+    values = [stats_data[label] for label in sorted_labels]
+    
+    return jsonify({
+        'labels': sorted_labels,
+        'values': values
+    })

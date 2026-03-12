@@ -1,3 +1,19 @@
+## 0.9.9.7
+
+Implementación de Gráficas Financieras Interactivas para Usuarios Ultra.
+
+- **Dashboard de Gráficas**: Nueva página dedicada con gráficas de línea interactivas (Chart.js) que muestran la evolución de las ganancias netas.
+- **Filtros Temporales**: Posibilidad de agrupar y visualizar ganancias por Día, Semana o Mes.
+- **Filtrado por Cancha**: Selector dinámico para analizar el rendimiento económico de una cancha específica o de todas en conjunto.
+- **API Exclusiva**: Nueva infraestructura de API para la obtención eficiente de estadísticas financieras agregadas.
+
+## Agregado
+* `ligapro_manager/templates/report/financial_charts.html` (Nuevo)
+
+## Modificado
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/templates/report.html`
+
 ## 0.9.9.6
 
 Eliminación permanente de filas en el Resumen General.
