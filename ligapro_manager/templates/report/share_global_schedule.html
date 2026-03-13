@@ -266,8 +266,10 @@
 
         function triggerDownload(dataUrl, filename) {
             if (window.FlutterDownloader) {
-                window.FlutterDownloader.postMessage(filename + '|' + dataUrl);
+                // MODO APP FLUTTER: Enviar el archivo a través del canal nativo
+                window.FlutterDownloader.postMessage(filename + "|" + dataUrl);
             } else {
+                // MODO NAVEGADOR WEB: Descarga tradicional
                 const link = document.createElement('a');
                 link.download = filename;
                 link.href = dataUrl;

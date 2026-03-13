@@ -31,19 +31,15 @@ async function downloadImage() {
 }
 
 function triggerDownload(dataUrl) {
-    // 1. Verificamos si la página está abierta dentro de tu app de Flutter
+    const fileName = `reporte-${window.leagueName || 'liga'}.png`;
+
     if (window.FlutterDownloader) {
-
-        // Armamos el nombre del archivo
-        const fileName = `reporte-${window.leagueName}.png`;
-
-        // Le enviamos a Flutter el nombre y el código de la imagen separados por "|"
+        // MODO APP FLUTTER: Enviar el archivo a través del canal nativo
         window.FlutterDownloader.postMessage(fileName + "|" + dataUrl);
-
     } else {
-        // 2. Si no es Flutter (es Chrome en PC o Safari web), hace la descarga normal
+        // MODO NAVEGADOR WEB: Descarga tradicional
         const link = document.createElement('a');
-        link.download = `reporte-${window.leagueName}.png`;
+        link.download = fileName;
         link.href = dataUrl;
         document.body.appendChild(link);
         link.click();
