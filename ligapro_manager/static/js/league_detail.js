@@ -173,37 +173,8 @@ function togglePlayoffView(view) {
     localStorage.setItem('playoffView', view);
 }
 
-function openShareModal() {
-    document.getElementById('shareModal').classList.remove('hidden');
-    document.getElementById('shareModal').classList.add('flex');
-}
-
-function closeShareModal() {
-    document.getElementById('shareModal').classList.add('hidden');
-    document.getElementById('shareModal').classList.remove('flex');
-}
-
-function toggleDateInputs() {
-    const isChecked = document.getElementById('check_recent').checked;
-    const inputs = document.getElementById('date_inputs');
-    if (isChecked) {
-        inputs.classList.remove('hidden');
-    } else {
-        inputs.classList.add('hidden');
-    }
-}
-
-function toggleUpcomingDateInputs() {
-    const isChecked = document.getElementById('check_upcoming')?.checked;
-    const inputs = document.getElementById('upcoming_date_inputs');
-    if (inputs) {
-        if (isChecked) {
-            inputs.classList.remove('hidden');
-        } else {
-            inputs.classList.add('hidden');
-        }
-    }
-}
+// Note: openShareModal, closeShareModal, toggleDateInputs, toggleUpcomingDateInputs removed from here
+// as they are already defined in share_modal.js and included via share_modal_fragment.html.
 
 function toggleMatchView(view) {
     const listView = document.getElementById('matches-list-view');
