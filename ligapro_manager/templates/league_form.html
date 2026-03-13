@@ -128,6 +128,25 @@
                             {{ form.slogan(class="input-field", placeholder="Ej: Pasión por el fútbol", disabled=not
                             current_user.is_active_premium) }}
                         </div>
+                        
+                        {% if current_user.can_custom_role_style %}
+                        <div class="mb-4 border-t border-white/10 pt-4">
+                            <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide flex justify-between items-center">
+                                <span>Estilo de Rol de Juegos</span>
+                                <span class="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-xs">Exclusivo</span>
+                            </label>
+                            <select name="custom_role_style" class="input-field bg-black/50" {% if not current_user.is_active_premium %}disabled{% endif %}>
+                                <option value="">Heredar Diseño Padre ({{ current_user.assigned_role_style|capitalize }})</option>
+                                <option value="mint" {% if league and league.custom_role_style == 'mint' %}selected{% endif %}>Neon Mint (Menta Vibrante)</option>
+                                <option value="emerald" {% if league and league.custom_role_style == 'emerald' %}selected{% endif %}>Emerald & Gold (Verde y Dorado)</option>
+                                <option value="cyberpunk" {% if league and league.custom_role_style == 'cyberpunk' %}selected{% endif %}>Cyberpunk Teal (Cian y Morado)</option>
+                                <option value="maroon" {% if league and league.custom_role_style == 'maroon' %}selected{% endif %}>Maroon & Slate (Granate y Pizarra)</option>
+                                <option value="blackOrange" {% if league and league.custom_role_style == 'blackOrange' %}selected{% endif %}>Dark Orange (Negro y Naranja)</option>
+                                <option value="orangeEmerald" {% if league and league.custom_role_style == 'orangeEmerald' %}selected{% endif %}>Orange Emerald (Naranja y Esmeralda)</option>
+                            </select>
+                            <p class="text-xs text-white/40 mt-1">Este diseño ignora al padre y se aplica sólo a los reportes de esta liga.</p>
+                        </div>
+                        {% endif %}
 
                         <div class="border-t border-white/10 pt-4 flex items-center gap-3">
                             {{ form.show_stats(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary

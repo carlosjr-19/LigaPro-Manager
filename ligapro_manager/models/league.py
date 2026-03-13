@@ -43,6 +43,7 @@ class League(db.Model):
     report_date_size = db.Column(db.Integer, default=14) # Default size in px
     custom_color_active = db.Column(db.Boolean, default=False) # Switch for custom name color
     custom_name_color = db.Column(db.String(10), default='#ffffff') # Color for league name in reports
+    custom_role_style = db.Column(db.String(50), nullable=True) # Override style for this league
 
     @property
     def active_teams_count(self):

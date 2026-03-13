@@ -1568,7 +1568,7 @@
                             </div>
 
                             <div id="custom-color-box"
-                                class="space-y-4 {% if not league.custom_color_active %}hidden{% endif %} pl-4 border-l-2 border-primary/20">
+                                class="space-y-4 {% if not league.custom_color_active %}hidden{% endif %} pl-4 border-l-2 border-primary/20 mb-4">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs text-white/40 mb-1 uppercase">Color
@@ -1577,368 +1577,410 @@
                                             {{ form.custom_name_color(class="w-10 h-8 p-1 rounded cursor-pointer
                                             bg-transparent border border-white/20", type="color",
                                             form="leagueSettingsForm") }}
-                                            <span class="text-xs text-white/40">Este color se aplicará al nombre de tu
+                                            <span class="text-xs text-white/40">Este color se aplicará al nombre de
+                                                tu
                                                 liga en los reportes e interfaz.</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <button type="submit" form="leagueSettingsForm"
-                class="w-full btn-primary py-3 font-bold text-lg shadow-lg shadow-primary/20">
-                <i class="fas fa-save mr-2"></i>Guardar Cambios
-            </button>
-            <!-- End Settings Tab Content -->
-            <!-- End Settings Forms -->
-
-            <!-- Danger Zone -->
-            <div class="card mt-6 border-red-500/30">
-                <h3 class="text-xl text-red-400 mb-4">Zona de Peligro</h3>
-
-                <!-- Reset Season (Premium) -->
-                <div class="mb-6 pb-6 border-b border-white/10">
-                    <h4 class="font-bold mb-2">Restablecer Temporada</h4>
-                    <p class="text-white/60 mb-4 text-sm">Reinicia todos los partidos y puntos. Mantiene equipos y
-                        jugadores.</p>
-
-                    {% if current_user.is_active_premium %}
-                    <form method="POST" action="{{ url_for('match.reset_season', league_id=league.id) }}"
-                        onsubmit="return confirm('¡ADVERTENCIA!\n\nEsta acción borrará TODOS los partidos, resultados y puntos de la temporada actual.\n\nNO se borrarán los equipos ni jugadores.\n\n¿Estás absolutamente seguro de continuar?')">
-                        <button type="submit"
-                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                            <i class="fas fa-history mr-2"></i>Restablecer Temporada
-                        </button>
-                    </form>
-                    {% else %}
-                    <button disabled class="bg-red-600/50 text-white/50 font-bold py-2 px-4 rounded cursor-not-allowed">
-                        <i class="fas fa-lock mr-2"></i>Restablecer Temporada (Premium)
-                    </button>
-                    <p class="text-xs text-warning mt-2">
-                        <a href="{{ url_for('premium.premium') }}" class="hover:underline">Actualiza a Premium para
-                            desbloquear</a>
-                    </p>
-                    {% endif %}
-                </div>
-
-                <!-- Delete League -->
-                <div>
-                    <h4 class="font-bold mb-2">Eliminar Liga</h4>
-                    <p class="text-white/60 mb-4 text-sm">Elimina permanentemente la liga y todos sus datos.</p>
-                    <form method="POST" action="{{ url_for('league.delete_league', league_id=league.id) }}"
-                        onsubmit="return confirm('¿Estás seguro? Esta acción eliminará la liga y todos sus datos.')">
-                        <button type="submit"
-                            class="bg-transparent border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-bold py-2 px-4 rounded transition-colors">
-                            <i class="fas fa-trash mr-2"></i>Eliminar Liga
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div> <!-- End Settings Tab -->
-    <!-- Global Loading Overlay -->
-    <div id="loadingOverlay" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100] backdrop-blur-sm">
-        <div class="bg-[#1a2234] p-6 rounded-2xl border border-white/10 shadow-2xl flex flex-col items-center gap-4">
-            <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-            <p class="text-white font-medium">Procesando...</p>
-        </div>
-    </div>
-</div>
-
-<!-- Players Data for JS -->
-<script>
-    window.playersByTeam = {{ players_by_team | tojson | safe }};
-</script>
-
-<!-- Share Modal -->
-<div id="shareModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
-    <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative">
-        <button onclick="closeShareModal()" class="absolute top-4 right-4 text-white/40 hover:text-white">
-            <i class="fas fa-times"></i>
-        </button>
-
-        <form action="{{ url_for('league.generate_share_report', league_id=league.id) }}" method="GET" class="p-6">
-            <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
-                <i class="fas fa-file-export text-blue-400"></i> Generar Reporte
-            </h3>
-
-            <div class="space-y-4">
-                <!-- Standings -->
-                <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
-                    <input type="checkbox" name="include_standings" value="on" checked
-                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                    <span class="flex-1">Tabla de Posiciones</span>
-                </label>
-
-                <!-- Recent -->
-                <div class="border border-white/10 rounded p-3">
-                    <label class="flex items-center gap-3 mb-3 cursor-pointer">
-                        <input type="checkbox" name="include_recent" value="on" id="check_recent"
-                            onchange="toggleDateInputs()"
-                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                        <span class="flex-1">Resultados Recientes</span>
-                    </label>
-                    <div id="date_inputs" class="grid grid-cols-2 gap-2 text-sm hidden pl-7">
-                        <div>
-                            <label class="block text-white/40 text-xs mb-1">Desde</label>
-                            <input type="date" name="date_start"
-                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                        <!-- Estilo de Rol de Juegos -->
+                        {% if current_user.can_custom_role_style %}
+                        <div class="mt-6 pt-4 border-t border-white/10">
+                            <label class="block text-sm font-bold text-white mb-2 flex justify-between items-center">
+                                <span>Estilo de Rol de Juegos</span>
+                                <span
+                                    class="bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded text-xs ml-2">Exclusivo</span>
+                            </label>
+                            <p class="text-xs text-white/50 mb-3">Este diseño ignora al padre y se aplica sólo a los
+                                reportes de esta liga.</p>
+                            <select name="custom_role_style" form="leagueSettingsForm"
+                                class="input-field bg-black/50 mb-4" {% if not current_user.is_active_premium
+                                %}disabled{% endif %}>
+                                <option value="">Heredar Diseño Padre ({{ current_user.assigned_role_style|capitalize
+                                    }})</option>
+                                <option value="mint" {% if league and league.custom_role_style=='mint' %}selected{%
+                                    endif %}>Neon Mint (Menta Vibrante)</option>
+                                <option value="emerald" {% if league and league.custom_role_style=='emerald'
+                                    %}selected{% endif %}>Emerald & Gold (Verde y Dorado)</option>
+                                <option value="cyberpunk" {% if league and league.custom_role_style=='cyberpunk'
+                                    %}selected{% endif %}>Cyberpunk Teal (Cian y Morado)</option>
+                                <option value="maroon" {% if league and league.custom_role_style=='maroon' %}selected{%
+                                    endif %}>Maroon & Slate (Granate y Pizarra)</option>
+                                <option value="blackOrange" {% if league and league.custom_role_style=='blackOrange'
+                                    %}selected{% endif %}>Dark Orange (Negro y Naranja)</option>
+                                <option value="orangeEmerald" {% if league and league.custom_role_style=='orangeEmerald'
+                                    %}selected{% endif %}>Orange Emerald (Naranja y Esmeralda)</option>
+                            </select>
                         </div>
-                        <div>
-                            <label class="block text-white/40 text-xs mb-1">Hasta</label>
-                            <input type="date" name="date_end"
-                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Upcoming -->
-                <div
-                    class="border border-white/10 rounded p-3 {% if not upcoming_matches %}opacity-50 pointer-events-none{% endif %}">
-                    <label class="flex items-center gap-3 mb-3 cursor-pointer">
-                        <input type="checkbox" name="include_upcoming" value="on" id="check_upcoming"
-                            onchange="toggleUpcomingDateInputs()" {% if not upcoming_matches %}disabled{% endif %}
-                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                        <span class="flex-1">Próximos Partidos</span>
-                        {% if not upcoming_matches %}<span class="text-xs text-red-400">Sin datos</span>{% endif %}
-                    </label>
-                    <div id="upcoming_date_inputs" class="grid grid-cols-2 gap-2 text-sm hidden pl-7">
-                        <div>
-                            <label class="block text-white/40 text-xs mb-1">Desde</label>
-                            <input type="date" name="upcoming_date_start"
-                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                        </div>
-                        <div>
-                            <label class="block text-white/40 text-xs mb-1">Hasta</label>
-                            <input type="date" name="upcoming_date_end"
-                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats -->
-                <div class="grid grid-cols-2 gap-4">
-                    <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
-                        {% if not current_user.is_active_premium %}opacity-50{% endif %} 
-                        {% if not top_scorers %}pointer-events-none opacity-30{% endif %}">
-                        <input type="checkbox" name="include_scorers" value="on" {% if not
-                            current_user.is_active_premium %}disabled{% endif %}
-                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                        <div class="flex flex-col">
-                            <span class="flex-1">Goleadores</span>
-                            {% if not current_user.is_active_premium %}
-                            <span class="text-xs text-yellow-500 font-bold"><i
-                                    class="fas fa-crown text-[10px] mr-1"></i>Premium</span>
-                            {% endif %}
-                        </div>
-                    </label>
-                    <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
-                        {% if not current_user.is_active_premium %}opacity-50{% endif %} 
-                        {% if not top_goalkeepers %}pointer-events-none opacity-30{% endif %}">
-                        <input type="checkbox" name="include_keepers" value="on" {% if not
-                            current_user.is_active_premium %}disabled{% endif %}
-                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                        <div class="flex flex-col">
-                            <span class="flex-1">Arqueros</span>
-                            {% if not current_user.is_active_premium %}
-                            <span class="text-xs text-yellow-500 font-bold"><i
-                                    class="fas fa-crown text-[10px] mr-1"></i>Premium</span>
-                            {% endif %}
-                        </div>
-                    </label>
-                </div>
-
-                <!-- Extra Note (Premium) -->
-                <div class="border border-white/10 rounded p-3">
-                    <label class="block text-sm font-bold mb-2 flex justify-between">
-                        <span>Nota Adicional</span>
-                        {% if not current_user.is_active_premium %}
-                        <a href="{{ url_for('premium.premium') }}"
-                            class="text-xs text-yellow-400 hover:text-yellow-300">
-                            <i class="fas fa-crown mr-1"></i>Premium
-                        </a>
                         {% endif %}
-                    </label>
-                    <textarea name="report_note" rows="2"
-                        placeholder="Ej: 'Equipo Monarcas descansa' o 'Llevar medias largas'"
-                        class="w-full bg-black/20 border border-white/10 rounded p-2 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
-                        {% if not current_user.is_active_premium %}disabled{% endif %}></textarea>
-                    {% if not current_user.is_active_premium %}
-                    <p class="text-xs text-white/40 mt-1">Función exclusiva para usuarios Premium.</p>
-                    {% endif %}
+                    </div>
+
+                    <button type="submit" form="leagueSettingsForm"
+                        class="w-full btn-primary py-3 font-bold text-lg shadow-lg shadow-primary/20">
+                        <i class="fas fa-save mr-2"></i>Guardar Cambios
+                    </button>
+                    <!-- End Settings Tab Content -->
+                    <!-- End Settings Forms -->
+
+                    <!-- Danger Zone -->
+                    <div class="card mt-6 border-red-500/30">
+                        <h3 class="text-xl text-red-400 mb-4">Zona de Peligro</h3>
+
+                        <!-- Reset Season (Premium) -->
+                        <div class="mb-6 pb-6 border-b border-white/10">
+                            <h4 class="font-bold mb-2">Restablecer Temporada</h4>
+                            <p class="text-white/60 mb-4 text-sm">Reinicia todos los partidos y puntos. Mantiene equipos
+                                y
+                                jugadores.</p>
+
+                            {% if current_user.is_active_premium %}
+                            <form method="POST" action="{{ url_for('match.reset_season', league_id=league.id) }}"
+                                onsubmit="return confirm('¡ADVERTENCIA!\n\nEsta acción borrará TODOS los partidos, resultados y puntos de la temporada actual.\n\nNO se borrarán los equipos ni jugadores.\n\n¿Estás absolutamente seguro de continuar?')">
+                                <button type="submit"
+                                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                    <i class="fas fa-history mr-2"></i>Restablecer Temporada
+                                </button>
+                            </form>
+                            {% else %}
+                            <button disabled
+                                class="bg-red-600/50 text-white/50 font-bold py-2 px-4 rounded cursor-not-allowed">
+                                <i class="fas fa-lock mr-2"></i>Restablecer Temporada (Premium)
+                            </button>
+                            <p class="text-xs text-warning mt-2">
+                                <a href="{{ url_for('premium.premium') }}" class="hover:underline">Actualiza a Premium
+                                    para
+                                    desbloquear</a>
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Delete League -->
+                        <div>
+                            <h4 class="font-bold mb-2">Eliminar Liga</h4>
+                            <p class="text-white/60 mb-4 text-sm">Elimina permanentemente la liga y todos sus datos.</p>
+                            <form method="POST" action="{{ url_for('league.delete_league', league_id=league.id) }}"
+                                onsubmit="return confirm('¿Estás seguro? Esta acción eliminará la liga y todos sus datos.')">
+                                <button type="submit"
+                                    class="bg-transparent border border-red-600 text-red-600 hover:bg-red-600 hover:text-white font-bold py-2 px-4 rounded transition-colors">
+                                    <i class="fas fa-trash mr-2"></i>Eliminar Liga
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div> <!-- End Settings Tab -->
+                <!-- Global Loading Overlay -->
+                <div id="loadingOverlay"
+                    class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100] backdrop-blur-sm">
+                    <div
+                        class="bg-[#1a2234] p-6 rounded-2xl border border-white/10 shadow-2xl flex flex-col items-center gap-4">
+                        <div class="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin">
+                        </div>
+                        <p class="text-white font-medium">Procesando...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+            <!-- Players Data for JS -->
+            <script>
+                window.playersByTeam = {{ players_by_team | tojson | safe }};
+            </script>
+
+
+            <!-- Matrix Match Modal -->
+            <div id="matrixMatchModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
+                <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative">
+                    <button onclick="closeMatrixModal()" class="absolute top-4 right-4 text-white/40 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+
+                    <form action="{{ url_for('match_matrix.save_match_matrix') }}" method="POST" class="p-6">
+                        <input type="hidden" name="match_id" id="matrix_match_id">
+                        <input type="hidden" name="league_id" value="{{ league.id }}">
+                        <input type="hidden" name="home_team_id" id="matrix_home_team_id">
+                        <input type="hidden" name="away_team_id" id="matrix_away_team_id">
+                        <input type="hidden" name="match_round" id="matrix_match_round">
+
+                        <h3 class="text-xl font-bold mb-6 flex items-center justify-center gap-4">
+                            <div class="flex flex-col items-center gap-2 w-1/3">
+                                <img id="matrix_home_shield" src="" class="w-12 h-12 rounded object-cover bg-white/5">
+                                <span id="matrix_home_name" class="text-xs text-center leading-tight">Home</span>
+                            </div>
+                            <div class="text-2xl font-bold text-white/40">VS</div>
+                            <div class="flex flex-col items-center gap-2 w-1/3">
+                                <img id="matrix_away_shield" src="" class="w-12 h-12 rounded object-cover bg-white/5">
+                                <span id="matrix_away_name" class="text-xs text-center leading-tight">Away</span>
+                            </div>
+                        </h3>
+
+                        <!-- Schedule -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-white/40 text-xs mb-1 uppercase">Fecha</label>
+                                <input type="date" name="match_date" id="matrix_match_date" class="input-field">
+                            </div>
+                            <div>
+                                <label class="block text-white/40 text-xs mb-1 uppercase">Hora</label>
+                                <input type="time" name="match_time" id="matrix_match_time" class="input-field">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-white/40 text-xs mb-1 uppercase">Cancha</label>
+                            <select name="court_id" id="matrix_court_id" class="input-field">
+                                <option value="">-- Sin Cancha --</option>
+                                {% for court in courts %}
+                                <option value="{{ court.id }}">{{ court.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Scores -->
+                        <div class="grid grid-cols-2 gap-8 mb-6 bg-white/5 p-4 rounded-lg border border-white/5">
+                            <div class="text-center">
+                                <label class="block text-white/40 text-xs mb-2 uppercase">Goles Local</label>
+                                <input type="number" name="home_score" id="matrix_home_score"
+                                    class="input-field text-center text-2xl font-bold" min="0">
+                            </div>
+                            <div class="text-center">
+                                <label class="block text-white/40 text-xs mb-2 uppercase">Goles Visitante</label>
+                                <input type="number" name="away_score" id="matrix_away_score"
+                                    class="input-field text-center text-2xl font-bold" min="0">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3">
+                            <button type="button" id="btn-delete-matrix-match"
+                                class="mr-auto text-red-400 hover:text-red-300 text-sm px-3 py-2 hidden">
+                                <i class="fas fa-trash mr-1"></i> Eliminar
+                            </button>
+                            <button type="button" onclick="closeMatrixModal()"
+                                class="px-4 py-2 text-white/60 hover:text-white transition-colors">Cancelar</button>
+                            <button type="submit" class="btn-primary px-6 py-2">
+                                <i class="fas fa-save mr-2"></i>Guardar
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Hidden Delete Form -->
+                    <form id="deleteMatrixForm" action="{{ url_for('match_matrix.delete_match_matrix') }}" method="POST"
+                        onsubmit="return confirm('¿Eliminar este partido?');">
+                        <input type="hidden" name="match_id" id="delete_matrix_match_id">
+                        <input type="hidden" name="league_id" value="{{ league.id }}">
+                    </form>
                 </div>
             </div>
 
-            <div class="mt-8 flex justify-end gap-3">
-                <button type="button" onclick="closeShareModal()"
-                    class="px-4 py-2 text-white/60 hover:text-white transition-colors">Cancelar</button>
-                <button type="submit"
-                    class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-bold transition-colors">
-                    Generar Vista Previa
-                </button>
+            <script>
+                const CLOUDINARY_CLOUD_NAME = '{{ cloudinary_cloud_name }}';
+                const CLOUDINARY_UPLOAD_PRESET = '{{ cloudinary_upload_preset }}';
+
+                const cameraBtn = document.getElementById('camera-btn');
+                const cameraInput = document.getElementById('player-camera-input');
+                const photoUrlInput = document.getElementById('photo_url_input');
+                const photoPreview = document.getElementById('player-photo-preview');
+                const uploadStatus = document.getElementById('upload-status');
+
+                if (cameraBtn) {
+                    cameraBtn.addEventListener('click', () => {
+                        cameraInput.click();
+                    });
+
+                    cameraInput.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        // Mostrar vista previa local
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            photoPreview.src = e.target.result;
+                            photoPreview.classList.remove('hidden');
+                        };
+                        reader.readAsDataURL(file);
+
+                        // Actualizar estado y bloquear botón
+                        uploadStatus.textContent = "Subiendo logo... ⏳";
+                        uploadStatus.className = "text-sm mt-2 text-blue-400 block";
+                        cameraBtn.disabled = true;
+                        cameraBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+                        // Subir a Cloudinary
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+                        try {
+                            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, {
+                                method: 'POST',
+                                body: formData
+                            });
+
+                            if (!response.ok) throw new Error('Error en la subida');
+
+                            const data = await response.json();
+
+                            // Asignar URL al input
+                            photoUrlInput.value = data.secure_url;
+
+                            // Estado de éxito
+                            uploadStatus.textContent = "¡Logo subido! ✅";
+                            uploadStatus.className = "text-sm mt-2 text-green-400 block";
+
+                        } catch (error) {
+                            console.error('Error:', error);
+                            uploadStatus.textContent = "Error al subir el logo ❌";
+                            uploadStatus.className = "text-sm mt-2 text-red-400 block";
+                        } finally {
+                            // Limpiar input y rehabilitar botón
+                            cameraInput.value = '';
+                            cameraBtn.disabled = false;
+                            cameraBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    });
+                }
+            </script>
+
+            <script>
+                window.teamsData = {{ teams_js | tojson | safe }};
+            </script>
+            <script src="{{ url_for('static', filename='js/league_detail.js') }}" defer></script>
+
+            <!-- Share Modal -->
+            <div id="shareModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[200] p-4">
+                <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative">
+                    <button onclick="closeShareModal()" class="absolute top-4 right-4 text-white/40 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+
+                    <form action="{{ url_for('league.generate_share_report', league_id=league.id) }}" method="POST"
+                        target="_blank" class="p-6">
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i class="fas fa-file-export text-blue-400"></i> Generar Reporte
+                        </h3>
+
+                        <div class="space-y-4">
+                            <!-- Standings -->
+                            <label
+                                class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
+                                <input type="checkbox" name="include_standings" checked
+                                    class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                                <span class="flex-1">Tabla de Posiciones</span>
+                            </label>
+
+                            <!-- Recent -->
+                            <div class="border border-white/10 rounded p-3">
+                                <label class="flex items-center gap-3 mb-3 cursor-pointer">
+                                    <input type="checkbox" name="include_recent" id="check_recent"
+                                        onchange="toggleDateInputs()"
+                                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                                    <span class="flex-1">Resultados Recientes</span>
+                                </label>
+                                <div id="date_inputs" class="grid grid-cols-2 gap-2 text-sm hidden pl-7">
+                                    <div>
+                                        <label class="block text-white/40 text-xs mb-1">Desde</label>
+                                        <input type="date" name="date_start"
+                                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-white/40 text-xs mb-1">Hasta</label>
+                                        <input type="date" name="date_end"
+                                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upcoming -->
+                            <div class="border border-white/10 rounded p-3">
+                                <label
+                                    class="flex items-center gap-3 mb-3 cursor-pointer {% if not upcoming_matches %}opacity-50 pointer-events-none{% endif %}">
+                                    <input type="checkbox" name="include_upcoming" id="check_upcoming"
+                                        onchange="toggleUpcomingDateInputs()" {% if upcoming_matches %}checked{% else
+                                        %}disabled{% endif %}
+                                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                                    <span class="flex-1">Próximos Partidos</span>
+                                    {% if not upcoming_matches %}
+                                    <span class="text-xs text-red-400">Sin datos</span>
+                                    {% endif %}
+                                </label>
+                                <div id="upcoming_date_inputs" class="grid grid-cols-2 gap-2 text-sm hidden pl-7">
+                                    <div>
+                                        <label class="block text-white/40 text-xs mb-1">Desde</label>
+                                        <input type="date" name="upcoming_date_start"
+                                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="block text-white/40 text-xs mb-1">Hasta</label>
+                                        <input type="date" name="upcoming_date_end"
+                                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
+                                    {% if not current_user.is_active_premium %}opacity-50{% endif %} 
+                                    {% if not top_scorers %}pointer-events-none opacity-30{% endif %}">
+                                    <input type="checkbox" name="include_scorers" value="on" {% if not
+                                        current_user.is_active_premium %}disabled{% endif %}
+                                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                                    <div class="flex flex-col">
+                                        <span class="flex-1">Goleadores</span>
+                                        {% if not current_user.is_active_premium %}
+                                        <span class="text-xs text-yellow-500 font-bold"><i
+                                                class="fas fa-crown text-[10px] mr-1"></i>Premium</span>
+                                        {% endif %}
+                                    </div>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer 
+                                    {% if not current_user.is_active_premium %}opacity-50{% endif %} 
+                                    {% if not top_goalkeepers %}pointer-events-none opacity-30{% endif %}">
+                                    <input type="checkbox" name="include_keepers" value="on" {% if not
+                                        current_user.is_active_premium %}disabled{% endif %}
+                                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                                    <div class="flex flex-col">
+                                        <span class="flex-1">Arqueros</span>
+                                        {% if not current_user.is_active_premium %}
+                                        <span class="text-xs text-yellow-500 font-bold"><i
+                                                class="fas fa-crown text-[10px] mr-1"></i>Premium</span>
+                                        {% endif %}
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Extra Note (Premium) -->
+                            <div class="border border-white/10 rounded p-3">
+                                <label class="block text-sm font-bold mb-2 flex justify-between">
+                                    <span>Nota Adicional</span>
+                                    {% if not current_user.is_active_premium %}
+                                    <a href="{{ url_for('premium.premium') }}"
+                                        class="text-xs text-yellow-400 hover:text-yellow-300">
+                                        <i class="fas fa-crown mr-1"></i>Premium
+                                    </a>
+                                    {% endif %}
+                                </label>
+                                <textarea name="report_note" rows="2"
+                                    placeholder="Ej: 'Equipo Monarcas descansa' o 'Llevar medias largas'"
+                                    class="w-full bg-black/20 border border-white/10 rounded p-2 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                                    {% if not current_user.is_active_premium %}disabled{% endif %}></textarea>
+                                {% if not current_user.is_active_premium %}
+                                <p class="text-xs text-white/40 mt-1">Función exclusiva para usuarios Premium.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex justify-end gap-3">
+                            <button type="button" onclick="closeShareModal()"
+                                class="px-4 py-2 text-white/60 hover:text-white transition-colors">Cancelar</button>
+                            <button type="submit"
+                                class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded font-bold transition-colors">
+                                Generar Vista Previa
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </form>
-    </div>
-</div>
-
-
-<!-- Matrix Match Modal -->
-<div id="matrixMatchModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
-    <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative">
-        <button onclick="closeMatrixModal()" class="absolute top-4 right-4 text-white/40 hover:text-white">
-            <i class="fas fa-times"></i>
-        </button>
-
-        <form action="{{ url_for('match_matrix.save_match_matrix') }}" method="POST" class="p-6">
-            <input type="hidden" name="match_id" id="matrix_match_id">
-            <input type="hidden" name="league_id" value="{{ league.id }}">
-            <input type="hidden" name="home_team_id" id="matrix_home_team_id">
-            <input type="hidden" name="away_team_id" id="matrix_away_team_id">
-            <input type="hidden" name="match_round" id="matrix_match_round">
-
-            <h3 class="text-xl font-bold mb-6 flex items-center justify-center gap-4">
-                <div class="flex flex-col items-center gap-2 w-1/3">
-                    <img id="matrix_home_shield" src="" class="w-12 h-12 rounded object-cover bg-white/5">
-                    <span id="matrix_home_name" class="text-xs text-center leading-tight">Home</span>
-                </div>
-                <div class="text-2xl font-bold text-white/40">VS</div>
-                <div class="flex flex-col items-center gap-2 w-1/3">
-                    <img id="matrix_away_shield" src="" class="w-12 h-12 rounded object-cover bg-white/5">
-                    <span id="matrix_away_name" class="text-xs text-center leading-tight">Away</span>
-                </div>
-            </h3>
-
-            <!-- Schedule -->
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-white/40 text-xs mb-1 uppercase">Fecha</label>
-                    <input type="date" name="match_date" id="matrix_match_date" class="input-field">
-                </div>
-                <div>
-                    <label class="block text-white/40 text-xs mb-1 uppercase">Hora</label>
-                    <input type="time" name="match_time" id="matrix_match_time" class="input-field">
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <label class="block text-white/40 text-xs mb-1 uppercase">Cancha</label>
-                <select name="court_id" id="matrix_court_id" class="input-field">
-                    <option value="">-- Sin Cancha --</option>
-                    {% for court in courts %}
-                    <option value="{{ court.id }}">{{ court.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Scores -->
-            <div class="grid grid-cols-2 gap-8 mb-6 bg-white/5 p-4 rounded-lg border border-white/5">
-                <div class="text-center">
-                    <label class="block text-white/40 text-xs mb-2 uppercase">Goles Local</label>
-                    <input type="number" name="home_score" id="matrix_home_score"
-                        class="input-field text-center text-2xl font-bold" min="0">
-                </div>
-                <div class="text-center">
-                    <label class="block text-white/40 text-xs mb-2 uppercase">Goles Visitante</label>
-                    <input type="number" name="away_score" id="matrix_away_score"
-                        class="input-field text-center text-2xl font-bold" min="0">
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-3">
-                <button type="button" id="btn-delete-matrix-match"
-                    class="mr-auto text-red-400 hover:text-red-300 text-sm px-3 py-2 hidden">
-                    <i class="fas fa-trash mr-1"></i> Eliminar
-                </button>
-                <button type="button" onclick="closeMatrixModal()"
-                    class="px-4 py-2 text-white/60 hover:text-white transition-colors">Cancelar</button>
-                <button type="submit" class="btn-primary px-6 py-2">
-                    <i class="fas fa-save mr-2"></i>Guardar
-                </button>
-            </div>
-        </form>
-
-        <!-- Hidden Delete Form -->
-        <form id="deleteMatrixForm" action="{{ url_for('match_matrix.delete_match_matrix') }}" method="POST"
-            onsubmit="return confirm('¿Eliminar este partido?');">
-            <input type="hidden" name="match_id" id="delete_matrix_match_id">
-            <input type="hidden" name="league_id" value="{{ league.id }}">
-        </form>
-    </div>
-</div>
-
-<script>
-    const CLOUDINARY_CLOUD_NAME = '{{ cloudinary_cloud_name }}';
-    const CLOUDINARY_UPLOAD_PRESET = '{{ cloudinary_upload_preset }}';
-
-    const cameraBtn = document.getElementById('camera-btn');
-    const cameraInput = document.getElementById('player-camera-input');
-    const photoUrlInput = document.getElementById('photo_url_input');
-    const photoPreview = document.getElementById('player-photo-preview');
-    const uploadStatus = document.getElementById('upload-status');
-
-    if (cameraBtn) {
-        cameraBtn.addEventListener('click', () => {
-            cameraInput.click();
-        });
-
-        cameraInput.addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Mostrar vista previa local
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                photoPreview.src = e.target.result;
-                photoPreview.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
-
-            // Actualizar estado y bloquear botón
-            uploadStatus.textContent = "Subiendo logo... ⏳";
-            uploadStatus.className = "text-sm mt-2 text-blue-400 block";
-            cameraBtn.disabled = true;
-            cameraBtn.classList.add('opacity-50', 'cursor-not-allowed');
-
-            // Subir a Cloudinary
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-
-            try {
-                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) throw new Error('Error en la subida');
-
-                const data = await response.json();
-
-                // Asignar URL al input
-                photoUrlInput.value = data.secure_url;
-
-                // Estado de éxito
-                uploadStatus.textContent = "¡Logo subido! ✅";
-                uploadStatus.className = "text-sm mt-2 text-green-400 block";
-
-            } catch (error) {
-                console.error('Error:', error);
-                uploadStatus.textContent = "Error al subir el logo ❌";
-                uploadStatus.className = "text-sm mt-2 text-red-400 block";
-            } finally {
-                // Limpiar input y rehabilitar botón
-                cameraInput.value = '';
-                cameraBtn.disabled = false;
-                cameraBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
-        });
-    }
-</script>
-
-<script>
-    window.teamsData = {{ teams_js | tojson | safe }};
-</script>
-<script src="{{ url_for('static', filename='js/league_detail.js') }}" defer></script>
-{% endblock %}
+            {% endblock %}

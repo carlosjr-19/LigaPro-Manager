@@ -17,9 +17,11 @@ class User(UserMixin, db.Model):
     color_win = db.Column(db.String(7), default='#22c55e') # Green-500
     color_loss = db.Column(db.String(7), default='#ef4444') # Red-500
     highlight_mode = db.Column(db.String(20), default='simple') # 'simple' or 'full'
+    assigned_role_style = db.Column(db.String(50), default='mint') # mint, emerald, cyberpunk, maroon, original
     financial_report_type = db.Column(db.String(20), default='period') # 'period' or 'date_range'
     premium_expires_at = db.Column(db.DateTime, nullable=True)
     team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=True)
+    can_custom_role_style = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     @property

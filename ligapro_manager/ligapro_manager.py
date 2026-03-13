@@ -124,7 +124,8 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN report_date_size INTEGER DEFAULT 14",
                     "ALTER TABLE leagues ADD COLUMN auto_fill_prices BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE users ADD COLUMN financial_report_type VARCHAR(20) DEFAULT 'period'",
-                    "ALTER TABLE leagues ADD COLUMN credential_phrase VARCHAR(255)"
+                    "ALTER TABLE leagues ADD COLUMN credential_phrase VARCHAR(255)",
+                    "ALTER TABLE users ADD COLUMN assigned_role_style VARCHAR(50) DEFAULT 'mint'"
                 ]
                 
                 for migration in migrations:

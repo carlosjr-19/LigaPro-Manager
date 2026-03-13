@@ -1,6 +1,26 @@
-## 0.9.9.7
+## 0.9.9.8
 
-Implementación de Gráficas Financieras Interactivas para Usuarios Ultra.
+Personalización Avanzada de Diseños para Reportes y Compartición de Partidos.
+
+- **Diseños y Temas Premium**: Incorporación de un selector visual moderno en las configuraciones de la liga que le permite a dueños Premium escoger entre diseños (`Menta, Esmeralda, Ciberpunk, Granate, Naranja Oscuro y Naranja-Esmeralda`) para darle a sus descargas de reportes un toque institucional e inversivo.
+- **Control Centralizado de Desarrollador**: El panel de desarrollo ahora cuenta con interruptores de permiso. El desarrollador puede otorgar o revocar individualmente el derecho de un Dueño de utilizar fondos personalizados, pudiendo forzar a que su liga utilice un estilo asignado por la administración central.
+- **Despliegues Automáticos de Estilos**: Al generar reportes y descargar imágenes PNG de marcadores o tablas, la plataforma renderiza y recorta dinámicamente aplicando estos estilos seleccionados sin perder calidad visual y de manera fluida (cross-device).
+- **Correcciones UI/UX**: Arreglos estructurales del Modal de Reportes, impidiendo instancias duplicadas y mejorando la integración estandarizada a nivel global en todos los selectos de la página de Detalles.
+
+## Modificado
+* `ligapro_manager/models/user.py`
+* `ligapro_manager/models/league.py`
+* `ligapro_manager/routes/admin.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/templates/admin/users.html`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/league_form.html`
+* `ligapro_manager/templates/report/settings.html`
+* `ligapro_manager/templates/share_report.html`
+* `ligapro_manager/templates/report/share_global_schedule.html`
+
+## 0.9.9.7 Implementación de Gráficas Financieras Interactivas para Usuarios Ultra.
 
 - **Dashboard de Gráficas**: Nueva página dedicada con gráficas de línea interactivas (Chart.js) que muestran la evolución de las ganancias netas.
 - **Filtros Temporales**: Posibilidad de agrupar y visualizar ganancias por Día, Semana o Mes.
