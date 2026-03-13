@@ -29,13 +29,13 @@
     <div class="w-full max-w-full overflow-x-auto pb-8 flex flex-col items-center gap-12">
         {% for court_name, data in schedule.items() %}
         <!-- INDIVIDUAL MATCH BOARD (One per Court) -->
-        <div class="capture-target-court w-[800px] min-w-[800px] mx-auto bg-[#0f172a] rounded-xl border border-white/10 shadow-2xl relative overflow-hidden"
+        <div class="share-container {% if current_user.can_custom_role_style %}{{ current_user.assigned_role_style or 'mint' }}{% else %}{{ current_user.assigned_role_style or 'mint' }}{% endif %} capture-target-court w-[800px] min-w-[800px] mx-auto rounded-xl border border-white/10 shadow-2xl relative overflow-hidden"
             data-court="{{ court_name|replace(' ', '-')|lower }}">
 
             <!-- Background Focus Lights -->
-            <div class="absolute top-0 right-0 w-96 h-96 bg-green-600/10 blur-[100px] rounded-full pointer-events-none">
+            <div class="absolute top-0 right-0 w-96 h-96 blur-[100px] rounded-full pointer-events-none" style="background-color: var(--accent-color); opacity: 0.15;">
             </div>
-            <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/10 blur-[80px] rounded-full pointer-events-none">
+            <div class="absolute bottom-0 left-0 w-64 h-64 blur-[80px] rounded-full pointer-events-none" style="background-color: var(--accent-color); opacity: 0.1;">
             </div>
 
             <!-- Header Panel -->
@@ -43,8 +43,8 @@
                 style="{% if data.court_color and data.court_color != '#000000' %}background-color: {{ data.court_color }};{% else %}background-color: #1a2234;{% endif %}">
                 <div class="flex items-center gap-5">
                     <div>
-                        <h1 class="text-3xl font-black uppercase tracking-wider text-white mb-1"
-                            style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);">
+                        <h1 class="text-3xl font-black uppercase tracking-wider mb-1 theme-accent"
+                            style="text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); color: var(--accent-color);">
                             {{ court_name }}
                         </h1>
                         <p class="text-white/80 text-sm uppercase tracking-widest font-medium">REPORTE DE JUEGOS Y
@@ -63,8 +63,8 @@
 
             <!-- Unified Table Layout (like PDF) -->
             <div class="p-6 relative z-10">
-                <div class="overflow-hidden rounded-lg border border-white/10 bg-[#141d30]">
-                    <table class="w-full text-sm text-center border-collapse text-white">
+                <div class="overflow-hidden rounded-lg border border-white/10" style="background-color: rgba(0,0,0,0.2);">
+                    <table class="w-full text-sm text-center border-collapse html-table-theme" style="color: var(--text-color);">
                         <thead>
                             <tr
                                 class="bg-black/30 text-white/40 uppercase text-[11px] tracking-widest border-b border-white/10">
@@ -237,7 +237,7 @@
                     const courtSafeName = target.getAttribute('data-court') || `cancha-${i + 1}`;
 
                     const canvas = await html2canvas(target, {
-                        backgroundColor: '#0f172a',
+                        backgroundColor: getComputedStyle(target).getPropertyValue('--bg-color').trim() || '#0f172a',
                         scale: 2,
                         useCORS: true,
                         allowTaint: true

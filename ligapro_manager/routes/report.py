@@ -1379,6 +1379,7 @@ def settings():
         report_type = request.form.get('financial_report_type')
         if report_type in ['period', 'date_range', 'por_cancha']:
             current_user.financial_report_type = report_type
+
         
         db.session.commit()
         flash('Configuraciones generales de reportes guardadas con éxito.', 'success')

@@ -10,7 +10,7 @@ async function downloadImage() {
         await preloadImages(target);
 
         const canvas = await html2canvas(target, {
-            backgroundColor: '#0f172a',
+            backgroundColor: null, // Transparent to grab the actual element color
             scale: 2, // High resolution
             useCORS: true,
             allowTaint: true

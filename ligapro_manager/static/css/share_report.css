@@ -15,3 +15,111 @@ body {
 .stat-card {
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
 }
+
+/* Base Custom Properties Setup */
+.share-container {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.share-container h1.theme-accent, 
+.share-container .accent-text {
+    color: var(--accent-color) !important;
+}
+
+/* 0. Estilo 'original' (Exclusivo) */
+.share-container.original {
+    --bg-color: #0f172a; /* Slate 900 de Tailwind */
+    --text-color: #ffffff; /* Blanco */
+    --accent-color: #facc15; /* Yellow 400 */
+    
+    --header-tabla: #60a5fa; /* blue-400 */
+    --header-partidos: #fb923c; /* orange-400 */
+    --header-resultados: #4ade80; /* green-400 */
+    --header-goleadores: #facc15; /* yellow-400 */
+    --header-arqueros: #f87171; /* red-400 */
+    
+    --glass-bg: transparent; /* El original de LigaPro Manager ya tiene glass en .glass */
+    --glass-border: transparent; /* No se agregaba border extra oscuro */
+    
+    --logo-bg: #1a2234;
+    
+    --note-bg: rgba(234, 179, 8, 0.1); /* yellow-500/10 */
+    --note-border: rgba(234, 179, 8, 0.2);
+    --note-icon: #facc15;
+    --note-title: #facc15;
+}
+
+/* Fallback para el resto de los temas (se pinta todo del accent) */
+.share-container:not(.original) {
+    --header-tabla: var(--accent-color);
+    --header-partidos: var(--accent-color);
+    --header-resultados: var(--accent-color);
+    --header-goleadores: var(--accent-color);
+    --header-arqueros: var(--accent-color);
+    
+    --glass-bg: rgba(0, 0, 0, 0.2);
+    --glass-border: rgba(255, 255, 255, 0.05);
+    
+    --logo-bg: rgba(255, 255, 255, 0.05);
+    
+    --note-bg: rgba(0, 0, 0, 0.2);
+    --note-border: rgba(255, 255, 255, 0.1);
+    --note-icon: var(--accent-color);
+    --note-title: var(--accent-color);
+}
+
+.bg-glow-1 {
+    background-color: rgba(37, 99, 235, 0.1); /* blue-600/10 */
+}
+.bg-glow-2 {
+    background-color: rgba(147, 51, 234, 0.1); /* purple-600/10 */
+}
+.share-container:not(.original) .bg-glow-1, 
+.share-container:not(.original) .bg-glow-2 {
+    background-color: var(--accent-color);
+    opacity: 0.15;
+}
+
+
+/* 1. Estilo 'mint' (Neon Mint) */
+.share-container.mint {
+    --bg-color: #0c1421; /* Azul-negro oscuro */
+    --text-color: #f1f5f9; /* Blanco */
+    --accent-color: #0df5b1; /* Verde menta neón vibrant */
+}
+
+/* 2. Estilo 'emerald' (Emerald & Gold) */
+.share-container.emerald {
+    --bg-color: #064e3b; /* Verde esmeralda oscuro rico */
+    --text-color: #fef3c7; /* Crema/Off-white suave */
+    --accent-color: #fbbf24; /* Oro metálico/Latón vibrant */
+}
+
+/* 3. Estilo 'cyberpunk' (Retro Cyberpunk Teal) */
+.share-container.cyberpunk {
+    --bg-color: #0a0e17; /* Azul-negro profundo y técnico */
+    --text-color: #0aeaff; /* Azul cian neón (glowing) */
+    --accent-color: #ff2a6d; /* Rosa magenta vibrante (glowing) */
+}
+
+/* 4. Estilo 'maroon' (Sophisticated Maroon & Slate) */
+.share-container.maroon {
+    --bg-color: #334155; /* Gris pizarra oscuro y neutro */
+    --text-color: #ffffff; /* Blanco brillante (mejor contraste que el crema anterior) */
+    --accent-color: #f43f5e; /* Rose 500 - Un fucsia más vibrante para reemplazar el granate oscuro (#881337) que se perdía */
+}
+
+/* 5. Estilo 'blackOrange' (Dark Orange - pedido por usuario) */
+.share-container.blackOrange {
+    --bg-color: #0c1421; /* Azul-negro oscuro */
+    --text-color: #ffffff;
+    --accent-color: #f97316; /* Orange 500 vibrante */
+}
+
+/* 6. Estilo 'orangeEmerald' (Orange Emerald - pedido por usuario) */
+.share-container.orangeEmerald {
+    --bg-color: #ea580c; /* Orange 600 - Fondo Anaranjado */
+    --text-color: #ffffff;
+    --accent-color: #10b981; /* Emerald 500 - Detalles Esmeralda */
+}

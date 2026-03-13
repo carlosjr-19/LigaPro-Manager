@@ -324,6 +324,11 @@ def edit_league(league_id):
             league.custom_color_active = form.custom_color_active.data
             league.custom_name_color = form.custom_name_color.data
             league.credential_phrase = form.credential_phrase.data
+            
+            if current_user.can_custom_role_style:
+                style = form.custom_role_style.data
+                if style in ['mint', 'blackOrange', 'orangeEmerald', 'emerald', 'cyberpunk', 'maroon'] or not style:
+                    league.custom_role_style = style if style else None
 
         db.session.commit()
         flash('Liga actualizada.', 'success')

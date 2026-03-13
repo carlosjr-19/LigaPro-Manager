@@ -115,6 +115,35 @@
                                         <option value="full" {% if user.highlight_mode=='full' %}selected{% endif %}>
                                             Completo</option>
                                     </select>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <select name="assigned_role_style"
+                                            class="h-6 text-xs bg-white/10 border-none rounded text-white focus:ring-0 w-32"
+                                            title="Diseño Padre">
+                                            <option value="original" {% if user.assigned_role_style == 'original' %}selected{% endif %}>Original</option>
+                                            <option value="mint" {% if user.assigned_role_style == 'mint' %}selected{% endif %}>Neon Mint</option>
+                                            <option value="emerald" {% if user.assigned_role_style == 'emerald' %}selected{% endif %}>Emerald & Gold</option>
+                                            <option value="cyberpunk" {% if user.assigned_role_style == 'cyberpunk' %}selected{% endif %}>Cyberpunk</option>
+                                            <option value="maroon" {% if user.assigned_role_style == 'maroon' %}selected{% endif %}>Maroon</option>
+                                            <option value="blackOrange" {% if user.assigned_role_style == 'blackOrange' %}selected{% endif %}>Dark Orange</option>
+                                            <option value="orangeEmerald" {% if user.assigned_role_style == 'orangeEmerald' %}selected{% endif %}>Orange Emerald</option>
+                                        </select>
+                                        
+                                        <label class="flex items-center cursor-pointer ml-2" title="Permitir fondos personalizados por liga">
+                                            <div class="relative">
+                                                <input type="checkbox" name="can_custom_role_style" class="sr-only" {% if user.can_custom_role_style %}checked{% endif %}>
+                                                <div class="block bg-gray-600 w-8 h-4 rounded-full transition-colors duration-300 toggle-bg"></div>
+                                                <div class="dot absolute left-0.5 top-0.5 bg-white w-3 h-3 rounded-full transition transform duration-300"></div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <style>
+                                        input:checked ~ .toggle-bg {
+                                            background-color: #10b981; /* Tailwind emerald-500 */
+                                        }
+                                        input:checked ~ .dot {
+                                            transform: translateX(100%);
+                                        }
+                                    </style>
                                 </div>
                                 <button type="submit" class="btn-icon bg-white/10 hover:bg-white/20"
                                     title="Guardar Colores">

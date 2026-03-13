@@ -29,12 +29,12 @@
     <div class="w-full max-w-full overflow-x-auto pb-8 relative">
         <!-- Capture Target -->
         <div id="capture-target"
-            class="w-[800px] min-w-[800px] mx-auto bg-[#0f172a] p-8 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden">
+            class="share-container {% if league.owner.can_custom_role_style %}{{ league.custom_role_style or league.owner.assigned_role_style or 'mint' }}{% else %}{{ league.owner.assigned_role_style or 'mint' }}{% endif %} w-[800px] min-w-[800px] mx-auto p-8 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden" style="background-color: var(--bg-color); color: var(--text-color);">
             <!-- Background Decor -->
-            <div class="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 blur-[100px] rounded-full pointer-events-none">
+            <div class="absolute top-0 right-0 w-96 h-96 blur-[100px] rounded-full pointer-events-none bg-glow-1">
             </div>
             <div
-                class="absolute bottom-0 left-0 w-64 h-64 bg-purple-600/10 blur-[80px] rounded-full pointer-events-none">
+                class="absolute bottom-0 left-0 w-64 h-64 blur-[80px] rounded-full pointer-events-none bg-glow-2">
             </div>
 
             <!-- Header -->
@@ -42,10 +42,10 @@
             <div class="flex items-center gap-6 mb-8 relative z-10 px-4">
                 {% if is_premium and league.logo_url %}
                 <img src="{{ league.logo_url }}"
-                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
+                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2" style="background-color: var(--logo-bg);">
                 {% else %}
                 <img src="{{ url_for('static', filename='img/LigaPro_Manager.png') }}"
-                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2 bg-[#1a2234]">
+                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2" style="background-color: var(--logo-bg);">
                 {% endif %}
 
                 <div class="text-left">
@@ -68,13 +68,13 @@
 
                 {% if include_standings and standings %}
                 <!-- Standings -->
-                <div class="glass rounded-lg p-5">
-                    <h3 class="font-bold mb-4 text-blue-400 flex items-center gap-2">
+                <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                    <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-tabla);">
                         <i class="fas fa-trophy"></i> Tabla General
                     </h3>
                     <table class="w-full text-lg">
                         <thead>
-                            <tr class="text-white/40 text-sm uppercase border-b border-white/10">
+                            <tr class="text-white/40 text-sm uppercase border-b border-white/10" style="color: var(--text-color); opacity: 0.6;">
                                 <th class="text-left pb-2">#</th>
                                 <th class="text-left pb-2">Equipo</th>
                                 <th class="text-center pb-2">PJ</th>
@@ -84,7 +84,7 @@
                                 <th class="text-center pb-2">GF</th>
                                 <th class="text-center pb-2">GC</th>
                                 <th class="text-center pb-2">DG</th>
-                                <th class="text-center pb-2">PTS</th>
+                                <th class="text-center pb-2" style="color: var(--accent-color);">PTS</th>
                             </tr>
                         </thead>
                         <tbody class="text-white/80">
@@ -111,7 +111,7 @@
                                 <td class="py-2">{{ s.goals_for }}</td>
                                 <td class="py-2">{{ s.goals_against }}</td>
                                 <td class="py-2">{{ s.goal_difference }}</td>
-                                <td class="py-3 font-bold text-yellow-400 text-2xl">{{ s.points }}</td>
+                                <td class="py-3 font-bold text-2xl" style="color: var(--accent-color);">{{ s.points }}</td>
                                 </tr>
                                 {% endfor %}
                         </tbody>
@@ -121,9 +121,9 @@
 
                 {% if include_upcoming and upcoming_matches %}
                 <!-- Upcoming Matches -->
-                <div class="glass rounded-lg p-6">
+                <div class="glass rounded-lg p-6 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
                     <h3
-                        class="font-bold mb-6 text-xl text-orange-400 flex items-center gap-2 border-b border-white/10 pb-3">
+                        class="font-bold mb-6 text-xl flex items-center gap-2 border-b border-white/10 pb-3" style="color: var(--header-partidos);">
                         <i class="fas fa-calendar-alt"></i> Próximos Partidos
                     </h3>
                     <div class="space-y-8">
@@ -159,7 +159,7 @@
                                 <div class="col-span-1 -mb-2 mt-1">
                                     <span
                                         class="bg-black/40 border border-white/10 text-white/80 text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg inline-flex items-center gap-2">
-                                        <i class="far fa-calendar-alt text-orange-400"></i>
+                                        <i class="far fa-calendar-alt" style="color: var(--header-partidos);"></i>
                                         {{ days[match.match_date.strftime('%A')] }} {{ match.match_date.strftime('%d')
                                         }} de {{ months[match.match_date.strftime('%B')] }}
                                     </span>
@@ -168,7 +168,7 @@
 
                                 <div
                                     class="bg-white/5 p-4 rounded-lg border border-white/5 relative overflow-hidden group">
-                                    <div class="absolute top-0 left-0 w-1 h-full bg-orange-500/50"></div>
+                                    <div class="absolute top-0 left-0 w-1 h-full" style="background-color: var(--accent-color); opacity: 0.5;"></div>
 
                                     {% if match.stage != 'regular' %}
                                     <div class="mb-3 flex justify-center">
@@ -184,8 +184,8 @@
                                     {% endif %}
 
                                     <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
-                                        <div class="flex items-center gap-2 text-white/90 font-mono text-lg font-bold">
-                                            <i class="far fa-clock text-orange-400"></i>
+                                        <div class="flex items-center gap-2 font-mono text-lg font-bold" style="color: var(--text-color);">
+                                            <i class="far fa-clock" style="color: var(--header-partidos);"></i>
                                             {{ match.match_date.strftime('%I:%M %p') }}
                                         </div>
                                         <div class="text-white/60 text-sm font-medium"
@@ -233,8 +233,8 @@
 
                 {% if include_recent and recent_matches %}
                 <!-- Recent Matches -->
-                <div class="glass rounded-lg p-5">
-                    <h3 class="font-bold mb-4 text-green-400 flex items-center gap-2">
+                <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                    <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-resultados);">
                         <i class="fas fa-check-circle"></i> Resultados ({{ date_start }} - {{ date_end }})
                     </h3>
                     <div class="grid grid-cols-2 gap-4">
@@ -270,8 +270,8 @@
                 {% if (include_scorers and top_scorers) or (include_keepers and top_goalkeepers) %}
                 <div class="grid grid-cols-2 gap-6">
                     {% if include_scorers and top_scorers %}
-                    <div class="glass rounded-lg p-5">
-                        <h3 class="font-bold mb-4 text-yellow-400 flex items-center gap-2">
+                    <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                        <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-goleadores);">
                             <i class="fas fa-futbol"></i> Goleadores
                         </h3>
                         {% for stat in top_scorers[:5] %}
@@ -290,8 +290,8 @@
                     {% endif %}
 
                     {% if include_keepers and top_goalkeepers %}
-                    <div class="glass rounded-lg p-5">
-                        <h3 class="font-bold mb-4 text-red-400 flex items-center gap-2">
+                    <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                        <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-arqueros);">
                             <i class="fas fa-shield-alt"></i> Arqueros
                         </h3>
                         {% for stat in top_goalkeepers[:5] %}
@@ -314,10 +314,10 @@
                 {% if report_note %}
                 <!-- Custom Note (Premium) -->
                 <div class="relative z-10 px-4 mb-8 mt-8">
-                    <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 flex gap-4 items-start">
-                        <i class="fas fa-info-circle text-yellow-400 mt-1 text-lg"></i>
+                    <div class="border rounded-lg p-4 flex gap-4 items-start shadow-xl" style="background-color: var(--note-bg); border-color: var(--note-border);">
+                        <i class="fas fa-info-circle mt-1 text-lg" style="color: var(--note-icon);"></i>
                         <div>
-                            <h3 class="text-yellow-400 font-bold text-sm uppercase tracking-wider mb-1">Nota Importante
+                            <h3 class="font-bold text-sm uppercase tracking-wider mb-1" style="color: var(--note-title);">Nota Importante
                             </h3>
                             <p class="text-white text-lg font-medium leading-relaxed">{{ report_note }}</p>
                         </div>
