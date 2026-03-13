@@ -257,8 +257,7 @@
                 }, 3000);
 
             } catch (err) {
-                console.error(err);
-                alert('Error al generar las imágenes: ' + err.message);
+                console.error("Global capture error:", err);
                 btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Error';
                 btn.disabled = false;
             }
@@ -266,16 +265,23 @@
 
         function triggerDownload(dataUrl, filename) {
             if (window.FlutterDownloader) {
-                // MODO APP FLUTTER: Enviar el archivo a través del canal nativo
-                window.FlutterDownloader.postMessage(filename + "|" + dataUrl);
-            } else {
-                // MODO NAVEGADOR WEB: Descarga tradicional
+                try {
+                    window.FlutterDownloader.postMessage(filename + "|" + dataUrl);
+                    return;
+                } catch (e) {
+                    console.error("Flutter error:", e);
+                }
+            }
+
+            try {
                 const link = document.createElement('a');
                 link.download = filename;
                 link.href = dataUrl;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+            } catch (e) {
+                console.error("Browser download error:", e);
             }
         }
 

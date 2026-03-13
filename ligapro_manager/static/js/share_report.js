@@ -23,27 +23,33 @@ async function downloadImage() {
         btn.disabled = false;
 
     } catch (err) {
-        console.error(err);
-        alert('Error al generar la imagen: ' + err.message);
+        console.error("html2canvas error:", err);
         btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Error';
         btn.disabled = false;
     }
 }
 
 function triggerDownload(dataUrl) {
-    const fileName = `reporte-${window.leagueName || 'liga'}.png`;
-
+    const fileName = (window.leagueName || 'reporte') + '_rol.png';
     if (window.FlutterDownloader) {
-        // MODO APP FLUTTER: Enviar el archivo a través del canal nativo
-        window.FlutterDownloader.postMessage(fileName + "|" + dataUrl);
-    } else {
-        // MODO NAVEGADOR WEB: Descarga tradicional
+        try {
+            window.FlutterDownloader.postMessage(fileName + "|" + dataUrl);
+            return;
+        } catch (e) {
+            console.error("Flutter error:", e);
+        }
+    }
+    
+    // Fallback for browser
+    try {
         const link = document.createElement('a');
         link.download = fileName;
         link.href = dataUrl;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+    } catch (e) {
+        console.error("Browser download error:", e);
     }
 }
 
