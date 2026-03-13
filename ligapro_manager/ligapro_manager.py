@@ -125,7 +125,9 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN auto_fill_prices BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE users ADD COLUMN financial_report_type VARCHAR(20) DEFAULT 'period'",
                     "ALTER TABLE leagues ADD COLUMN credential_phrase VARCHAR(255)",
-                    "ALTER TABLE users ADD COLUMN assigned_role_style VARCHAR(50) DEFAULT 'mint'"
+                    "ALTER TABLE users ADD COLUMN assigned_role_style VARCHAR(50) DEFAULT 'mint'",
+                    "ALTER TABLE users ADD COLUMN can_custom_role_style BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE leagues ADD COLUMN custom_role_style VARCHAR(50)"
                 ]
                 
                 for migration in migrations:
