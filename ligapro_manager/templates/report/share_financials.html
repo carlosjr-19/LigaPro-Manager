@@ -47,7 +47,9 @@
                             style="text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);">
                             REPORTE FINANCIERO
                         </h1>
-                        <p class="text-white/80 text-sm uppercase tracking-widest font-medium">LIGA PRO MANAGER</p>
+                        <p class="text-white/80 text-sm uppercase tracking-widest font-medium">
+                            {% if selected_league_name %}{{ selected_league_name }}{% else %}LIGA PRO MANAGER{% endif %}
+                        </p>
                     </div>
                 </div>
                 <div class="text-right">

@@ -1,3 +1,20 @@
+## 0.11.0
+
+Refinamiento de Reportes PDF Dinámicos y Filtros Financieros por Liga.
+
+- **Reporte PDF de Una Sola Página**: Optimización total del diseño para que todos los elementos (Cabecera, Tabla, Goleadores, Resultados y Agenda) se ajusten a una sola hoja horizontal, ideal para impresión industrial.
+- **Estadísticas Enriquecidas**: Las listas de Goleadores y Arqueros ahora muestran las iniciales del equipo (3 letras en mayúsculas, ej: [DEP]) y el número de dorsal (ej: #10) para una identificación precisa.
+- **Filtro por Liga en Finanzas**: El reporte de Finanzas Mensuales ahora permite filtrar por una liga específica, recalculando ingresos, egresos y ganancias netas de forma instantánea.
+- **Exportaciones Inteligentes**: Tanto la exportación a Excel como la generación de imagen PNG en Finanzas ahora incluyen el nombre de la liga filtrada en los encabezados.
+- **Agenda PDF de Dos Columnas**: Se eliminó el límite de 6 partidos y se implementó un sistema de flujo dinámico en dos columnas para maximizar el espacio, con horarios en color negro para legibilidad de impresión.
+
+## Modificado
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/templates/share_report.html`
+* `ligapro_manager/templates/report/financials.html`
+* `ligapro_manager/templates/report/share_financials.html`
+
 ## 0.10.0
 
 Implementación de Partidos de Práctica, Filtros Horarios Financieros y Ajustes de Puntajes.
