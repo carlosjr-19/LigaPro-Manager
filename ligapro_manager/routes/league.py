@@ -510,6 +510,9 @@ def generate_share_report(league_id):
                 pass
                 
         recent_matches = query.order_by(Match.match_date.desc()).all()
+        for m in recent_matches:
+            m.match_date_display = m.match_date.strftime('%d/%m')
+            m.match_time_display = m.match_date.strftime('%I:%M %p')
         
     if include_upcoming:
         query_upcoming = Match.query.filter(
@@ -537,9 +540,13 @@ def generate_share_report(league_id):
         query_upcoming = query_upcoming.order_by(Match.match_date.asc())
         
         if not has_upcoming_date_filter:
-            upcoming_matches = query_upcoming.limit(10).all()
+            upcoming_matches = query_upcoming.limit(20).all() # Increased limit for more flexibility
         else:
             upcoming_matches = query_upcoming.all()
+
+        for m in upcoming_matches:
+            m.match_date_display = m.match_date.strftime('%d/%m')
+            m.match_time_display = m.match_date.strftime('%I:%M %p')
 
     # Group upcoming matches by court
     matches_by_court = {}
@@ -559,9 +566,19 @@ def generate_share_report(league_id):
 
     if include_scorers:
         top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).limit(5).all()
+        for stat in top_scorers:
+            stat.team_initials = stat.team.name[:3].upper() if stat.team else "???"
+            # Attempt to find player number
+            player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
+            stat.player_number = f"#{player.number}" if (player and player.number) else ""
         
     if include_keepers:
         top_goalkeepers = SeasonStat.query.filter_by(league_id=league_id, stat_type='conceded').order_by(SeasonStat.value.asc()).limit(5).all()
+        for stat in top_goalkeepers:
+            stat.team_initials = stat.team.name[:3].upper() if stat.team else "???"
+            # Attempt to find player number
+            player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
+            stat.player_number = f"#{player.number}" if (player and player.number) else ""
         
     return render_template('share_report.html',
                           league=league,
