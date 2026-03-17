@@ -121,8 +121,18 @@ def save_match_matrix():
     # Auto-complete if scores are present
     if home_score is not None and away_score is not None:
         match.is_completed = True
+        
+        if league.enable_shutdown_tiebreaker and match.home_score == match.away_score:
+            shutdown_winner_id = request.form.get('shutdown_winner_id')
+            if shutdown_winner_id in [str(match.home_team_id), str(match.away_team_id)]:
+                match.shutdown_winner_id = shutdown_winner_id
+            else:
+                match.shutdown_winner_id = None
+        else:
+            match.shutdown_winner_id = None
     else:
         match.is_completed = False
+        match.shutdown_winner_id = None
 
     db.session.commit()
     flash('Partido actualizado correctamente.', 'success')

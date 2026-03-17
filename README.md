@@ -76,14 +76,13 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.9.9.8)
+## 🔄 Últimas Actualizaciones (v0.9.9.9)
 
+- **Desempate por Shutdown**: Posibilidad de designar a un ganador en partidos empatados para otorgar un reparto desigual (2 pts al ganador, 1 al perdedor) en cualquier vista de resultados.
+- **Candados Premium a Nivel Capitán**: Validaciones individuales reforzadas para que solo los capitanes que han pagado su cuota puedan imprimir o descargar sus propios registros de jugadores.
+- **Seguridad de Prevención de Borrado**: El panel de administrador ahora exige la contraseña base del administrador para autenticar la eliminación de cualquier usuario (propietario o capitán), blindando la plataforma contra desastres accidentales.
 - **Eliminación Permanente de Discrepancias**: Los dueños de liga ahora pueden ocultar filas del Resumen General de forma definitiva. La acción se sincroniza con la base de datos, asegurando que las filas eliminadas no aparezcan en futuras consultas, reportes compartidos o exportaciones a Excel.
 - **Cámara Cloudinary Directa**: Ahora los capitanes y administradores pueden capturar y subir fotos de jugadores y escudos institucionales usando directamente la cámara de su teléfono, los archivos se almacenan en un bucket nativo de Cloudinary.
-- **Configuración Sensible Backend**: Los tokens de subida (`CLOUDINARY_CLOUD_NAME` y `CLOUDINARY_UPLOAD_PRESET`) se procesan ahora a través del motor seguro de contexto nativo de Flask y no existen expuestos en repositorios.
-- **Registros Oficiales PVC**: Los reportes y pases de juego (`/credentials`) ahora se renderizan respetando el estándar global CR80 para ser impresos en tarjetas plásticas.
-- **Configuración Global por Owner**: Nuevo panel de control inteligente para dueños de ligas donde definir los colores base representativos de cada "Cancha". Todas las competencias heredarán automáticamente dichos lineamientos para ahorro de tiempo y consistencia institucional.
-- **Exportación HD Independiente (PNG)**: Además del Excel y PDF, ahora el reporte diario de Agenda ofrece separar automáticamente el tablero de partidos de cada cancha para descargar de forma simultánea múltiples imágenes limpias ideales para compartir por redes.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

@@ -64,7 +64,13 @@ def calculate_standings(league_id, include_playoffs=False):
                     stats['points'] += win_points
                 elif match.home_score == match.away_score:
                     stats['drawn'] += 1
-                    stats['points'] += draw_points
+                    if league.enable_shutdown_tiebreaker and getattr(match, 'shutdown_winner_id', None):
+                        if match.shutdown_winner_id == team.id:
+                            stats['points'] += 2
+                        else:
+                            stats['points'] += 1
+                    else:
+                        stats['points'] += draw_points
                 else:
                     stats['lost'] += 1
                     
@@ -78,7 +84,13 @@ def calculate_standings(league_id, include_playoffs=False):
                     stats['points'] += win_points
                 elif match.away_score == match.home_score:
                     stats['drawn'] += 1
-                    stats['points'] += draw_points
+                    if league.enable_shutdown_tiebreaker and getattr(match, 'shutdown_winner_id', None):
+                        if match.shutdown_winner_id == team.id:
+                            stats['points'] += 2
+                        else:
+                            stats['points'] += 1
+                    else:
+                        stats['points'] += draw_points
                 else:
                     stats['lost'] += 1
         

@@ -185,7 +185,8 @@ def league_detail(league_id):
                             'match_date_display': m.match_date.strftime('%d-%b'),
                             'match_time_display': m.match_date.strftime('%I:%M %p'),
                             'court_id': m.court_id,
-                            'is_completed': m.is_completed
+                            'is_completed': m.is_completed,
+                            'shutdown_winner_id': m.shutdown_winner_id
                         },
                         'home_id': m.home_team_id,
                         'away_id': m.away_team_id
@@ -207,7 +208,8 @@ def league_detail(league_id):
                                  'match_date_display': m.match_date.strftime('%d-%b'),
                                  'match_time_display': m.match_date.strftime('%I:%M %p'),
                                  'court_id': m.court_id,
-                                 'is_completed': m.is_completed
+                                 'is_completed': m.is_completed,
+                                 'shutdown_winner_id': m.shutdown_winner_id
                              },
                              'home_id': m.away_team_id,
                              'away_id': m.home_team_id
@@ -329,6 +331,8 @@ def edit_league(league_id):
                 style = form.custom_role_style.data
                 if style in ['mint', 'blackOrange', 'orangeEmerald', 'emerald', 'cyberpunk', 'maroon'] or not style:
                     league.custom_role_style = style if style else None
+
+            league.enable_shutdown_tiebreaker = form.enable_shutdown_tiebreaker.data
 
         db.session.commit()
         flash('Liga actualizada.', 'success')

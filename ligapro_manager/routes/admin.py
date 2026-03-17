@@ -38,12 +38,17 @@ def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     if user.role == 'admin':
         flash('No puedes eliminar administradores.', 'danger')
-        return redirect(url_for('admin.admin_dashboard'))
+        return redirect(url_for('admin.users'))
+        
+    admin_password = request.form.get('admin_password')
+    if not admin_password or not bcrypt.check_password_hash(current_user.password, admin_password):
+        flash('Contraseña de administrador incorrecta. Eliminación abortada.', 'danger')
+        return redirect(url_for('admin.users'))
         
     db.session.delete(user)
     db.session.commit()
-    flash(f'Usuario {user.email} eliminado.', 'success')
-    return redirect(url_for('admin.admin_dashboard'))
+    flash(f'Usuario {user.email} eliminado exitosamente.', 'success')
+    return redirect(url_for('admin.users'))
 
 
 @admin_bp.route('/admin/users/<user_id>/toggle_premium', methods=['POST'])
