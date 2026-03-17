@@ -304,8 +304,8 @@ def generate_credentials(team_id):
         if league.owner.is_active_premium:
             has_access = True
     
-    if is_captain:
-        if league.owner.is_active_premium or current_user.is_active_premium:
+    if is_captain and not is_owner:
+        if current_user.is_active_premium:
              has_access = True
              
     if not has_access:

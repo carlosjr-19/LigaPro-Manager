@@ -44,6 +44,7 @@ class League(db.Model):
     custom_color_active = db.Column(db.Boolean, default=False) # Switch for custom name color
     custom_name_color = db.Column(db.String(10), default='#ffffff') # Color for league name in reports
     custom_role_style = db.Column(db.String(50), nullable=True) # Override style for this league
+    enable_shutdown_tiebreaker = db.Column(db.Boolean, default=False)
 
     @property
     def active_teams_count(self):

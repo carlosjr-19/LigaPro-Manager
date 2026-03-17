@@ -127,7 +127,9 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN credential_phrase VARCHAR(255)",
                     "ALTER TABLE users ADD COLUMN assigned_role_style VARCHAR(50) DEFAULT 'mint'",
                     "ALTER TABLE users ADD COLUMN can_custom_role_style BOOLEAN DEFAULT FALSE",
-                    "ALTER TABLE leagues ADD COLUMN custom_role_style VARCHAR(50)"
+                    "ALTER TABLE leagues ADD COLUMN custom_role_style VARCHAR(50)",
+                    "ALTER TABLE leagues ADD COLUMN enable_shutdown_tiebreaker BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE matches ADD COLUMN shutdown_winner_id VARCHAR(36)"
                 ]
                 
                 for migration in migrations:

@@ -115,8 +115,16 @@ def update_match_result(match_id):
         
         if match.home_score is not None and match.away_score is not None:
             match.is_completed = True
+            
+            if league.enable_shutdown_tiebreaker and match.home_score == match.away_score:
+                shutdown_winner = request.form.get('shutdown_winner_id')
+                if shutdown_winner in [str(match.home_team_id), str(match.away_team_id)]:
+                    match.shutdown_winner_id = shutdown_winner
+            else:
+                match.shutdown_winner_id = None
         else:
             match.is_completed = False
+            match.shutdown_winner_id = None
         
         db.session.commit()
         flash('Partido actualizado (Resultados y Detalles).', 'success')

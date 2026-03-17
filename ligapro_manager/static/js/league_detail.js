@@ -115,6 +115,30 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
+    // Modal matrix scores match tiebreaker dynamic logic
+    const matrixHomeInput = document.getElementById('matrix_home_score');
+    const matrixAwayInput = document.getElementById('matrix_away_score');
+    const matrixShutdownSection = document.getElementById('matrix_shutdown_section');
+    const matrixRadios = document.querySelectorAll('input[name="shutdown_winner_id"]');
+
+    function toggleMatrixShutdownSection() {
+        if (!matrixShutdownSection) return;
+        const homeScore = matrixHomeInput.value;
+        const awayScore = matrixAwayInput.value;
+        
+        if (homeScore !== '' && awayScore !== '' && homeScore === awayScore) {
+            matrixShutdownSection.classList.remove('hidden');
+        } else {
+            matrixShutdownSection.classList.add('hidden');
+            matrixRadios.forEach(radio => radio.checked = false);
+        }
+    }
+
+    if (matrixHomeInput && matrixAwayInput && matrixShutdownSection) {
+        matrixHomeInput.addEventListener('input', toggleMatrixShutdownSection);
+        matrixAwayInput.addEventListener('input', toggleMatrixShutdownSection);
+    }
 });
 
 function showTab(tabId) {
@@ -272,6 +296,17 @@ function openMatrixModal(cellData) {
     document.getElementById('matrix_away_team_id').value = cellData.away_id;
     document.getElementById('matrix_match_round').value = cellData.round || 1;
 
+    const shutdownSection = document.getElementById('matrix_shutdown_section');
+    if (shutdownSection) {
+        document.getElementById('matrix_shutdown_home_name').textContent = home.name;
+        document.getElementById('matrix_shutdown_home_radio').value = cellData.home_id;
+        document.getElementById('matrix_shutdown_away_name').textContent = away.name;
+        document.getElementById('matrix_shutdown_away_radio').value = cellData.away_id;
+        
+        document.getElementById('matrix_shutdown_home_radio').checked = false;
+        document.getElementById('matrix_shutdown_away_radio').checked = false;
+    }
+
     const deleteBtn = document.getElementById('btn-delete-matrix-match');
 
     if (cellData.match) {
@@ -289,6 +324,17 @@ function openMatrixModal(cellData) {
         document.getElementById('matrix_court_id').value = cellData.match.court_id || '';
         document.getElementById('matrix_home_score').value = cellData.match.home_score;
         document.getElementById('matrix_away_score').value = cellData.match.away_score;
+        
+        if (shutdownSection && cellData.match.home_score !== null && cellData.match.home_score === cellData.match.away_score) {
+            shutdownSection.classList.remove('hidden');
+            if (cellData.match.shutdown_winner_id == cellData.home_id) {
+                document.getElementById('matrix_shutdown_home_radio').checked = true;
+            } else if (cellData.match.shutdown_winner_id == cellData.away_id) {
+                document.getElementById('matrix_shutdown_away_radio').checked = true;
+            }
+        } else if (shutdownSection) {
+            shutdownSection.classList.add('hidden');
+        }
 
         deleteBtn.classList.remove('hidden');
     } else {
@@ -299,6 +345,12 @@ function openMatrixModal(cellData) {
         document.getElementById('matrix_court_id').value = '';
         document.getElementById('matrix_home_score').value = '';
         document.getElementById('matrix_away_score').value = '';
+        
+        if (shutdownSection) {
+            shutdownSection.classList.add('hidden');
+            document.getElementById('matrix_shutdown_home_radio').checked = false;
+            document.getElementById('matrix_shutdown_away_radio').checked = false;
+        }
 
         deleteBtn.classList.add('hidden');
     }

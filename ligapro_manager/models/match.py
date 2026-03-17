@@ -20,4 +20,5 @@ class Match(db.Model):
     match_date = db.Column(db.DateTime, nullable=False)
     match_round = db.Column(db.Integer, default=1)
     match_name = db.Column(db.String(200), nullable=True)
+    shutdown_winner_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

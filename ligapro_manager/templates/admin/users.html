@@ -209,15 +209,12 @@
                                 </form>
 
                                 <!-- Delete User -->
-                                <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="POST"
-                                    class="inline"
-                                    onsubmit="return confirm('¿ESTÁS SEGURO? Eliminar este usuario borrará permanentemente todas sus ligas, equipos y partidos asociados. Esta acción no se puede deshacer.');">
-                                    <button type="submit"
-                                        class="btn-icon bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
-                                        title="Eliminar Usuario Permanentemente">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </form>
+                                <button type="button"
+                                    onclick="openDeleteModal('{{ url_for('admin.delete_user', user_id=user.id) }}', '{{ user.email }}')"
+                                    class="btn-icon bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white"
+                                    title="Eliminar Usuario Permanentemente">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -243,4 +240,50 @@
         {% endif %}
     </main>
 </div>
+
+<!-- Modal Confirmación de Eliminación -->
+<div id="deleteUserModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50 p-4">
+    <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-sm shadow-2xl relative p-6">
+        <h3 class="text-xl font-bold mb-4 text-red-500 flex items-center gap-2">
+            <i class="fas fa-exclamation-triangle"></i> Eliminar Usuario
+        </h3>
+        <p class="text-white/60 text-sm mb-6">
+            Ingresa tu contraseña de administrador para confirmar la eliminación permanente del usuario: <br>
+            <strong id="deleteUserName" class="text-white"></strong>.
+        </p>
+        <form id="deleteUserForm" method="POST" action="">
+            <div class="mb-6">
+                <input type="password" name="admin_password" class="input-field" placeholder="Tu contraseña..." required>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 text-white/60 hover:text-white transition-colors">Cancelar</button>
+                <button type="submit" class="btn-primary bg-red-600 hover:bg-red-700 border-none">
+                    <i class="fas fa-trash mr-2"></i>Eliminar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openDeleteModal(url, userName) {
+    const modal = document.getElementById('deleteUserModal');
+    const form = document.getElementById('deleteUserForm');
+    const nameSpan = document.getElementById('deleteUserName');
+    
+    form.action = url;
+    nameSpan.textContent = userName;
+    form.querySelector('input[name="admin_password"]').value = '';
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteUserModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+</script>
+
 {% endblock %}

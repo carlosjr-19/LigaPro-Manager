@@ -1,3 +1,29 @@
+## 0.9.9.9
+
+Mejoras de competencia, restricciones avanzadas de planes y seguridad de datos.
+
+- **Desempate por Shutdown**: Nueva funcionalidad opcional en la configuración de ligas para definir un ganador en partidos que terminan en empate, otorgándole 2 puntos al vencedor del "shutdown" y 1 punto al perdedor. Disponible en todos los formularios de resultados (lista, cuadro de matriz).
+- **Protección de Funciones Premium para Capitanes**: Los botones para descargar e imprimir los expedientes oficiales de jugadores ahora requieren que el capitán haya pagado su propia cuota ($50), desvinculando la dependencia del estado premium del dueño de liga.
+- **Seguridad en la Eliminación de Usuarios**: El sistema ahora demanda doble factor (confirmación con contraseña actual del Administrador) antes de ejecutar el borrado permanente de cualquier rol de usuario, evitando accidentes.
+
+## Modificado
+* `ligapro_manager/models/league.py`
+* `ligapro_manager/models/match.py`
+* `ligapro_manager/forms/league.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/routes/match.py`
+* `ligapro_manager/routes/match_matrix.py`
+* `ligapro_manager/routes/team.py`
+* `ligapro_manager/routes/admin.py`
+* `ligapro_manager/utils/helpers.py`
+* `ligapro_manager/templates/league_form.html`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/match_result_form.html`
+* `ligapro_manager/templates/team_detail.html`
+* `ligapro_manager/templates/admin/users.html`
+* `ligapro_manager/static/js/league_detail.js`
+* `ligapro_manager/ligapro_manager.py`
+
 ## 0.9.9.8
 
 Personalización Avanzada de Diseños para Reportes y Compartición de Partidos.

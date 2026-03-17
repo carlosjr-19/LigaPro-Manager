@@ -80,6 +80,18 @@
                     </div>
                 </div>
 
+                <div class="border-t border-white/10 pt-4 pb-4 flex items-center gap-3">
+                    {{ form.enable_shutdown_tiebreaker(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary focus:ring-primary") }}
+                    <div>
+                        <label class="block text-sm font-bold text-white mb-1">
+                            {{ form.enable_shutdown_tiebreaker.label.text }}
+                        </label>
+                        <p class="text-xs text-white/50">
+                            Si el partido termina en empate, se habilitará la opción para elegir un ganador en shutdown (2 pts al ganador, 1 al perdedor).
+                        </p>
+                    </div>
+                </div>
+
                 <div class="card bg-white/5 border-white/10 p-4 space-y-4 relative overflow-hidden">
                     {% if not current_user.is_active_premium %}
                     <!-- Premium Overlay -->
