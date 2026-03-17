@@ -309,6 +309,12 @@ function openMatrixModal(cellData) {
     document.getElementById('matrix_away_team_id').value = cellData.away_id;
     document.getElementById('matrix_match_round').value = cellData.round || 1;
 
+    // Practice Match
+    const practiceToggle = document.getElementById('matrix_is_practice');
+    if (practiceToggle) {
+        practiceToggle.checked = (cellData.match && cellData.match.is_practice) ? true : false;
+    }
+
     const shutdownSection = document.getElementById('matrix_shutdown_section');
     if (shutdownSection) {
         document.getElementById('matrix_shutdown_home_name').textContent = home.name;

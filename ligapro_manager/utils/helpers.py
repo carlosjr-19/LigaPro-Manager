@@ -7,13 +7,18 @@ def calculate_standings(league_id, include_playoffs=False):
     # Only show active (visible) teams in standings
     teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
     
-    # Get completed matches (only regular season by default)
+    # Get completed matches (only regular season by default, never practice matches)
     if include_playoffs:
-        matches_query = Match.query.filter_by(league_id=league_id, is_completed=True)
+        matches_query = Match.query.filter(
+            Match.league_id == league_id,
+            Match.is_completed == True,
+            Match.is_practice == False
+        )
     else:
         matches_query = Match.query.filter(
             Match.league_id == league_id,
             Match.is_completed == True,
+            Match.is_practice == False,
             Match.stage.in_(['regular', None, ''])
         )
     

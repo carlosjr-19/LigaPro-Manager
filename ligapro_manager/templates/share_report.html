@@ -170,8 +170,9 @@
                                     class="bg-white/5 p-4 rounded-lg border border-white/5 relative overflow-hidden group">
                                     <div class="absolute top-0 left-0 w-1 h-full" style="background-color: var(--accent-color); opacity: 0.5;"></div>
 
-                                    {% if match.stage != 'regular' %}
-                                    <div class="mb-3 flex justify-center">
+                                    {% if match.stage != 'regular' or match.is_practice %}
+                                    <div class="mb-3 flex justify-center gap-2">
+                                        {% if match.stage != 'regular' %}
                                         <span
                                             class="bg-yellow-500/20 text-yellow-400 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">
                                             {% if match.stage == 'quarterfinal' %}Cuartos de Final
@@ -180,6 +181,12 @@
                                             {% elif match.stage == 'final' %}Gran Final
                                             {% else %}{{ match.stage }}{% endif %}
                                         </span>
+                                        {% endif %}
+                                        {% if match.is_practice %}
+                                        <span class="bg-amber-500/20 text-amber-500 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1">
+                                            <i class="fas fa-dumbbell"></i> Práctica
+                                        </span>
+                                        {% endif %}
                                     </div>
                                     {% endif %}
 
@@ -240,26 +247,33 @@
                     <div class="grid grid-cols-2 gap-4">
                         {% for match in recent_matches %}
                         <div
-                            class="bg-white/5 p-3 rounded flex justify-between items-center text-sm border border-white/5">
-                            <div class="flex items-center justify-end gap-2 flex-1 text-right">
-                                {% if is_premium and league.show_team_logos and
-                                teams_dict[match.home_team_id].shield_url %}
-                                <img src="{{ teams_dict[match.home_team_id].shield_url }}"
-                                    class="w-5 h-5 object-contain flex-shrink-0">
-                                {% endif %}
-                                <span class="font-medium leading-tight">{{ teams_dict[match.home_team_id].name }}</span>
+                            class="bg-white/5 p-3 rounded flex flex-col items-center gap-2 text-sm border border-white/5 relative overflow-hidden group">
+                            {% if match.is_practice %}
+                            <div class="absolute top-0 right-0">
+                                <span class="bg-amber-500/20 text-amber-500 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-bl">Práctica</span>
                             </div>
-                            <span
-                                class="bg-black/40 px-3 py-1 rounded font-bold mx-2 text-white whitespace-nowrap flex-shrink-0">
-                                {{ match.home_score }} - {{ match.away_score }}
-                            </span>
-                            <div class="flex items-center justify-start gap-2 flex-1 text-left">
-                                <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name }}</span>
-                                {% if is_premium and league.show_team_logos and
-                                teams_dict[match.away_team_id].shield_url %}
-                                <img src="{{ teams_dict[match.away_team_id].shield_url }}"
-                                    class="w-5 h-5 object-contain flex-shrink-0">
-                                {% endif %}
+                            {% endif %}
+                            <div class="flex justify-between items-center w-full">
+                                <div class="flex items-center justify-end gap-2 flex-1 text-right">
+                                    {% if is_premium and league.show_team_logos and
+                                    teams_dict[match.home_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.home_team_id].shield_url }}"
+                                        class="w-5 h-5 object-contain flex-shrink-0">
+                                    {% endif %}
+                                    <span class="font-medium leading-tight">{{ teams_dict[match.home_team_id].name }}</span>
+                                </div>
+                                <span
+                                    class="bg-black/40 px-3 py-1 rounded font-bold mx-2 text-white whitespace-nowrap flex-shrink-0">
+                                    {{ match.home_score }} - {{ match.away_score }}
+                                </span>
+                                <div class="flex items-center justify-start gap-2 flex-1 text-left">
+                                    <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name }}</span>
+                                    {% if is_premium and league.show_team_logos and
+                                    teams_dict[match.away_team_id].shield_url %}
+                                    <img src="{{ teams_dict[match.away_team_id].shield_url }}"
+                                        class="w-5 h-5 object-contain flex-shrink-0">
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                         {% endfor %}

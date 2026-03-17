@@ -186,7 +186,8 @@ def league_detail(league_id):
                             'match_time_display': m.match_date.strftime('%I:%M %p'),
                             'court_id': m.court_id,
                             'is_completed': m.is_completed,
-                            'shutdown_winner_id': m.shutdown_winner_id
+                            'shutdown_winner_id': m.shutdown_winner_id,
+                            'is_practice': m.is_practice
                         },
                         'home_id': m.home_team_id,
                         'away_id': m.away_team_id
@@ -209,7 +210,8 @@ def league_detail(league_id):
                                  'match_time_display': m.match_date.strftime('%I:%M %p'),
                                  'court_id': m.court_id,
                                  'is_completed': m.is_completed,
-                                 'shutdown_winner_id': m.shutdown_winner_id
+                                 'shutdown_winner_id': m.shutdown_winner_id,
+                                 'is_practice': m.is_practice
                              },
                              'home_id': m.away_team_id,
                              'away_id': m.home_team_id

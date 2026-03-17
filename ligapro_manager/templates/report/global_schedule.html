@@ -5,20 +5,19 @@
 <div class="min-h-screen bg-gray-900 pb-12">
     <!-- Header / Controls (Hidden on Print) -->
     <header class="bg-card border-b border-white/10 print:hidden">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-4">
+        <!-- Row 1: Title + Navigation Tabs -->
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-4 shrink-0">
                 <a href="{{ url_for('report.index') }}" class="text-white/60 hover:text-white">
                     <i class="fas fa-arrow-left"></i> Volver
                 </a>
-                <h1
-                    class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
                     <i class="fas fa-calendar-alt mr-2"></i>Agenda Global
                 </h1>
             </div>
 
-            <!-- Navigation Tabs (Screen only) -->
-            <div
-                class="w-full md:w-auto overflow-x-auto overflow-y-hidden hide-scrollbar max-w-[100vw] pb-1 print:hidden">
+            <!-- Navigation Tabs -->
+            <div class="w-full sm:w-auto overflow-x-auto overflow-y-hidden hide-scrollbar max-w-[100vw] pb-1">
                 <div class="flex bg-white/5 rounded-lg p-1 gap-1 min-w-max">
                     <a href="{{ url_for('report.global_schedule') }}"
                         class="px-4 py-2 rounded-md text-sm font-bold bg-purple-600 text-white shadow flex-shrink-0">Agenda</a>
@@ -32,32 +31,70 @@
                         class="px-4 py-2 rounded-md text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">Finanzas</a>
                 </div>
             </div>
+        </div>
 
-            <form action="{{ url_for('report.global_schedule') }}" method="GET" target="_self"
-                class="flex flex-wrap items-center justify-center gap-2 md:gap-4 w-full md:w-auto mt-2 md:mt-0">
-                <input type="date" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}"
-                    onchange="this.form.submit()"
-                    class="w-full sm:w-auto bg-white/10 border border-white/20 rounded px-4 py-2 text-white focus:outline-none focus:border-purple-500">
+        <!-- Row 2: Filters + Action Buttons -->
+        <div class="border-t border-white/5 bg-white/[0.02]">
+            <div class="max-w-7xl mx-auto px-6 py-3">
+                <form action="{{ url_for('report.global_schedule') }}" method="GET" target="_self"
+                    class="flex flex-wrap items-center gap-3">
 
-                <div class="flex flex-wrap gap-2 md:gap-4 w-full sm:w-auto">
-                    <a href="{{ url_for('report.share_global_schedule', date=selected_date.strftime('%Y-%m-%d')) }}"
-                        title="Generar Imágenes" target="_self"
-                        class="flex-none justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
-                        <i class="fas fa-image"></i>
-                    </a>
+                    <!-- Date picker -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-white/40 text-xs uppercase tracking-wider hidden sm:block">Fecha</span>
+                        <input type="date" name="date" value="{{ selected_date.strftime('%Y-%m-%d') }}"
+                            onchange="this.form.submit()"
+                            class="bg-white/10 border border-white/20 rounded px-3 py-1.5 text-white text-sm focus:outline-none focus:border-purple-500">
+                    </div>
 
-                    <button type="button" onclick="triggerMobilePrint()"
-                        class="flex-1 sm:flex-none justify-center bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
-                        <i class="fas fa-print mr-2"></i>Imprimir
-                    </button>
+                    <!-- Divider -->
+                    <span class="text-white/20 hidden sm:block">|</span>
 
-                    <a href="{{ url_for('report.export_global_schedule', date=selected_date.strftime('%Y-%m-%d')) }}"
-                        target="_self"
-                        class="flex-1 sm:flex-none justify-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded border border-white/20 transition-colors flex items-center">
-                        <i class="fas fa-file-excel mr-2"></i>Excel
-                    </a>
-                </div>
-            </form>
+                    <!-- Time range inputs -->
+                    <div class="flex items-center gap-1.5 text-sm text-white/60">
+                        <span class="text-white/40 text-xs uppercase tracking-wider hidden sm:block">Hora</span>
+                        <input type="time" name="time_from" id="input-time-from"
+                            value="{{ time_from }}"
+                            class="bg-white/10 border border-white/20 rounded px-2 py-1.5 text-white focus:outline-none focus:border-purple-500 text-sm w-28">
+                        <span class="text-white/40">—</span>
+                        <input type="time" name="time_to" id="input-time-to"
+                            value="{{ time_to }}"
+                            class="bg-white/10 border border-white/20 rounded px-2 py-1.5 text-white focus:outline-none focus:border-purple-500 text-sm w-28">
+                        <button type="submit" title="Filtrar"
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded transition-colors">
+                            <i class="fas fa-filter text-xs"></i>
+                        </button>
+                        {% if time_from or time_to %}
+                        <a href="{{ url_for('report.global_schedule', date=selected_date.strftime('%Y-%m-%d')) }}"
+                            title="Limpiar filtro de hora"
+                            class="text-white/40 hover:text-red-400 transition-colors">
+                            <i class="fas fa-times-circle"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action buttons pushed to the right -->
+                    <div class="flex gap-2 ml-auto">
+                        <a href="{{ url_for('report.share_global_schedule', date=selected_date.strftime('%Y-%m-%d'), time_from=time_from, time_to=time_to) }}"
+                            title="Generar Imagen" target="_self"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded border border-white/20 transition-colors flex items-center gap-2 text-sm">
+                            <i class="fas fa-image"></i>
+                            <span class="hidden sm:inline">PNG</span>
+                        </a>
+                        <button type="button" onclick="triggerMobilePrint()"
+                            class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded border border-white/20 transition-colors flex items-center gap-2 text-sm">
+                            <i class="fas fa-print"></i>
+                            <span class="hidden sm:inline">Imprimir</span>
+                        </button>
+                        <a href="{{ url_for('report.export_global_schedule', date=selected_date.strftime('%Y-%m-%d'), time_from=time_from, time_to=time_to) }}"
+                            target="_self"
+                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded border border-white/20 transition-colors flex items-center gap-2 text-sm">
+                            <i class="fas fa-file-excel"></i>
+                            <span class="hidden sm:inline">Excel</span>
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </header>
 
@@ -68,6 +105,11 @@
         <div class="hidden print:block text-center mb-8 border-b-2 border-black pb-4">
             <h1 class="text-3xl font-black text-black">AGENDA DE PARTIDOS</h1>
             <p class="text-lg font-bold text-gray-600 block">{{ selected_date.strftime('%d/%m/%Y') }}</p>
+            {% if time_from or time_to %}
+            <p class="text-sm text-gray-500">
+                Horario: {{ time_from if time_from else '00:00' }} – {{ time_to if time_to else '23:59' }}
+            </p>
+            {% endif %}
         </div>
 
         {% if not schedule %}
@@ -136,6 +178,9 @@
                                     style="color: {{ match.league.custom_name_color }} !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;"
                                     {% endif %}>
                                     {{ match.league.name }}
+                                    {% if match.is_practice %}
+                                    <span class="ml-1 text-yellow-400 text-[9px] font-bold tracking-widest print:hidden" title="Partido de práctica - no cuenta en la tabla">PRÁCT.</span>
+                                    {% endif %}
                                 </td>
                                 <td
                                     class="py-1 px-2 md:px-4 text-right font-bold text-white print:text-black leading-tight">
@@ -144,12 +189,13 @@
                                 <td class="py-1 px-1 text-center">
                                     {% set expected_price = match.league.price_per_match or 0 %}
                                     {% set actual_home = match.referee_cost_home|default('0', true) %}
-                                    {% set is_paid_home = actual_home|int(default=-1) >= expected_price and
-                                    expected_price > 0 %}
+                                    {% set is_waived_home = actual_home and actual_home != '0' and actual_home|int(default=-999) == -999 %}
+                                    {% set is_paid_home = not is_waived_home and actual_home|int(default=-1) >= expected_price and expected_price > 0 %}
                                     <input type="text"
-                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none {{ 'text-green-500' if is_paid_home else 'text-red-400' }} print:text-black print:border-none uppercase"
+                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none {{ 'text-purple-400' if is_waived_home else ('text-green-500' if is_paid_home else 'text-red-400') }} print:text-black print:border-none uppercase"
                                         value="{{ match.referee_cost_home if match.referee_cost_home != '0' else '' }}"
                                         placeholder="-" data-field="referee_cost_home" data-price="{{ expected_price }}"
+                                        {% if is_waived_home %}title="🎁 Arbitraje de regalo"{% endif %}
                                         onchange="updateMatchCost('{{ match.id }}', 'referee_cost_home', this.value, '{{ court_name|replace(' ', '_') }}', this)">
                                 </td>
                                 <td class="py-1 px-1 text-center whitespace-nowrap">
@@ -169,12 +215,13 @@
                                 </td>
                                 <td class="py-1 px-1 text-center">
                                     {% set actual_away = match.referee_cost_away|default('0', true) %}
-                                    {% set is_paid_away = actual_away|int(default=-1) >= expected_price and
-                                    expected_price > 0 %}
+                                    {% set is_waived_away = actual_away and actual_away != '0' and actual_away|int(default=-999) == -999 %}
+                                    {% set is_paid_away = not is_waived_away and actual_away|int(default=-1) >= expected_price and expected_price > 0 %}
                                     <input type="text"
-                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none {{ 'text-green-500' if is_paid_away else 'text-red-400' }} print:text-black print:border-none uppercase"
+                                        class="w-full bg-transparent text-center font-mono text-xs md:text-sm border-b border-transparent hover:border-white/20 focus:border-purple-500 focus:outline-none {{ 'text-purple-400' if is_waived_away else ('text-green-500' if is_paid_away else 'text-red-400') }} print:text-black print:border-none uppercase"
                                         value="{{ match.referee_cost_away if match.referee_cost_away != '0' else '' }}"
                                         placeholder="-" data-field="referee_cost_away" data-price="{{ expected_price }}"
+                                        {% if is_waived_away %}title="🎁 Arbitraje de regalo"{% endif %}
                                         onchange="updateMatchCost('{{ match.id }}', 'referee_cost_away', this.value, '{{ court_name|replace(' ', '_') }}', this)">
                                 </td>
                                 <td

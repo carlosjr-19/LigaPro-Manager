@@ -134,6 +134,9 @@ def save_match_matrix():
         match.is_completed = False
         match.shutdown_winner_id = None
 
+    # Practice Match
+    match.is_practice = request.form.get('is_practice') == 'on'
+
     db.session.commit()
     flash('Partido actualizado correctamente.', 'success')
     

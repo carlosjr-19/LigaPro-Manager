@@ -39,11 +39,39 @@ def global_schedule():
     else:
         selected_date = datetime.now().date()
 
+    # Time filter parameters (HH:MM format, 24h)
+    time_from_str = request.args.get('time_from', '').strip()
+    time_to_str = request.args.get('time_to', '').strip()
+    time_from = None
+    time_to = None
+    try:
+        if time_from_str:
+            time_from = datetime.strptime(time_from_str, '%H:%M').time()
+    except ValueError:
+        pass
+    try:
+        if time_to_str:
+            time_to = datetime.strptime(time_to_str, '%H:%M').time()
+    except ValueError:
+        pass
+
     # Query Matches for ALL leagues owned by current_user on selected_date
     matches = Match.query.join(League).filter(
         League.user_id == current_user.id,
         func.date(Match.match_date) == selected_date
     ).order_by(Match.match_date).all()
+
+    # Apply time filter in Python (compatible with SQLite & PostgreSQL)
+    if time_from or time_to:
+        filtered = []
+        for m in matches:
+            t = m.match_date.time()
+            if time_from and t < time_from:
+                continue
+            if time_to and t > time_to:
+                continue
+            filtered.append(m)
+        matches = filtered
 
     # Group by Court Name (String Select)
     grouped_schedule = {}
@@ -56,7 +84,6 @@ def global_schedule():
         # Determine Court Name
         if match.court:
             court_name = match.court.name
-            # Si hay configuración guardada del Dueño, toma esa. Si no, toma la por defecto.
             court_color = owner_colors.get(court_name, match.court.color)
         else:
             court_name = "Sin Cancha Asignada"
@@ -72,7 +99,6 @@ def global_schedule():
                 'court_color': court_color
             }
         
-        # Helper to convert to int safely
         def safe_int(val):
             try:
                 return int(val)
@@ -101,13 +127,15 @@ def global_schedule():
             if match.match_date and time_counts[match.match_date] > 1:
                 conflicting_match_ids.add(match.id)
 
-    # Sort groups by name (optional)
+    # Sort groups by name
     sorted_schedule = dict(sorted(grouped_schedule.items()))
 
     return render_template('report/global_schedule.html', 
                          schedule=sorted_schedule, 
                          selected_date=selected_date,
-                         conflicting_match_ids=conflicting_match_ids)
+                         conflicting_match_ids=conflicting_match_ids,
+                         time_from=time_from_str,
+                         time_to=time_to_str)
 
 @report_bp.route('/global-schedule/share')
 @login_required
@@ -127,11 +155,39 @@ def share_global_schedule():
     else:
         selected_date = datetime.now().date()
 
+    # Time filter parameters (HH:MM format, 24h)
+    time_from_str = request.args.get('time_from', '').strip()
+    time_to_str = request.args.get('time_to', '').strip()
+    time_from = None
+    time_to = None
+    try:
+        if time_from_str:
+            time_from = datetime.strptime(time_from_str, '%H:%M').time()
+    except ValueError:
+        pass
+    try:
+        if time_to_str:
+            time_to = datetime.strptime(time_to_str, '%H:%M').time()
+    except ValueError:
+        pass
+
     # Query Matches for ALL leagues owned by current_user on selected_date
     matches = Match.query.join(League).filter(
         League.user_id == current_user.id,
         func.date(Match.match_date) == selected_date
     ).order_by(Match.match_date).all()
+
+    # Apply time filter in Python
+    if time_from or time_to:
+        filtered = []
+        for m in matches:
+            t = m.match_date.time()
+            if time_from and t < time_from:
+                continue
+            if time_to and t > time_to:
+                continue
+            filtered.append(m)
+        matches = filtered
 
     # Group by Court Name (String Select)
     grouped_schedule = {}
@@ -157,7 +213,6 @@ def share_global_schedule():
                 'court_color': court_color
             }
         
-        # Helper to convert to int safely
         def safe_int(val):
             try:
                 return int(val)
@@ -188,7 +243,7 @@ def share_global_schedule():
 
     sorted_schedule = dict(sorted(grouped_schedule.items()))
 
-    # Build teams dict for easy shield retrieval in template (optional, but good for aesthetics)
+    # Build teams dict for easy shield retrieval in template
     teams_dict = {}
     for match in matches:
         if match.home_team_id not in teams_dict:
@@ -201,6 +256,8 @@ def share_global_schedule():
                          selected_date=selected_date,
                          conflicting_match_ids=conflicting_match_ids,
                          teams_dict=teams_dict,
+                         time_from=time_from_str,
+                         time_to=time_to_str,
                          today=datetime.now().strftime('%d/%m/%Y'))
 
 @report_bp.route('/api/match/update_costs', methods=['POST'])
@@ -333,47 +390,50 @@ def global_schedule_history():
         default_team_price = match.league.price_per_match or 0
         default_ref_price = match.league.price_referee or 0
         
-        # Check Home Team Debt
-        paid_home = parse_cost(match.referee_cost_home)
-        diff_home = paid_home - default_team_price
-        if diff_home != 0:
-            history_events.append({
-                'date': match.match_date,
-                'league': match.league.name,
-                'match': f"{match.home_team.name} vs {match.away_team.name}",
-                'entity': f"Local: {match.home_team.name}",
-                'expected': default_team_price,
-                'paid': paid_home,
-                'balance': diff_home
-            })
+        # Check Home Team Debt – skip if waived (gifted)
+        if not is_waived(match.referee_cost_home):
+            paid_home = parse_cost(match.referee_cost_home)
+            diff_home = paid_home - default_team_price
+            if diff_home != 0:
+                history_events.append({
+                    'date': match.match_date,
+                    'league': match.league.name,
+                    'match': f"{match.home_team.name} vs {match.away_team.name}",
+                    'entity': f"Local: {match.home_team.name}",
+                    'expected': default_team_price,
+                    'paid': paid_home,
+                    'balance': diff_home
+                })
             
-        # Check Away Team Debt
-        paid_away = parse_cost(match.referee_cost_away)
-        diff_away = paid_away - default_team_price
-        if diff_away != 0:
-            history_events.append({
-                'date': match.match_date,
-                'league': match.league.name,
-                'match': f"{match.home_team.name} vs {match.away_team.name}",
-                'entity': f"Visita: {match.away_team.name}",
-                'expected': default_team_price,
-                'paid': paid_away,
-                'balance': diff_away
-            })
+        # Check Away Team Debt – skip if waived (gifted)
+        if not is_waived(match.referee_cost_away):
+            paid_away = parse_cost(match.referee_cost_away)
+            diff_away = paid_away - default_team_price
+            if diff_away != 0:
+                history_events.append({
+                    'date': match.match_date,
+                    'league': match.league.name,
+                    'match': f"{match.home_team.name} vs {match.away_team.name}",
+                    'entity': f"Visita: {match.away_team.name}",
+                    'expected': default_team_price,
+                    'paid': paid_away,
+                    'balance': diff_away
+                })
 
-        # Check Referee Balance
-        paid_ref = parse_cost(match.referee_cost)
-        diff_ref = paid_ref - default_ref_price
-        if diff_ref != 0:
-             history_events.append({
-                'date': match.match_date,
-                'league': match.league.name,
-                'match': f"{match.home_team.name} vs {match.away_team.name}",
-                'entity': "Arbitro",
-                'expected': default_ref_price,
-                'paid': paid_ref,
-                'balance': diff_ref
-            })
+        # Check Referee Balance – skip if waived
+        if not is_waived(match.referee_cost):
+            paid_ref = parse_cost(match.referee_cost)
+            diff_ref = paid_ref - default_ref_price
+            if diff_ref != 0:
+                history_events.append({
+                    'date': match.match_date,
+                    'league': match.league.name,
+                    'match': f"{match.home_team.name} vs {match.away_team.name}",
+                    'entity': "Arbitro",
+                    'expected': default_ref_price,
+                    'paid': paid_ref,
+                    'balance': diff_ref
+                })
 
             
     # Sort events by date desc
@@ -403,11 +463,39 @@ def export_global_schedule():
     else:
         selected_date = datetime.now().date()
 
+    # Time filter parameters
+    time_from_str = request.args.get('time_from', '').strip()
+    time_to_str = request.args.get('time_to', '').strip()
+    time_from = None
+    time_to = None
+    try:
+        if time_from_str:
+            time_from = datetime.strptime(time_from_str, '%H:%M').time()
+    except ValueError:
+        pass
+    try:
+        if time_to_str:
+            time_to = datetime.strptime(time_to_str, '%H:%M').time()
+    except ValueError:
+        pass
+
     # Query Matches
     matches = Match.query.join(League).filter(
         League.user_id == current_user.id,
         func.date(Match.match_date) == selected_date
     ).order_by(Match.match_date).all()
+
+    # Apply time filter in Python
+    if time_from or time_to:
+        filtered = []
+        for m in matches:
+            t = m.match_date.time()
+            if time_from and t < time_from:
+                continue
+            if time_to and t > time_to:
+                continue
+            filtered.append(m)
+        matches = filtered
 
     # Group by Court
     grouped_schedule = {}
@@ -428,7 +516,10 @@ def export_global_schedule():
     ws.title = "Agenda Global"
     
     # Title
-    ws['A1'] = f"AGENDA DE PARTIDOS - {selected_date.strftime('%d/%m/%Y')}"
+    time_range_label = ''
+    if time_from_str or time_to_str:
+        time_range_label = f" ({time_from_str or '00:00'} - {time_to_str or '23:59'})"
+    ws['A1'] = f"AGENDA DE PARTIDOS - {selected_date.strftime('%d/%m/%Y')}{time_range_label}"
     ws['A1'].font = Font(size=14, bold=True)
     ws.merge_cells('A1:I1')
     ws['A1'].alignment = Alignment(horizontal='center')
@@ -543,6 +634,17 @@ def export_global_schedule():
     filename = f"Agenda_Global_{selected_date.strftime('%Y-%m-%d')}.xlsx"
     return send_file(output, download_name=filename, as_attachment=True)
 
+# Helper to detect gifted/waived payments (any non-numeric, non-empty text like 'RG')
+def is_waived(val):
+    """Returns True if val is a non-numeric string indicating a gifted/waived payment."""
+    if not val:
+        return False
+    try:
+        int(str(val).strip())
+        return False
+    except (ValueError, TypeError):
+        return True
+
 # Helper for calculating discrepancies
 def calculate_discrepancies(matches):
     events = []
@@ -565,41 +667,44 @@ def calculate_discrepancies(matches):
         default_team_price = match.league.price_per_match or 0
         default_ref_price = match.league.price_referee or 0
         
-        # Home
-        paid_home = parse_cost(match.referee_cost_home)
-        diff_home = paid_home - default_team_price
-        if diff_home != 0:
-            events.append({
-                'date': match.match_date,
-                'league': match.league.name,
-                'entity_type': 'Team',
-                'entity_name': match.home_team.name,
-                'balance': diff_home
-            })
+        # Home – skip if waived (gifted)
+        if not is_waived(match.referee_cost_home):
+            paid_home = parse_cost(match.referee_cost_home)
+            diff_home = paid_home - default_team_price
+            if diff_home != 0:
+                events.append({
+                    'date': match.match_date,
+                    'league': match.league.name,
+                    'entity_type': 'Team',
+                    'entity_name': match.home_team.name,
+                    'balance': diff_home
+                })
             
-        # Away
-        paid_away = parse_cost(match.referee_cost_away)
-        diff_away = paid_away - default_team_price
-        if diff_away != 0:
-            events.append({
-                'date': match.match_date,
-                'league': match.league.name,
-                'entity_type': 'Team',
-                'entity_name': match.away_team.name,
-                'balance': diff_away
-            })
+        # Away – skip if waived (gifted)
+        if not is_waived(match.referee_cost_away):
+            paid_away = parse_cost(match.referee_cost_away)
+            diff_away = paid_away - default_team_price
+            if diff_away != 0:
+                events.append({
+                    'date': match.match_date,
+                    'league': match.league.name,
+                    'entity_type': 'Team',
+                    'entity_name': match.away_team.name,
+                    'balance': diff_away
+                })
 
-        # Referee
-        paid_ref = parse_cost(match.referee_cost)
-        diff_ref = paid_ref - default_ref_price
-        if diff_ref != 0:
-             events.append({
-                'date': match.match_date,
-                'league': match.league.name,
-                'entity_type': 'Referee',
-                'entity_name': 'Arbitro',
-                'balance': diff_ref
-            })
+        # Referee – skip if waived
+        if not is_waived(match.referee_cost):
+            paid_ref = parse_cost(match.referee_cost)
+            diff_ref = paid_ref - default_ref_price
+            if diff_ref != 0:
+                events.append({
+                    'date': match.match_date,
+                    'league': match.league.name,
+                    'entity_type': 'Referee',
+                    'entity_name': 'Arbitro',
+                    'balance': diff_ref
+                })
     return events
 
 
