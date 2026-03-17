@@ -35,7 +35,8 @@ def create_match(league_id):
                 home_team_id=form.home_team_id.data,
                 away_team_id=form.away_team_id.data,
                 court_id=form.court_id.data,
-                match_date=form.match_date.data
+                match_date=form.match_date.data,
+                is_practice=('is_practice' in request.form)
             )
             if league.auto_fill_prices:
                 match.referee_cost_home = str(league.price_per_match)
@@ -103,11 +104,11 @@ def update_match_result(match_id):
     form.court_id.choices = [(c.id, c.name) for c in courts]
     
     if form.validate_on_submit():
-        # Update Match Details
         match.home_team_id = form.home_team_id.data
         match.away_team_id = form.away_team_id.data
         match.court_id = form.court_id.data
         match.match_date = form.match_date.data
+        match.is_practice = ('is_practice' in request.form)
         
         # Update Scores (Only if both scores are provided)
         match.home_score = form.home_score.data
@@ -201,6 +202,7 @@ def edit_match(match_id):
             match.away_team_id = form.away_team_id.data
             match.court_id = form.court_id.data
             match.match_date = form.match_date.data
+            match.is_practice = ('is_practice' in request.form)
             
             if league.auto_fill_prices and match.referee_cost_home == '0' and match.referee_cost_away == '0' and match.referee_cost == '0':
                 match.referee_cost_home = str(league.price_per_match)

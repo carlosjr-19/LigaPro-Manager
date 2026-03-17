@@ -67,6 +67,20 @@
                     {% endfor %}
                 </div>
 
+                <!-- Practice Match Toggle -->
+                <div class="flex items-center justify-between p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+                    <div>
+                        <p class="font-bold text-yellow-300 text-sm">🏋️ Partido de Práctica</p>
+                        <p class="text-xs text-white/50 mt-0.5">No contará goles ni puntos en la tabla. Sí aparece en la agenda y reporte financiero.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer ml-4 shrink-0">
+                        <input type="checkbox" name="is_practice" id="is_practice"
+                            class="sr-only peer"
+                            {% if match and match.is_practice %}checked{% endif %}>
+                        <div class="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-500"></div>
+                    </label>
+                </div>
+
                 <div class="flex gap-4">
                     <button type="submit" class="btn-primary flex-1">
                         <i class="fas fa-calendar-plus mr-2"></i>Programar Partido

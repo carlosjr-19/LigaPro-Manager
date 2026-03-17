@@ -1,3 +1,33 @@
+## 0.10.0
+
+Implementación de Partidos de Práctica, Filtros Horarios Financieros y Ajustes de Puntajes.
+
+- **Partidos de Práctica**: Nueva funcionalidad para agendar partidos que no afectan la tabla de posiciones ni estadísticas. Incluye indicadores visuales ("PRÁCTICA") en la lista de partidos, cuadro de resultados (matriz), vista por fechas, agenda global y reportes compartidos.
+- **Modificación Manual de Puntajes**: Se añadió una función en el panel para que los administradores puedan sumar o restar puntos directamente a la tabla sin necesidad de crear partidos ficticios, ideal para resoluciones administrativas.
+- **Filtro por Hora en Finanzas**: La Agenda Global ahora permite filtrar los partidos por un rango horario específico, facilitando el cálculo de arbitrajes y pagos para turnos parciales de canchas.
+- **Nomenclatura "RG" (Regalo)**: Soporte para marcar el pago de arbitraje como "RG" (Regalo). Estos partidos no generan saldo pendiente ni deudas en el historial del equipo ni en el resumen financiero, pero se mantienen visibles en la agenda.
+- **Sincronización de Matriz**: El modal del cuadro de partidos ahora incluye el toggle de "Práctica" y se sincroniza correctamente con el backend para guardar el estado.
+
+## Modificado
+* `ligapro_manager/models/match.py`
+* `ligapro_manager/models/league.py`
+* `ligapro_manager/routes/team.py`
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/routes/match.py`
+* `ligapro_manager/routes/match_matrix.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/utils/helpers.py`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/match_form.html`
+* `ligapro_manager/templates/match_result_form.html`
+* `ligapro_manager/templates/report/global_schedule.html`
+* `ligapro_manager/templates/share_report.html`
+* `ligapro_manager/templates/report/financials.html`
+* `ligapro_manager/static/js/league_detail.js`
+* `ligapro_manager/static/js/report_global_schedule.js`
+* `ligapro_manager/static/js/share_modal.js`
+* `ligapro_manager/ligapro_manager.py`
+
 ## 0.9.10
 
 Añadir funcionalidad para sumar o restar puntos a un equipo.
