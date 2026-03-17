@@ -166,6 +166,19 @@ function showTab(tabId) {
 
     // Update URL hash without jumping
     history.pushState(null, null, `#${tabId}`);
+
+    // Toggle header buttons based on active tab
+    const btnModificar = document.getElementById('btn-modificar-puntajes');
+    const btnAnadir = document.getElementById('btn-anadir-equipo');
+    if (btnModificar && btnAnadir) {
+        if (tabId === 'panel') {
+            btnModificar.classList.remove('hidden');
+            btnAnadir.classList.add('hidden');
+        } else {
+            btnModificar.classList.add('hidden');
+            btnAnadir.classList.remove('hidden');
+        }
+    }
 }
 
 function togglePlayoffView(view) {

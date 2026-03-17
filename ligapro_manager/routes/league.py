@@ -577,6 +577,40 @@ def generate_share_report(league_id):
 
 
 
+
+@league_bp.route('/leagues/<league_id>/modify_points', methods=['POST'])
+@login_required
+@owner_required
+def modify_team_points(league_id):
+    if current_user.role == 'admin':
+        league = League.query.get_or_404(league_id)
+    else:
+        league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+
+    team_id = request.form.get('team_id')
+    action = request.form.get('action', 'add')  # 'add' or 'subtract'
+    try:
+        points = int(request.form.get('points', 0))
+    except (ValueError, TypeError):
+        flash('Cantidad de puntos inválida.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id))
+
+    if points < 0:
+        flash('El valor de puntos debe ser positivo.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id))
+
+    team = Team.query.filter_by(id=team_id, league_id=league_id, is_deleted=False, is_hidden=False).first_or_404()
+
+    if action == 'subtract':
+        team.manual_points_modifier = (team.manual_points_modifier or 0) - points
+    else:
+        team.manual_points_modifier = (team.manual_points_modifier or 0) + points
+
+    db.session.commit()
+    flash(f'Puntos de {team.name} {"sumados" if action == "add" else "restados"} correctamente.', 'success')
+    return redirect(url_for('league.league_detail', league_id=league_id))
+
+
 @league_bp.route('/proxy-image')
 def proxy_image():
     url = request.args.get('url')

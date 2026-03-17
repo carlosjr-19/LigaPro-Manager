@@ -16,9 +16,22 @@
                     <h1 class="text-3xl font-bold">{{ league.name }}</h1>
                     <p class="text-white/60">{{ teams|length }} / {{ league.max_teams }} equipos</p>
                 </div>
+                {% if current_user.role == 'owner' %}
+                <!-- Button shown on Panel tab -->
+                <button id="btn-modificar-puntajes" onclick="openModificarPuntajesModal()"
+                    class="btn-primary">
+                    <i class="fas fa-sliders-h mr-2"></i>Modificar Puntajes
+                </button>
+                <!-- Button shown on other tabs -->
+                <a id="btn-anadir-equipo" href="{{ url_for('team.create_team', league_id=league.id) }}"
+                    class="btn-primary hidden">
+                    <i class="fas fa-plus mr-2"></i>Añadir Equipo
+                </a>
+                {% else %}
                 <a href="{{ url_for('team.create_team', league_id=league.id) }}" class="btn-primary">
                     <i class="fas fa-plus mr-2"></i>Añadir Equipo
                 </a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -2015,4 +2028,68 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Modificar Puntajes Modal -->
+            {% if current_user.role == 'owner' %}
+            <div id="modificarPuntajesModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[200] p-4">
+                <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-md shadow-2xl relative">
+                    <button onclick="closeModificarPuntajesModal()" class="absolute top-4 right-4 text-white/40 hover:text-white">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <form action="{{ url_for('league.modify_team_points', league_id=league.id) }}" method="POST" class="p-6">
+                        {{ form.hidden_tag() }}
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <i class="fas fa-sliders-h text-primary"></i> Modificar Puntajes
+                        </h3>
+                        <p class="text-white/50 text-sm mb-6">Suma o resta puntos directamente en la tabla de posiciones. No registra un partido ni modifica goles.</p>
+                        <div class="space-y-4">
+                            <!-- Team Selector -->
+                            <div>
+                                <label class="block text-xs uppercase text-white/40 mb-1">Equipo</label>
+                                <select name="team_id" id="modify-team-select" class="input-field w-full" required>
+                                    <option value="">Selecciona un equipo...</option>
+                                    {% for team in teams %}
+                                    {% if not team.is_hidden and not team.is_deleted %}
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                    {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Action Selector -->
+                            <div>
+                                <label class="block text-xs uppercase text-white/40 mb-1">Acción</label>
+                                <select name="action" id="modify-action-select" class="input-field w-full">
+                                    <option value="add" selected>Sumar puntos</option>
+                                    <option value="subtract">Restar puntos</option>
+                                </select>
+                            </div>
+                            <!-- Points Input -->
+                            <div>
+                                <label class="block text-xs uppercase text-white/40 mb-1">Cantidad de Puntos</label>
+                                <input type="number" name="points" id="modify-points-input" min="0" value="1"
+                                    class="input-field w-full" required placeholder="Ej: 3">
+                            </div>
+                        </div>
+                        <div class="mt-8 flex justify-end gap-3">
+                            <button type="button" onclick="closeModificarPuntajesModal()"
+                                class="px-4 py-2 text-white/60 hover:text-white transition-colors">Cancelar</button>
+                            <button type="submit"
+                                class="btn-primary">
+                                <i class="fas fa-check mr-2"></i>Aplicar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <script>
+                function openModificarPuntajesModal() {
+                    document.getElementById('modificarPuntajesModal').classList.remove('hidden');
+                    document.getElementById('modificarPuntajesModal').classList.add('flex');
+                }
+                function closeModificarPuntajesModal() {
+                    document.getElementById('modificarPuntajesModal').classList.add('hidden');
+                    document.getElementById('modificarPuntajesModal').classList.remove('flex');
+                }
+            </script>
+            {% endif %}
             {% endblock %}
