@@ -50,7 +50,7 @@ def calculate_standings(league_id, include_playoffs=False):
             'goals_for': 0,
             'goals_against': 0,
             'goal_difference': 0,
-            'points': 0
+            'points': (team.manual_points_modifier or 0)
         }
         
         for match in matches:

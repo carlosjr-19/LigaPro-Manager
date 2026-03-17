@@ -15,6 +15,7 @@ class Team(db.Model):
     captain_name = db.Column(db.String(100), nullable=True)
     is_deleted = db.Column(db.Boolean, default=False)
     is_hidden = db.Column(db.Boolean, default=False)
+    manual_points_modifier = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships

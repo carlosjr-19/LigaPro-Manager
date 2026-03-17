@@ -76,8 +76,9 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.9.9.9)
+## 🔄 Últimas Actualizaciones (v0.9.10)
 
+- **Suma/Resta de Puntos**: Nueva funcionalidad que permite a los administradores sumar o restar puntos a un equipo. Esta acción queda registrada en el historial de partidos con un comentario explicativo.
 - **Desempate por Shutdown**: Posibilidad de designar a un ganador en partidos empatados para otorgar un reparto desigual (2 pts al ganador, 1 al perdedor) en cualquier vista de resultados.
 - **Candados Premium a Nivel Capitán**: Validaciones individuales reforzadas para que solo los capitanes que han pagado su cuota puedan imprimir o descargar sus propios registros de jugadores.
 - **Seguridad de Prevención de Borrado**: El panel de administrador ahora exige la contraseña base del administrador para autenticar la eliminación de cualquier usuario (propietario o capitán), blindando la plataforma contra desastres accidentales.

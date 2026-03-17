@@ -1,3 +1,19 @@
+## 0.9.10
+
+Añadir funcionalidad para sumar o restar puntos a un equipo.
+
+- **Suma/Resta de Puntos**: Nueva funcionalidad que permite a los administradores sumar o restar puntos a un equipo. Esta acción queda registrada en el historial de partidos con un comentario explicativo.
+
+## Modificado
+* `ligapro_manager/models/league.py`
+* `ligapro_manager/routes/team.py`
+* `ligapro_manager/ligapro_manager.py`
+* `ligapro_manager/utils/helpers.py`
+* `ligapro_manager/static/js/league_detail.js`
+* `ligapro_manager/templates/league_detail.html`
+
+
+
 ## 0.9.9.9
 
 Mejoras de competencia, restricciones avanzadas de planes y seguridad de datos.
