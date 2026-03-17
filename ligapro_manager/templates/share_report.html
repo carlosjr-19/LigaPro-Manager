@@ -7,6 +7,7 @@
     <title>Reporte de Liga - {{ league.name }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/share_report.css') }}">
 </head>
@@ -21,7 +22,11 @@
         </a>
         <button onclick="downloadImage()"
             class="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-full font-bold transition-colors shadow-lg shadow-blue-600/20">
-            <i class="fas fa-download mr-2"></i>Descargar Imagen
+            <i class="fas fa-image mr-2"></i>Descargar Imagen
+        </button>
+        <button onclick="downloadPDF()"
+            class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-full font-bold transition-colors shadow-lg shadow-emerald-600/20">
+            <i class="fas fa-file-pdf mr-2"></i>Descargar PDF
         </button>
     </div>
 
@@ -346,6 +351,189 @@
             </div>
         </div> <!-- Close Capture Target -->
     </div> <!-- Close Scroll Wrapper -->
+
+    <!-- Hidden PDF Capture Target (Landscape - Ink Saving) -->
+    <div id="pdf-capture-wrapper" class="hidden">
+        <div id="pdf-capture-target" class="bg-white text-black w-[1120px] p-12 relative font-sans">
+            
+            <!-- PDF Header (Ultra Compact) -->
+            <div class="flex items-center gap-4 mb-4 border-b border-slate-800 pb-4">
+                {% set logo_src = league.logo_url if (is_premium and league.logo_url) else url_for('static', filename='img/LigaPro_Manager.png') %}
+                <img src="{{ logo_src }}" class="w-14 h-14 object-contain rounded-lg border border-slate-200 p-1 bg-white">
+
+                <div class="flex-1">
+                    <h1 class="text-2xl font-black uppercase tracking-tight text-slate-900 leading-none mb-1">{{ league.name }}</h1>
+                    {% if is_premium and league.slogan %}
+                    <p class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-bold">{{ league.slogan }}</p>
+                    {% else %}
+                    <p class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-bold">Resumen Oficial de Competencia</p>
+                    {% endif %}
+                </div>
+
+                <div class="text-right flex flex-col items-end gap-0.5">
+                    <span class="bg-slate-900 text-white px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded">{{ league.category or 'LIBRE' }}</span>
+                    <span class="text-slate-400 text-[8px] font-mono uppercase">{{ today }}</span>
+                </div>
+            </div>
+
+            <!-- Main Info Grid (2 Columns) -->
+            <div class="grid grid-cols-[1.2fr_0.8fr] gap-8 mb-6">
+                <!-- Left Column: Standings -->
+                <div class="space-y-4">
+                    <div>
+                        <h2 class="text-[11px] font-black uppercase tracking-widest mb-3 flex items-center gap-2" style="color: var(--header-tabla, #0f172a);">
+                            <span class="w-1 h-3 bg-current rounded-full"></span> Tabla General
+                        </h2>
+                        <table class="w-full text-[10px] border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-y border-slate-200 text-slate-500 uppercase text-[8px] font-bold">
+                                    <th class="py-1.5 px-1 text-center w-5">#</th>
+                                    <th class="py-1.5 px-1 text-left">Equipo</th>
+                                    <th class="py-1.5 px-0.5 text-center w-6">PJ</th>
+                                    <th class="py-1.5 px-0.5 text-center w-6">G</th>
+                                    <th class="py-1.5 px-0.5 text-center w-6">E</th>
+                                    <th class="py-1.5 px-0.5 text-center w-6">P</th>
+                                    <th class="py-1.5 px-0.5 text-center w-7">GF</th>
+                                    <th class="py-1.5 px-0.5 text-center w-7">GC</th>
+                                    <th class="py-1.5 px-0.5 text-center w-7">DG</th>
+                                    <th class="py-1.5 px-1 text-center w-8 bg-slate-100 text-slate-900">PTS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in standings %}
+                                <tr class="border-b border-slate-100 hover:bg-slate-50/50">
+                                    <td class="py-1.5 px-1 text-center font-bold text-slate-400">{{ loop.index }}</td>
+                                    <td class="py-1.5 px-1 font-bold text-slate-900 truncate max-w-[130px]">
+                                        {{ s.team.name }}
+                                    </td>
+                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.played }}</td>
+                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.won }}</td>
+                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.drawn }}</td>
+                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.lost }}</td>
+                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.goals_for }}</td>
+                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.goals_against }}</td>
+                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.goal_difference }}</td>
+                                    <td class="py-1.5 px-1 text-center font-black text-xs bg-slate-50 text-slate-900">{{ s.points }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Right Column: Stats & Recent Results -->
+                <div class="space-y-6 border-l border-slate-100 pl-6">
+                    <!-- Top 5 Stats Grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        {% if include_scorers and top_scorers %}
+                        <div>
+                            <h3 class="text-[9px] font-black uppercase tracking-widest mb-2" style="color: var(--header-goleo, #0f172a);">Pichichi</h3>
+                            <div class="space-y-1">
+                                {% for stat in top_scorers[:5] %}
+                                <div class="flex justify-between items-center text-[9px] border-b border-dotted border-slate-200 pb-0.5">
+                                    <div class="flex items-center truncate mr-2">
+                                        <span class="font-bold text-slate-400 w-3 mr-1">{{ loop.index }}.</span>
+                                        <span class="font-black text-[7px] bg-slate-100 text-slate-600 px-1 rounded mr-1">[{{ stat.team_initials }}]</span>
+                                        <span class="font-medium text-slate-700 truncate">{{ stat.player_name }}</span>
+                                        {% if stat.player_number %}
+                                        <span class="ml-1 text-[7px] font-bold text-slate-400">{{ stat.player_number }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="font-black text-slate-900">{{ stat.value }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if include_keepers and top_goalkeepers %}
+                        <div>
+                            <h3 class="text-[9px] font-black uppercase tracking-widest mb-2" style="color: var(--header-arqueros, #0f172a);">Arqueros</h3>
+                            <div class="space-y-1">
+                                {% for stat in top_goalkeepers[:5] %}
+                                <div class="flex justify-between items-center text-[9px] border-b border-dotted border-slate-200 pb-0.5">
+                                    <div class="flex items-center truncate mr-2">
+                                        <span class="font-bold text-slate-400 w-3 mr-1">{{ loop.index }}.</span>
+                                        <span class="font-black text-[7px] bg-slate-100 text-slate-600 px-1 rounded mr-1">[{{ stat.team_initials }}]</span>
+                                        <span class="font-medium text-slate-700 truncate">{{ stat.player_name }}</span>
+                                        {% if stat.player_number %}
+                                        <span class="ml-1 text-[7px] font-bold text-slate-400">{{ stat.player_number }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <span class="font-black text-slate-900">{{ stat.value }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Recent Results (Compact) -->
+                    {% if include_recent and recent_matches %}
+                    <div>
+                        <h2 class="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2" style="color: var(--header-resultados, #0f172a);">
+                            <span class="w-1 h-2.5 bg-current rounded-full"></span> Últimos Resultados
+                        </h2>
+                        <div class="grid gap-1.5">
+                            {% for match in recent_matches[:5] %}
+                            <div class="flex items-center justify-between p-1.5 border border-slate-100 rounded bg-white shadow-sm">
+                                <span class="text-[8.5px] font-bold text-slate-900 text-right w-[40%] truncate">{{ teams_dict[match.home_team_id].name }}</span>
+                                <div class="flex flex-col items-center px-2 border-x border-slate-50 mx-1">
+                                    <span class="text-[9px] font-black text-slate-900 leading-tight">{{ match.home_score }} - {{ match.away_score }}</span>
+                                    {% if match.is_practice %}
+                                    <span class="text-[5px] font-black uppercase text-amber-600 tracking-tighter">PRÁCT.</span>
+                                    {% endif %}
+                                </div>
+                                <span class="text-[8.5px] font-bold text-slate-900 text-left w-[40%] truncate">{{ teams_dict[match.away_team_id].name }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Bottom Section: Upcoming Matches (Full Width 2-Column) -->
+            {% if include_upcoming and upcoming_matches %}
+            <div class="border-t border-slate-100 pt-5">
+                <h2 class="text-[11px] font-black uppercase tracking-widest mb-4 flex items-center gap-2" style="color: var(--accent-color, #0f172a);">
+                    <span class="w-1.5 h-3 bg-current rounded-full"></span> Próxima Agenda
+                </h2>
+                <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                    {% for match in upcoming_matches %}
+                    <div class="flex items-center p-2 border border-slate-100 rounded-md bg-slate-50/30">
+                        <div class="text-center w-14 border-r border-slate-200 pr-2 mr-3">
+                            <div class="text-[9px] font-black text-slate-900 whitespace-nowrap">{{ match.match_date_display }}</div>
+                            <div class="text-[7.5px] font-bold text-slate-900 mt-0.5">{{ match.match_time_display }}</div>
+                        </div>
+                        <div class="flex-1 flex items-center justify-between text-[10px] font-bold text-slate-900">
+                            <span class="truncate w-[43%] text-right">{{ teams_dict[match.home_team_id].name }}</span>
+                            <span class="text-[7px] text-slate-300 font-black px-1.5">VS</span>
+                            <span class="truncate w-[43%] text-left">{{ teams_dict[match.away_team_id].name }}</span>
+                        </div>
+                        {% if match.is_practice %}
+                        <span class="ml-2 text-[6px] font-black text-amber-600 border border-amber-200 px-1 rounded uppercase">P</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if report_note %}
+            <div class="mt-4 p-3 border border-slate-100 rounded-md bg-slate-50/50 italic text-slate-500 text-[9px] leading-relaxed">
+                <strong class="text-[8px] inline-block mr-1 uppercase font-black not-italic text-slate-900">Nota:</strong>
+                {{ report_note }}
+            </div>
+            {% endif %}
+
+            <!-- PDF Footer -->
+            <div class="mt-auto pt-6 border-t border-slate-200 flex justify-between items-center text-[7px] font-black text-slate-300 uppercase tracking-[0.4em]">
+                <div>LigaPro Manager - Reporte Oficial</div>
+                <div>Generado el {{ today }} | Página 1 de 1</div>
+            </div>
+        </div>
+    </div>
 
     <script>
         window.leagueName = '{{ league.name|lower|replace(" ", "-") }}';
