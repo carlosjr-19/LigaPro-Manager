@@ -76,13 +76,13 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.11.0)
+## 🔄 Últimas Actualizaciones (v0.12.0)
 
-- **Reporte PDF "Todo en Uno"**: Rediseño compacto que garantiza que el reporte completo de la liga quepa en una sola hoja. Incluye cabecera reducida, estadísticas de los primeros 5 líderes y agenda dinámica.
-- **Identificación de Jugadores**: Inclusión de iniciales de equipos y números de dorsal en las tablas de goleo y valla menos vencida del reporte compartido.
-- **Filtro por Liga en Finanzas**: Nueva funcionalidad en el panel Ultra para segmentar el análisis económico por liga individual, con soporte completo en exportaciones PNG y Excel.
-- **Sincronización de Agenda**: Inyección dinámica de horarios desde el servidor para eliminar errores de visualización en los reportes compartidos y agenda global.
-- **Suma/Resta de Puntos**: Capacidad para ajustar manualmente el puntaje de los equipos por resoluciones administrativas, con registro en el historial.
+- **Notas Privadas y Públicas**: Los dueños pueden dejar notas internas en los equipos que los capitanes no podrán ver, o marcarlas como públicas para comunicación directa. Incluye gestión de eliminación.
+- **Control de Altas de Jugadores**: Switch global por liga para decidir si los capitanes pueden inscribir jugadores o si esta tarea es exclusiva del administrador.
+- **Blindaje de Registros**: Ocultación dinámica de herramientas premium de credenciales para capitanes si tienen restringida la edición de su plantilla.
+- **Auto-Migración Railway**: Scripts de base de datos optimizados para actualizar el esquema automáticamente en despliegues sobre la nube sin intervención manual.
+- **Reporte PDF "Todo en Uno"**: Rediseño compacto que garantiza que el reporte completo de la liga quepa en una sola hoja.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

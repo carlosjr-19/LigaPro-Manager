@@ -79,7 +79,13 @@ def team_detail(team_id):
             return redirect(url_for('main.dashboard'))
     
     players = Player.query.filter_by(team_id=team_id).all()
-    notes = TeamNote.query.filter_by(team_id=team_id).order_by(TeamNote.created_at.desc()).all()
+    
+    # Filter notes for captains
+    notes_query = TeamNote.query.filter_by(team_id=team_id)
+    if current_user.role == 'captain':
+        notes_query = notes_query.filter_by(is_public=True)
+    
+    notes = notes_query.order_by(TeamNote.created_at.desc()).all()
     matches = Match.query.filter(
         (Match.home_team_id == team_id) | (Match.away_team_id == team_id)
     ).order_by(Match.match_date.desc()).all()
@@ -255,11 +261,31 @@ def add_team_note(team_id):
         return redirect(url_for('main.dashboard'))
     
     text = request.form.get('note_text')
+    is_public = request.form.get('is_public') == 'on'
+    
     if text:
-        note = TeamNote(team_id=team_id, text=text)
+        note = TeamNote(team_id=team_id, text=text, is_public=is_public)
         db.session.add(note)
         db.session.commit()
         flash('Nota agregada.', 'success')
+    
+    return redirect(url_for('team.team_detail', team_id=team_id))
+
+
+@team_bp.route('/notes/<note_id>/delete', methods=['POST'])
+@login_required
+@owner_required
+def delete_team_note(note_id):
+    note = TeamNote.query.get_or_404(note_id)
+    team_id = note.team_id
+    
+    if note.team.league.user_id != current_user.id:
+        flash('No tienes permiso.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    db.session.delete(note)
+    db.session.commit()
+    flash('Nota eliminada.', 'success')
     
     return redirect(url_for('team.team_detail', team_id=team_id))
 

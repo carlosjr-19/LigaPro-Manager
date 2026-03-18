@@ -32,13 +32,13 @@
             <!-- Main Content -->
             <div class="lg:col-span-2 space-y-8">
                 <!-- Team Notes (from Admin) -->
-                {% if team.notes %}
+                {% if notes %}
                 <div class="card border-warning/30 bg-warning/5">
                     <h2 class="text-xl font-bold mb-4 text-warning">
                         <i class="fas fa-exclamation-triangle mr-2"></i>Notas del Administrador
                     </h2>
                     <div class="space-y-3">
-                        {% for note in team.notes|sort(attribute='created_at', reverse=true) %}
+                        {% for note in notes %}
                         <div class="p-3 bg-warning/10 rounded">
                             <p>{{ note.text }}</p>
                             <p class="text-white/40 text-xs mt-1">{{ note.created_at.strftime('%d/%m/%Y') }}</p>
@@ -165,6 +165,7 @@
             <!-- Sidebar -->
             <div class="space-y-6">
                 <!-- Captain Tools (Premium) -->
+                {% if league.allow_captains_add_players %}
                 <div class="card bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border-blue-500/30">
                     <h3 class="font-bold mb-4 flex items-center gap-2">
                         <i class="fas fa-crown text-blue-400"></i>
@@ -189,6 +190,7 @@
                     </div>
                     {% endif %}
                 </div>
+                {% endif %}
 
                 <!-- Quick Actions -->
                 <div class="card">
@@ -198,10 +200,12 @@
                             class="btn-secondary w-full text-center block">
                             <i class="fas fa-users mr-2"></i>Ver Mi Equipo
                         </a>
+                        {% if league.allow_captains_add_players %}
                         <a href="{{ url_for('player.create_player', team_id=team.id) }}"
                             class="btn-primary w-full text-center block">
                             <i class="fas fa-user-plus mr-2"></i>Añadir Jugador
                         </a>
+                        {% endif %}
                     </div>
                 </div>
 
