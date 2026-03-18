@@ -22,6 +22,11 @@ def create_player(team_id):
         if league.user_id != current_user.id:
             flash('No tienes acceso.', 'danger')
             return redirect(url_for('main.dashboard'))
+            
+    # Restrict Captains from adding players if disabled in league settings
+    if current_user.role == 'captain' and not league.allow_captains_add_players:
+        flash('La liga ha desactivado la opción para que los capitanes agreguen jugadores.', 'warning')
+        return redirect(url_for('team.team_detail', team_id=team_id))
     
     form = PlayerForm()
     if form.validate_on_submit():

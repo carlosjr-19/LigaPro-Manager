@@ -335,6 +335,7 @@ def edit_league(league_id):
                     league.custom_role_style = style if style else None
 
             league.enable_shutdown_tiebreaker = form.enable_shutdown_tiebreaker.data
+            league.allow_captains_add_players = form.allow_captains_add_players.data
 
         db.session.commit()
         flash('Liga actualizada.', 'success')

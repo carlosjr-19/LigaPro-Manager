@@ -1,3 +1,26 @@
+## 0.12.0
+
+Notas Privadas de Equipos y Control de Restricción para Capitanes.
+
+- **Notas Privadas**: Ahora los dueños de liga pueden marcar notas como "Privadas". Estas notas solo son visibles para el dueño y no para los capitanes. Las notas públicas siguen siendo visibles para ambos.
+- **Eliminación de Notas**: Nueva funcionalidad para eliminar notas de equipo (disponible solo para el administrador/dueño).
+- **Restricción de Capitanes**: Nueva opción en configuración de liga para permitir o prohibir que los capitanes añadan jugadores.
+- **Seguridad en Registros**: Si la opción de añadir jugadores está desactivada para capitanes, también se ocultan automáticamente las herramientas de generación de registros (credenciales) y botones de impresión para dicho rol.
+- **Auto-Migración**: El sistema ahora detecta y añade automáticamente las nuevas columnas de base de datos (`allow_captains_add_players`, `is_public`) al iniciar la aplicación en entornos como Railway.
+
+## Modificado
+* `ligapro_manager/models/team.py`
+* `ligapro_manager/models/league.py`
+* `ligapro_manager/forms/league.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/routes/team.py`
+* `ligapro_manager/routes/player.py`
+* `ligapro_manager/routes/main.py`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/team_detail.html`
+* `ligapro_manager/templates/captain_dashboard.html`
+* `ligapro_manager/ligapro_manager.py`
+
 ## 0.11.0
 
 Refinamiento de Reportes PDF Dinámicos y Filtros Financieros por Liga.
