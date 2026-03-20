@@ -7,6 +7,7 @@ Notas Privadas de Equipos y Control de Restricción para Capitanes.
 - **Restricción de Capitanes**: Nueva opción en configuración de liga para permitir o prohibir que los capitanes añadan jugadores.
 - **Seguridad en Registros**: Si la opción de añadir jugadores está desactivada para capitanes, también se ocultan automáticamente las herramientas de generación de registros (credenciales) y botones de impresión para dicho rol.
 - **Auto-Migración**: El sistema ahora detecta y añade automáticamente las nuevas columnas de base de datos (`allow_captains_add_players`, `is_public`) al iniciar la aplicación en entornos como Railway.
+- **Mejora en Gráficas Semanales**: Se actualizaron las leyendas del eje X en las gráficas financieras semanales para usuarios Ultra. Ahora muestran un formato más legible: "Sem. [Nº] (DD/MM)", facilitando la interpretación de las fechas para los clientes.
 
 ## Modificado
 * `ligapro_manager/models/team.py`
@@ -19,6 +20,7 @@ Notas Privadas de Equipos y Control de Restricción para Capitanes.
 * `ligapro_manager/templates/league_detail.html`
 * `ligapro_manager/templates/team_detail.html`
 * `ligapro_manager/templates/captain_dashboard.html`
+* `ligapro_manager/routes/report.py`
 * `ligapro_manager/ligapro_manager.py`
 
 ## 0.11.0
