@@ -756,32 +756,29 @@ def global_schedule_summary():
     discrepancies = calculate_discrepancies(matches)
     
     # Aggregate
-    teams_summary = {} # (league, date, team_name) -> total
-    referee_summary = {} # (league, date) -> total
+    teams_summary = {} # (league, team_name) -> total
+    referee_summary = {} # (league) -> total
     
     for item in discrepancies:
-        date_str = item['date'].strftime('%d/%m/%Y') if item['date'] else 'Sin Fecha'
-        date_sort = item['date'].strftime('%Y-%m-%d') if item['date'] else '0000-00-00'
-        
         if item['entity_type'] == 'Team':
-            key = (item['league'], date_str, item['entity_name'], date_sort)
+            key = (item['league'], item['entity_name'])
             teams_summary[key] = teams_summary.get(key, 0) + item['balance']
         elif item['entity_type'] == 'Referee':
-            key = (item['league'], date_str, date_sort)
+            key = item['league']
             referee_summary[key] = referee_summary.get(key, 0) + item['balance']
             
     # Convert to list for display, add hash ID
     teams_list = []
     for k, v in teams_summary.items():
-        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{k[2]}_{k[3]}".encode('utf-8')).hexdigest()
-        teams_list.append({'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3], 'id': id_str})
-    teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
+        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}".encode('utf-8')).hexdigest()
+        teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
+    teams_list.sort(key=lambda x: (x['league'], x['name']))
     
     referee_list = []
     for k, v in referee_summary.items():
-        id_str = hashlib.md5(f"ref_{k[0]}_{k[1]}_{k[2]}".encode('utf-8')).hexdigest()
-        referee_list.append({'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2], 'id': id_str})
-    referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
+        id_str = hashlib.md5(f"ref_{k}".encode('utf-8')).hexdigest()
+        referee_list.append({'league': k, 'balance': v, 'id': id_str})
+    referee_list.sort(key=lambda x: x['league'])
     
     # Filter out excluded rows permanently from DB
     ignored_records = IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).all()
@@ -832,32 +829,29 @@ def share_global_schedule_summary():
     discrepancies = calculate_discrepancies(matches)
     
     # Aggregate
-    teams_summary = {} # (league, date, team_name) -> total
-    referee_summary = {} # (league, date) -> total
+    teams_summary = {} # (league, team_name) -> total
+    referee_summary = {} # (league) -> total
     
     for item in discrepancies:
-        date_str = item['date'].strftime('%d/%m/%Y') if item['date'] else 'Sin Fecha'
-        date_sort = item['date'].strftime('%Y-%m-%d') if item['date'] else '0000-00-00'
-        
         if item['entity_type'] == 'Team':
-            key = (item['league'], date_str, item['entity_name'], date_sort)
+            key = (item['league'], item['entity_name'])
             teams_summary[key] = teams_summary.get(key, 0) + item['balance']
         elif item['entity_type'] == 'Referee':
-            key = (item['league'], date_str, date_sort)
+            key = item['league']
             referee_summary[key] = referee_summary.get(key, 0) + item['balance']
             
     # Convert to list for display, add hash ID
     teams_list = []
     for k, v in teams_summary.items():
-        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{k[2]}_{k[3]}".encode('utf-8')).hexdigest()
-        teams_list.append({'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3], 'id': id_str})
-    teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
+        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}".encode('utf-8')).hexdigest()
+        teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
+    teams_list.sort(key=lambda x: (x['league'], x['name']))
     
     referee_list = []
     for k, v in referee_summary.items():
-        id_str = hashlib.md5(f"ref_{k[0]}_{k[1]}_{k[2]}".encode('utf-8')).hexdigest()
-        referee_list.append({'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2], 'id': id_str})
-    referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
+        id_str = hashlib.md5(f"ref_{k}".encode('utf-8')).hexdigest()
+        referee_list.append({'league': k, 'balance': v, 'id': id_str})
+    referee_list.sort(key=lambda x: x['league'])
     
     # Filter out excluded rows permanently from DB
     ignored_records = IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).all()
@@ -906,28 +900,25 @@ def export_global_summary():
     referee_summary = {}
     
     for item in discrepancies:
-        date_str = item['date'].strftime('%d/%m/%Y') if item['date'] else 'Sin Fecha'
-        date_sort = item['date'].strftime('%Y-%m-%d') if item['date'] else '0000-00-00'
-        
         if item['entity_type'] == 'Team':
-            key = (item['league'], date_str, item['entity_name'], date_sort)
+            key = (item['league'], item['entity_name'])
             teams_summary[key] = teams_summary.get(key, 0) + item['balance']
         elif item['entity_type'] == 'Referee':
-            key = (item['league'], date_str, date_sort)
+            key = item['league']
             referee_summary[key] = referee_summary.get(key, 0) + item['balance']
             
     # Convert to list for display, add hash ID
     teams_list = []
     for k, v in teams_summary.items():
-        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{k[2]}_{k[3]}".encode('utf-8')).hexdigest()
-        teams_list.append({'league': k[0], 'date': k[1], 'name': k[2], 'balance': v, '_sort_date': k[3], 'id': id_str})
-    teams_list.sort(key=lambda x: (x['league'], x['_sort_date'], x['name']))
+        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}".encode('utf-8')).hexdigest()
+        teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
+    teams_list.sort(key=lambda x: (x['league'], x['name']))
     
     referee_list = []
     for k, v in referee_summary.items():
-        id_str = hashlib.md5(f"ref_{k[0]}_{k[1]}_{k[2]}".encode('utf-8')).hexdigest()
-        referee_list.append({'league': k[0], 'date': k[1], 'balance': v, '_sort_date': k[2], 'id': id_str})
-    referee_list.sort(key=lambda x: (x['league'], x['_sort_date']))
+        id_str = hashlib.md5(f"ref_{k}".encode('utf-8')).hexdigest()
+        referee_list.append({'league': k, 'balance': v, 'id': id_str})
+    referee_list.sort(key=lambda x: x['league'])
     
     # Filter out excluded rows permanently from DB
     ignored_records = IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).all()
@@ -942,15 +933,15 @@ def export_global_summary():
     # Sheet 1: Teams
     ws1 = wb.active
     ws1.title = "Balance Equipos"
-    ws1.append(["Fecha", "Liga", "Equipo", "Deuda/Excedente del Día"])
+    ws1.append(["Liga", "Equipo", "Balance Total"])
     for t in teams_list:
-        ws1.append([t['date'], t['league'], t['name'], t['balance']])
+        ws1.append([t['league'], t['name'], t['balance']])
         
     # Sheet 2: Referees
     ws2 = wb.create_sheet("Balance Arbitraje")
-    ws2.append(["Fecha", "Liga", "Deuda/Excedente del Día"])
+    ws2.append(["Liga", "Balance Total"])
     for r in referee_list:
-        ws2.append([r['date'], r['league'], r['balance']])
+        ws2.append([r['league'], r['balance']])
         
     output = BytesIO()
     wb.save(output)

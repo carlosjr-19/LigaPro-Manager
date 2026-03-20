@@ -107,7 +107,6 @@
                     <table class="w-full text-left text-sm">
                         <thead class="bg-black/20 text-white/60 uppercase text-xs print:text-black print:bg-gray-100">
                             <tr>
-                                <th class="py-2 px-4">Fecha</th>
                                 <th class="py-2 px-4">Liga</th>
                                 <th class="py-2 px-4">Equipo</th>
                                 <th class="py-2 px-4 text-right">Balance</th>
@@ -117,8 +116,6 @@
                         <tbody class="divide-y divide-white/5 text-white/80 print:text-black print:divide-gray-300">
                             {% for item in teams_summary %}
                             <tr id="row-{{ item.id }}">
-                                <td class="py-2 px-4 font-bold text-xs text-white/50 print:text-black/60">{{ item.date
-                                    }}</td>
                                 <td class="py-2 px-4 font-bold text-xs uppercase text-white/50 print:text-black/60">{{
                                     item.league }}</td>
                                 <td class="py-2 px-4 font-medium">{{ item.name }}</td>
@@ -157,7 +154,6 @@
                     <table class="w-full text-left text-sm">
                         <thead class="bg-black/20 text-white/60 uppercase text-xs print:text-black print:bg-gray-100">
                             <tr>
-                                <th class="py-2 px-4">Fecha</th>
                                 <th class="py-2 px-4">Liga</th>
                                 <th class="py-2 px-4 text-right">Balance Total</th>
                                 <th class="py-2 px-4 text-center print:hidden w-10"></th>
@@ -166,8 +162,6 @@
                         <tbody class="divide-y divide-white/5 text-white/80 print:text-black print:divide-gray-300">
                             {% for item in referee_summary %}
                             <tr id="row-{{ item.id }}">
-                                <td class="py-2 px-4 font-bold text-xs text-white/50 print:text-black/60">{{ item.date
-                                    }}</td>
                                 <td class="py-2 px-4 font-bold">{{ item.league }}</td>
                                 <td
                                     class="py-2 px-4 text-right font-mono font-bold {{ 'text-green-400' if item.balance > 0 else 'text-red-400' }} print:text-black">

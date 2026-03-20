@@ -51,7 +51,6 @@
                 <table class="w-full text-left text-sm">
                     <thead class="bg-black/20 text-white/60 uppercase text-xs print:bg-gray-50 print:text-gray-600">
                         <tr>
-                            <th class="py-3 px-4">Fecha</th>
                             <th class="py-3 px-4">Liga</th>
                             <th class="py-3 px-4">Equipo</th>
                             <th class="py-3 px-4 text-right">Balance</th>
@@ -60,8 +59,6 @@
                     <tbody class="divide-y divide-white/5 text-white/80 print:divide-gray-200 print:text-black">
                         {% for item in teams_summary %}
                         <tr>
-                            <td class="py-3 px-4 text-xs font-mono text-white/50 print:text-gray-500">{{ item.date }}
-                            </td>
                             <td class="py-3 px-4 text-xs font-bold uppercase text-white/60 print:text-gray-600">{{
                                 item.league }}</td>
                             <td class="py-3 px-4 font-medium">{{ item.name }}</td>
@@ -88,7 +85,6 @@
                 <table class="w-full text-left text-sm">
                     <thead class="bg-black/20 text-white/60 uppercase text-xs print:bg-gray-50 print:text-gray-600">
                         <tr>
-                            <th class="py-3 px-4">Fecha</th>
                             <th class="py-3 px-4">Liga</th>
                             <th class="py-3 px-4 text-right">Balance Total</th>
                         </tr>
@@ -96,8 +92,6 @@
                     <tbody class="divide-y divide-white/5 text-white/80 print:divide-gray-200 print:text-black">
                         {% for item in referee_summary %}
                         <tr>
-                            <td class="py-3 px-4 text-xs font-mono text-white/50 print:text-gray-500">{{ item.date }}
-                            </td>
                             <td class="py-3 px-4 font-bold">{{ item.league }}</td>
                             <td
                                 class="py-3 px-4 text-right font-mono font-bold {{ 'text-green-400' if item.balance > 0 else 'text-red-400' }} print:{{ 'text-green-600' if item.balance > 0 else 'text-red-600' }}">
