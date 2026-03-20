@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from models import Match, League, Court, Team, OwnerCourtSetting, IgnoredDiscrepancy
 from extensions import db
 from sqlalchemy import func
-from datetime import datetime
+from datetime import datetime, timedelta
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
@@ -1590,8 +1590,13 @@ def api_financial_stats():
         if period == 'day':
             label = match.match_date.strftime('%Y-%m-%d')
         elif period == 'week':
-            # ISO format: YYYY-Www
-            label = match.match_date.strftime('%G-W%V')
+            # ISO format for sorting: YYYY-Www
+            sort_key = match.match_date.strftime('%G-W%V')
+            # Calculate Monday of the week for display
+            monday = match.match_date - timedelta(days=match.match_date.weekday())
+            # Format: "Sem. 11 (16/03)"
+            display_label = f"Sem. {match.match_date.strftime('%V')} ({monday.strftime('%d/%m')})"
+            label = (sort_key, display_label)
         elif period == 'month':
             label = match.match_date.strftime('%Y-%m')
         else:
@@ -1602,10 +1607,13 @@ def api_financial_stats():
         stats_data[label] = stats_data.get(label, 0) + profit
         
     # Sort byproduct by label
-    sorted_labels = sorted(stats_data.keys())
-    values = [stats_data[label] for label in sorted_labels]
+    sorted_keys = sorted(stats_data.keys())
+    
+    # Extract final labels and values
+    final_labels = [k[1] if isinstance(k, tuple) else k for k in sorted_keys]
+    values = [stats_data[k] for k in sorted_keys]
     
     return jsonify({
-        'labels': sorted_labels,
+        'labels': final_labels,
         'values': values
     })
