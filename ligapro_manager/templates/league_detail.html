@@ -2046,12 +2046,6 @@
                 </h3>
 
                 <div class="space-y-4">
-                    <!-- Standings -->
-                    <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
-                        <input type="checkbox" name="include_standings" checked
-                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                        <span class="flex-1">Tabla de Posiciones</span>
-                    </label>
                     <!-- Current Matchday (Title Badge) -->
                     {% if league.show_matchday_in_report %}
                     <div class="border border-white/10 rounded p-3">
@@ -2068,6 +2062,13 @@
                         </div>
                     </div>
                     {% endif %}
+
+                    <!-- Standings -->
+                    <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
+                        <input type="checkbox" name="include_standings" checked
+                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                        <span class="flex-1">Tabla de Posiciones</span>
+                    </label>
 
                     <!-- Recent -->
                     <div class="border border-white/10 rounded p-3">

@@ -1,3 +1,21 @@
+## 0.13.0
+
+Personalización de Título de Jornadas, Terminología "Delegado" y Layout Compacto de PDF.
+
+- **Título Editable de Jornadas**: Nueva función (si la liga lo habilita) que permite añadir campos personalizados para indicar el número o título de "Jornada Actual" y "Próxima Jornada" en las capturas de imágenes y PDFs generados.
+- **Formato PDF Ultra-Compacto**: Se rediseñó exhaustivamente la plantilla de guardado en PDF para la vista compartida. Se removieron contenedores acolchonados y tarjetas voluminosas en la agenda y resultados en favor de líneas vectorizadas, ahorrando drásticamente el espacio e imprimiendo la liga completa en una sola cara orientada al ahorro de tinta (contraste más negro).
+- **Rol "Delegado"**: Todo el sistema visible de cara a usuarios y menús adoptó la terminología "Delegado" en lugar de "Capitán", preservando internamente las automatizaciones antiguas (credenciales en backend y correos).
+- **Scroll Infinito en Paneles de Compartición**: Ahora el Modal principal `(ShareModal)` para configurar recortes y opciones de descarga acepta Scroll interno.
+
+## Modificado
+* `ligapro_manager/models/league.py`
+* `ligapro_manager/forms/league.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/share_report.html`
+* `ligapro_manager/static/js/share_modal.js`
+* Reemplazo masivo de la etiqueta "Capitán" por "Delegado" en múltiples templates y plantillas HTML.
+
 ## 0.12.0
 
 Notas Privadas de Equipos y Control de Restricción para Capitanes.
