@@ -36,7 +36,7 @@
                     <p class="text-white/60">{{ league.name }}</p>
                     {% if team.captain_name %}
                     <p class="text-white/40 text-sm mt-1">
-                        <i class="fas fa-user-tie mr-1"></i> Capitán: {{ team.captain_name }}
+                        <i class="fas fa-user-tie mr-1"></i> Delegado: {{ team.captain_name }}
                     </p>
                     {% endif %}
                 </div>
@@ -62,23 +62,28 @@
                             <i class="fas fa-users mr-2 text-primary"></i>Jugadores
                         </h2>
                         <div class="flex flex-wrap justify-center gap-2">
-                            {% if can_print %}
-                            <a href="{{ url_for('team.generate_credentials', team_id=team.id) }}"
-                                class="btn-secondary text-sm">
-                                <i class="fas fa-print mr-1"></i>Todos
-                            </a>
-                            <button onclick="printSelectedPlayers()" class="btn-secondary text-sm">
-                                <i class="fas fa-id-card mr-1"></i>Seleccionados
-                            </button>
-                            {% else %}
-                            <span class="btn-secondary text-sm opacity-50 cursor-not-allowed" title="Requiere Desbloqueo">
-                                <i class="fas fa-lock text-yellow-500 mr-1"></i>Registros
-                            </span>
+                            {% if current_user.role != 'captain' or league.allow_captains_add_players %}
+                                {% if can_print %}
+                                <a href="{{ url_for('team.generate_credentials', team_id=team.id) }}"
+                                    class="btn-secondary text-sm">
+                                    <i class="fas fa-print mr-1"></i>Todos
+                                </a>
+                                <button onclick="printSelectedPlayers()" class="btn-secondary text-sm">
+                                    <i class="fas fa-id-card mr-1"></i>Seleccionados
+                                </button>
+                                {% else %}
+                                <span class="btn-secondary text-sm opacity-50 cursor-not-allowed" title="Requiere Desbloqueo">
+                                    <i class="fas fa-lock text-yellow-500 mr-1"></i>Registros
+                                </span>
+                                {% endif %}
                             {% endif %}
+                            
+                            {% if current_user.role != 'captain' or league.allow_captains_add_players %}
                             <a href="{{ url_for('player.create_player', team_id=team.id) }}"
                                 class="btn-primary text-sm">
                                 <i class="fas fa-plus mr-1"></i>Añadir
                             </a>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -87,7 +92,7 @@
                         {% for player in players %}
                         <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                             <div class="flex items-center gap-3">
-                                {% if can_print %}
+                                {% if can_print and (current_user.role != 'captain' or league.allow_captains_add_players) %}
                                 <input type="checkbox"
                                     class="player-print-cb w-4 h-4 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2"
                                     value="{{ player.id }}">
@@ -220,13 +225,13 @@
 
                         <form method="POST" action="{{ url_for('team.add_captain', team_id=team.id) }}"
                             class="space-y-2">
-                            <input type="text" name="captain_name" placeholder="Nombre del capitán"
+                            <input type="text" name="captain_name" placeholder="Nombre del delegado"
                                 class="input-field text-sm" required>
                             <button type="submit" class="btn-secondary w-full text-sm" {% if team.captain_user_id
-                                %}onclick="return confirm('¿Reemplazar al capitán actual? Se generarán nuevas credenciales.')"
+                                %}onclick="return confirm('¿Reemplazar al delegado actual? Se generarán nuevas credenciales.')"
                                 {% endif %}>
                                 <i class="fas fa-user-plus mr-2"></i>
-                                {% if team.captain_user_id %}Cambiar Capitán{% else %}Asignar Capitán{% endif %}
+                                {% if team.captain_user_id %}Cambiar Delegado{% else %}Asignar Delegado{% endif %}
                             </button>
                         </form>
 
@@ -254,7 +259,7 @@
                 {% if team.captain_email and current_user.role == 'owner' %}
                 <div class="card border-warning/30">
                     <h3 class="font-bold mb-4 text-warning">
-                        <i class="fas fa-key mr-2"></i>Credenciales Capitán
+                        <i class="fas fa-key mr-2"></i>Credenciales Delegado
                     </h3>
                     <div class="space-y-2 text-sm">
                         <div class="bg-white/5 p-3 rounded">
@@ -278,7 +283,20 @@
                     <form method="POST" action="{{ url_for('team.add_team_note', team_id=team.id) }}" class="mb-4">
                         <textarea name="note_text" placeholder="Añadir nota..." class="input-field text-sm resize-none"
                             rows="2" required></textarea>
-                        <button type="submit" class="btn-primary w-full mt-2 text-sm">
+                        <div class="mt-2 mb-3 bg-white/5 p-2 rounded border border-white/10">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <div class="relative">
+                                    <input type="checkbox" name="is_public" id="is_public" class="sr-only peer" checked>
+                                    <div class="w-10 h-5 bg-white/10 rounded-full peer peer-checked:bg-primary/50 transition-colors"></div>
+                                    <div class="absolute left-1 top-1 w-3 h-3 bg-white/40 rounded-full peer-checked:translate-x-5 peer-checked:bg-primary transition-all"></div>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-white/80 group-hover:text-white transition-colors">Pública</span>
+                                    <p class="text-[10px] text-white/40 leading-tight">Visible para el delegado</p>
+                                </div>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary w-full text-sm">
                             <i class="fas fa-plus mr-1"></i>Añadir Nota
                         </button>
                     </form>
@@ -286,8 +304,23 @@
                     {% if notes %}
                     <div class="space-y-2 max-h-64 overflow-y-auto">
                         {% for note in notes %}
-                        <div class="p-3 bg-white/5 rounded text-sm">
-                            <p>{{ note.text }}</p>
+                        <div class="p-3 bg-white/5 rounded text-sm relative group">
+                            <div class="flex justify-between items-start gap-2">
+                                <p class="flex-1">{{ note.text }}</p>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    {% if not note.is_public %}
+                                    <span class="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.5 rounded font-bold border border-red-500/30">
+                                        PRIVADA
+                                    </span>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('team.delete_team_note', note_id=note.id) }}" 
+                                          onsubmit="return confirm('¿Eliminar nota?')" class="inline opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button type="submit" class="text-red-400 hover:text-red-300">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
                             <p class="text-white/40 text-xs mt-1">{{ note.created_at.strftime('%d/%m/%Y') }}</p>
                         </div>
                         {% endfor %}

@@ -46,6 +46,7 @@ class League(db.Model):
     custom_role_style = db.Column(db.String(50), nullable=True) # Override style for this league
     enable_shutdown_tiebreaker = db.Column(db.Boolean, default=False)
     show_matchday_in_report = db.Column(db.Boolean, default=False)
+    allow_captains_add_players = db.Column(db.Boolean, default=True)
 
     @property
     def active_teams_count(self):

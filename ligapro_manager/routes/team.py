@@ -79,7 +79,13 @@ def team_detail(team_id):
             return redirect(url_for('main.dashboard'))
     
     players = Player.query.filter_by(team_id=team_id).all()
-    notes = TeamNote.query.filter_by(team_id=team_id).order_by(TeamNote.created_at.desc()).all()
+    
+    # Filter notes for captains
+    notes_query = TeamNote.query.filter_by(team_id=team_id)
+    if current_user.role == 'captain':
+        notes_query = notes_query.filter_by(is_public=True)
+    
+    notes = notes_query.order_by(TeamNote.created_at.desc()).all()
     matches = Match.query.filter(
         (Match.home_team_id == team_id) | (Match.away_team_id == team_id)
     ).order_by(Match.match_date.desc()).all()
@@ -201,7 +207,7 @@ def add_captain(team_id):
     
     captain_name = request.form.get('captain_name')
     if not captain_name:
-        flash('Nombre del capitán requerido.', 'danger')
+        flash('Nombre del delegado requerido.', 'danger')
         return redirect(url_for('team.team_detail', team_id=team_id))
     
     # Define captain email (deterministic based on team ID)
@@ -219,7 +225,7 @@ def add_captain(team_id):
         # Ensure role and team_id are correct
         captain.role = 'captain'
         captain.team_id = team.id
-        flash(f'Capitán actualizado. Contraseña restablecida: {captain_password}', 'success')
+        flash(f'Delegado actualizado. Contraseña restablecida: {captain_password}', 'success')
     else:
         # Create new captain user
         captain = User(
@@ -230,7 +236,7 @@ def add_captain(team_id):
             team_id=team.id
         )
         db.session.add(captain)
-        flash(f'Capitán asignado. Email: {captain_email}, Contraseña: {captain_password}', 'success')
+        flash(f'Delegado asignado. Email: {captain_email}, Contraseña: {captain_password}', 'success')
     
     # Update team record
     db.session.flush() # Ensure captain has ID if new
@@ -255,11 +261,31 @@ def add_team_note(team_id):
         return redirect(url_for('main.dashboard'))
     
     text = request.form.get('note_text')
+    is_public = request.form.get('is_public') == 'on'
+    
     if text:
-        note = TeamNote(team_id=team_id, text=text)
+        note = TeamNote(team_id=team_id, text=text, is_public=is_public)
         db.session.add(note)
         db.session.commit()
         flash('Nota agregada.', 'success')
+    
+    return redirect(url_for('team.team_detail', team_id=team_id))
+
+
+@team_bp.route('/notes/<note_id>/delete', methods=['POST'])
+@login_required
+@owner_required
+def delete_team_note(note_id):
+    note = TeamNote.query.get_or_404(note_id)
+    team_id = note.team_id
+    
+    if note.team.league.user_id != current_user.id:
+        flash('No tienes permiso.', 'danger')
+        return redirect(url_for('main.dashboard'))
+    
+    db.session.delete(note)
+    db.session.commit()
+    flash('Nota eliminada.', 'success')
     
     return redirect(url_for('team.team_detail', team_id=team_id))
 
@@ -309,7 +335,7 @@ def generate_credentials(team_id):
              has_access = True
              
     if not has_access:
-        flash('Esta función requiere Premium (Dueño de Liga o Plan Capitán).', 'warning')
+        flash('Esta función requiere Premium (Dueño de Liga o Plan Delegado).', 'warning')
         if is_captain and not is_owner:
             return redirect(url_for('premium.captain_premium'))
         else:

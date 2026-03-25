@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from models import Match, League, Court, Team, OwnerCourtSetting, IgnoredDiscrepancy
 from extensions import db
 from sqlalchemy import func
-from datetime import datetime
+from datetime import datetime, timedelta
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
@@ -979,9 +979,13 @@ def global_schedule_financials():
     court_names = sorted(list(court_names))
 
     cancha_name = request.args.get('cancha')
+    selected_league_id = request.args.get('league_id')
 
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
     
+    if selected_league_id:
+        query = query.filter(Match.league_id == selected_league_id)
+
     if cancha_name:
         if cancha_name == "Sin Cancha":
             query = query.filter(Match.court_id == None)
@@ -1125,6 +1129,8 @@ def global_schedule_financials():
                          years=years,
                          court_names=court_names,
                          selected_cancha=cancha_name,
+                         leagues=leagues,
+                         selected_league_id=selected_league_id,
                          filename_suffix=filename_suffix,
                          court_totals=court_totals)
 
@@ -1137,8 +1143,12 @@ def export_global_financials():
 
     report_type = getattr(current_user, 'financial_report_type', 'period')
     cancha_name = request.args.get('cancha')
+    league_id = request.args.get('league_id')
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
     
+    if league_id:
+        query = query.filter(Match.league_id == league_id)
+
     if cancha_name:
         if cancha_name == "Sin Cancha":
             query = query.filter(Match.court_id == None)
@@ -1168,6 +1178,9 @@ def export_global_financials():
             func.extract('year', Match.match_date) == year
         )
         filename_suffix = f"{month}_{year}"
+        
+    leagues = League.query.filter_by(user_id=current_user.id).all()
+    selected_league_name = next((l.name for l in leagues if str(l.id) == league_id), None)
         
     matches = query.order_by(Match.match_date).all()
 
@@ -1231,7 +1244,8 @@ def export_global_financials():
     
     # Title
     header_title = filename_suffix.replace('_', ' ').upper()
-    ws['A1'] = f"REPORTE FINANCIERO - {header_title}"
+    league_label = f" - {selected_league_name.upper()}" if selected_league_name else ""
+    ws['A1'] = f"REPORTE FINANCIERO{league_label} - {header_title}"
     ws['A1'].font = Font(size=14, bold=True)
     ws.merge_cells('A1:E1')
     ws['A1'].alignment = Alignment(horizontal='center')
@@ -1341,8 +1355,12 @@ def share_global_financials():
 
     report_type = getattr(current_user, 'financial_report_type', 'period')
     cancha_name = request.args.get('cancha')
+    league_id = request.args.get('league_id')
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
     
+    if league_id:
+        query = query.filter(Match.league_id == league_id)
+
     if cancha_name:
         if cancha_name == "Sin Cancha":
             query = query.filter(Match.court_id == None)
@@ -1441,10 +1459,14 @@ def share_global_financials():
 
     sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
 
+    leagues = League.query.filter_by(user_id=current_user.id).all()
+    selected_league_name = next((l.name for l in leagues if str(l.id) == league_id), None)
+
     return render_template('report/share_financials.html', 
                          financial_data=sorted_data,
                          header_title=header_title,
                          cancha_name=cancha_name,
+                         selected_league_name=selected_league_name,
                          total_income=total_income,
                          total_expense=total_expense,
                          total_profit=total_profit,
@@ -1568,8 +1590,13 @@ def api_financial_stats():
         if period == 'day':
             label = match.match_date.strftime('%Y-%m-%d')
         elif period == 'week':
-            # ISO format: YYYY-Www
-            label = match.match_date.strftime('%G-W%V')
+            # ISO format for sorting: YYYY-Www
+            sort_key = match.match_date.strftime('%G-W%V')
+            # Calculate Monday of the week for display
+            monday = match.match_date - timedelta(days=match.match_date.weekday())
+            # Format: "Sem. 11 (16/03)"
+            display_label = f"Sem. {match.match_date.strftime('%V')} ({monday.strftime('%d/%m')})"
+            label = (sort_key, display_label)
         elif period == 'month':
             label = match.match_date.strftime('%Y-%m')
         else:
@@ -1580,10 +1607,13 @@ def api_financial_stats():
         stats_data[label] = stats_data.get(label, 0) + profit
         
     # Sort byproduct by label
-    sorted_labels = sorted(stats_data.keys())
-    values = [stats_data[label] for label in sorted_labels]
+    sorted_keys = sorted(stats_data.keys())
+    
+    # Extract final labels and values
+    final_labels = [k[1] if isinstance(k, tuple) else k for k in sorted_keys]
+    values = [stats_data[k] for k in sorted_keys]
     
     return jsonify({
-        'labels': sorted_labels,
+        'labels': final_labels,
         'values': values
     })

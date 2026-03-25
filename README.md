@@ -76,14 +76,13 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.9.10)
+## 🔄 Últimas Actualizaciones (v0.12.0)
 
-- **Suma/Resta de Puntos**: Nueva funcionalidad que permite a los administradores sumar o restar puntos a un equipo. Esta acción queda registrada en el historial de partidos con un comentario explicativo.
-- **Desempate por Shutdown**: Posibilidad de designar a un ganador en partidos empatados para otorgar un reparto desigual (2 pts al ganador, 1 al perdedor) en cualquier vista de resultados.
-- **Candados Premium a Nivel Capitán**: Validaciones individuales reforzadas para que solo los capitanes que han pagado su cuota puedan imprimir o descargar sus propios registros de jugadores.
-- **Seguridad de Prevención de Borrado**: El panel de administrador ahora exige la contraseña base del administrador para autenticar la eliminación de cualquier usuario (propietario o capitán), blindando la plataforma contra desastres accidentales.
-- **Eliminación Permanente de Discrepancias**: Los dueños de liga ahora pueden ocultar filas del Resumen General de forma definitiva. La acción se sincroniza con la base de datos, asegurando que las filas eliminadas no aparezcan en futuras consultas, reportes compartidos o exportaciones a Excel.
-- **Cámara Cloudinary Directa**: Ahora los capitanes y administradores pueden capturar y subir fotos de jugadores y escudos institucionales usando directamente la cámara de su teléfono, los archivos se almacenan en un bucket nativo de Cloudinary.
+- **Notas Privadas y Públicas**: Los dueños pueden dejar notas internas en los equipos que los capitanes no podrán ver, o marcarlas como públicas para comunicación directa. Incluye gestión de eliminación.
+- **Control de Altas de Jugadores**: Switch global por liga para decidir si los capitanes pueden inscribir jugadores o si esta tarea es exclusiva del administrador.
+- **Blindaje de Registros**: Ocultación dinámica de herramientas premium de credenciales para capitanes si tienen restringida la edición de su plantilla.
+- **Auto-Migración Railway**: Scripts de base de datos optimizados para actualizar el esquema automáticamente en despliegues sobre la nube sin intervención manual.
+- **Reporte PDF "Todo en Uno"**: Rediseño compacto que garantiza que el reporte completo de la liga quepa en una sola hoja.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

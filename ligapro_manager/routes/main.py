@@ -51,6 +51,10 @@ def captain_dashboard():
         (Match.home_team_id == team.id) | (Match.away_team_id == team.id)
     ).order_by(Match.match_date.desc()).all()
     
+    # Filter notes for captain
+    notes = [n for n in team.notes if n.is_public]
+    notes.sort(key=lambda x: x.created_at, reverse=True)
+    
     # Get all teams for name lookup
     teams_dict = {t.id: t for t in Team.query.filter_by(league_id=league.id).all()}
     
@@ -69,6 +73,7 @@ def captain_dashboard():
                           league=league, 
                           standings=standings,
                           matches=matches,
+                          notes=notes,
                           teams_dict=teams_dict,
                           top_scorers=top_scorers,
                           top_goalkeepers=top_goalkeepers)
