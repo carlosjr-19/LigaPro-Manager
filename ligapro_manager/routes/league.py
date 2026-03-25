@@ -328,6 +328,7 @@ def edit_league(league_id):
             league.custom_color_active = form.custom_color_active.data
             league.custom_name_color = form.custom_name_color.data
             league.credential_phrase = form.credential_phrase.data
+            league.show_matchday_in_report = form.show_matchday_in_report.data
             
             if current_user.can_custom_role_style:
                 style = form.custom_role_style.data
@@ -460,9 +461,11 @@ def generate_share_report(league_id):
     include_recent = request.values.get('include_recent') is not None
     date_start_str = request.values.get('date_start')
     date_end_str = request.values.get('date_end')
+    recent_matchday = request.values.get('recent_matchday')
     include_upcoming = request.values.get('include_upcoming') is not None
     upcoming_date_start_str = request.values.get('upcoming_date_start')
     upcoming_date_end_str = request.values.get('upcoming_date_end')
+    upcoming_matchday = request.values.get('upcoming_matchday')
     include_scorers = request.values.get('include_scorers') is not None
     include_keepers = request.values.get('include_keepers') is not None
     report_note = request.values.get('report_note')
@@ -591,7 +594,9 @@ def generate_share_report(league_id):
                           include_keepers=include_keepers, top_goalkeepers=top_goalkeepers,
                           date_start=date_start_str if date_start_str else 'Inicio',
                           date_end=date_end_str if date_end_str else 'Actualidad',
-                          report_note=report_note)
+                          report_note=report_note,
+                          recent_matchday=recent_matchday,
+                          upcoming_matchday=upcoming_matchday)
 
 
 

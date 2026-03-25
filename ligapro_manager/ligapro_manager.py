@@ -131,7 +131,8 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN enable_shutdown_tiebreaker BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE matches ADD COLUMN shutdown_winner_id VARCHAR(36)",
                     "ALTER TABLE teams ADD COLUMN manual_points_modifier INTEGER DEFAULT 0",
-                    "ALTER TABLE matches ADD COLUMN is_practice BOOLEAN DEFAULT FALSE"
+                    "ALTER TABLE matches ADD COLUMN is_practice BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE leagues ADD COLUMN show_matchday_in_report BOOLEAN DEFAULT FALSE"
                 ]
                 
                 for migration in migrations:

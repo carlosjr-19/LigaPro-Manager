@@ -129,7 +129,7 @@
                 <div class="glass rounded-lg p-6 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
                     <h3
                         class="font-bold mb-6 text-xl flex items-center gap-2 border-b border-white/10 pb-3" style="color: var(--header-partidos);">
-                        <i class="fas fa-calendar-alt"></i> Próximos Partidos
+                        <i class="fas fa-calendar-alt"></i> Próximos Partidos {% if upcoming_matchday %}- Jornada {{ upcoming_matchday }}{% endif %}
                     </h3>
                     <div class="space-y-8">
                         {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles', 'Thursday':
@@ -247,7 +247,7 @@
                 <!-- Recent Matches -->
                 <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
                     <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-resultados);">
-                        <i class="fas fa-check-circle"></i> Resultados ({{ date_start }} - {{ date_end }})
+                        <i class="fas fa-check-circle"></i> Resultados ({{ date_start }} - {{ date_end }}) {% if recent_matchday %}- Jornada {{ recent_matchday }}{% endif %}
                     </h3>
                     <div class="grid grid-cols-2 gap-4">
                         {% for match in recent_matches %}
@@ -472,7 +472,7 @@
                     {% if include_recent and recent_matches %}
                     <div>
                         <h2 class="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2" style="color: var(--header-resultados, #0f172a);">
-                            <span class="w-1 h-2.5 bg-current rounded-full"></span> Últimos Resultados
+                            <span class="w-1 h-2.5 bg-current rounded-full"></span> Últimos Resultados {% if recent_matchday %}- J{{ recent_matchday }}{% endif %}
                         </h2>
                         <div class="grid gap-1.5">
                             {% for match in recent_matches[:5] %}
@@ -497,7 +497,7 @@
             {% if include_upcoming and upcoming_matches %}
             <div class="border-t border-slate-100 pt-5">
                 <h2 class="text-[11px] font-black uppercase tracking-widest mb-4 flex items-center gap-2" style="color: var(--accent-color, #0f172a);">
-                    <span class="w-1.5 h-3 bg-current rounded-full"></span> Próxima Agenda
+                    <span class="w-1.5 h-3 bg-current rounded-full"></span> Próxima Agenda {% if upcoming_matchday %}- J{{ upcoming_matchday }}{% endif %}
                 </h2>
                 <div class="grid grid-cols-2 gap-x-8 gap-y-2">
                     {% for match in upcoming_matches %}

@@ -1,6 +1,8 @@
 function openShareModal() {
     document.getElementById('shareModal').classList.remove('hidden');
     document.getElementById('shareModal').classList.add('flex');
+    toggleDateInputs();
+    toggleUpcomingDateInputs();
 }
 
 function closeShareModal() {
