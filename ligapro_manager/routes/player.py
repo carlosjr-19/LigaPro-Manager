@@ -25,7 +25,7 @@ def create_player(team_id):
             
     # Restrict Captains from adding players if disabled in league settings
     if current_user.role == 'captain' and not league.allow_captains_add_players:
-        flash('La liga ha desactivado la opción para que los capitanes agreguen jugadores.', 'warning')
+        flash('La liga ha desactivado la opción para que los delegados agreguen jugadores.', 'warning')
         return redirect(url_for('team.team_detail', team_id=team_id))
     
     form = PlayerForm()
