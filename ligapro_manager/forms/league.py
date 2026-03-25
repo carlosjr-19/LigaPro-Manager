@@ -27,4 +27,5 @@ class LeagueForm(FlaskForm):
     custom_name_color = StringField('Color del Nombre de Liga', validators=[Optional(), Length(max=10)], default='#ffffff')
     custom_role_style = StringField('Diseño del Rol', validators=[Optional(), Length(max=50)])
     enable_shutdown_tiebreaker = BooleanField('Habilitar desempate de partidos en shutdown', default=False)
+    show_matchday_in_report = BooleanField('Mostrar Jornada en Rol', default=False)
     allow_captains_add_players = BooleanField('Permitir añadir jugadores', default=True)

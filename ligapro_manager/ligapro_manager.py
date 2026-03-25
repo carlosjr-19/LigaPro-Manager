@@ -132,6 +132,7 @@ def run_migrations():
                     "ALTER TABLE matches ADD COLUMN shutdown_winner_id VARCHAR(36)",
                     "ALTER TABLE teams ADD COLUMN manual_points_modifier INTEGER DEFAULT 0",
                     "ALTER TABLE matches ADD COLUMN is_practice BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE leagues ADD COLUMN show_matchday_in_report BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE leagues ADD COLUMN allow_captains_add_players BOOLEAN DEFAULT TRUE",
                     "ALTER TABLE team_notes ADD COLUMN is_public BOOLEAN DEFAULT TRUE"
                 ]

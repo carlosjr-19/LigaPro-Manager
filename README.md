@@ -76,13 +76,12 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.12.0)
+## 🔄 Últimas Actualizaciones (v0.13.0)
 
-- **Notas Privadas y Públicas**: Los dueños pueden dejar notas internas en los equipos que los capitanes no podrán ver, o marcarlas como públicas para comunicación directa. Incluye gestión de eliminación.
-- **Control de Altas de Jugadores**: Switch global por liga para decidir si los capitanes pueden inscribir jugadores o si esta tarea es exclusiva del administrador.
-- **Blindaje de Registros**: Ocultación dinámica de herramientas premium de credenciales para capitanes si tienen restringida la edición de su plantilla.
-- **Auto-Migración Railway**: Scripts de base de datos optimizados para actualizar el esquema automáticamente en despliegues sobre la nube sin intervención manual.
-- **Reporte PDF "Todo en Uno"**: Rediseño compacto que garantiza que el reporte completo de la liga quepa en una sola hoja.
+- **Título de Jornadas Personalizable**: Agregamos campos que imprimen en los badges de los encabezados (Imagen/PDF) la jornada que se cursa o las venideras.
+- **Renombramiento de Rol**: Todos los paneles y roles orientados al equipo asumen ahora oficialmente el término de "Delegados".
+- **Formato PDF Extremo-Compacto**: Se implementaron bordes limpios y distancias más estrechas para que reportes de ligas con más de 16 equipos quepan milimétricamente en *una sola impresión* física, optimizando tinta y legibilidad.
+- **Scroll del Generador Responsivo**: Mejorado el comportamiento Modal para resoluciones cortas y en desktop.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

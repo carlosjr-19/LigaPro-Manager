@@ -328,6 +328,7 @@ def edit_league(league_id):
             league.custom_color_active = form.custom_color_active.data
             league.custom_name_color = form.custom_name_color.data
             league.credential_phrase = form.credential_phrase.data
+            league.show_matchday_in_report = form.show_matchday_in_report.data
             
             if current_user.can_custom_role_style:
                 style = form.custom_role_style.data
@@ -461,9 +462,13 @@ def generate_share_report(league_id):
     include_recent = request.values.get('include_recent') is not None
     date_start_str = request.values.get('date_start')
     date_end_str = request.values.get('date_end')
+    recent_matchday = request.values.get('recent_matchday')
     include_upcoming = request.values.get('include_upcoming') is not None
     upcoming_date_start_str = request.values.get('upcoming_date_start')
     upcoming_date_end_str = request.values.get('upcoming_date_end')
+    upcoming_matchday = request.values.get('upcoming_matchday')
+    include_current_matchday = request.values.get('include_current_matchday') is not None
+    current_matchday_title = request.values.get('current_matchday_title', '').strip() if include_current_matchday else None
     include_scorers = request.values.get('include_scorers') is not None
     include_keepers = request.values.get('include_keepers') is not None
     report_note = request.values.get('report_note')
@@ -581,21 +586,30 @@ def generate_share_report(league_id):
             player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
             stat.player_number = f"#{player.number}" if (player and player.number) else ""
         
+    is_premium = league.owner.is_active_premium
+    today_str = datetime.now().strftime('%d/%m/%Y')
     return render_template('share_report.html',
                           league=league,
-                          today=datetime.now().strftime('%d/%m/%Y'),
+                          is_premium=is_premium,
                           teams_dict=teams_dict,
-                          include_standings=include_standings, standings=standings,
-                          include_recent=include_recent, recent_matches=recent_matches,
-                          include_upcoming=include_upcoming, upcoming_matches=upcoming_matches, matches_by_court=matches_by_court,
-                          include_scorers=include_scorers, top_scorers=top_scorers,
-                          include_keepers=include_keepers, top_goalkeepers=top_goalkeepers,
+                          standings=standings,
+                          recent_matches=recent_matches,
+                          upcoming_matches=upcoming_matches,
+                          matches_by_court=matches_by_court,
+                          top_scorers=top_scorers,
+                          top_goalkeepers=top_goalkeepers,
+                          include_standings=include_standings,
+                          include_recent=include_recent,
+                          include_upcoming=include_upcoming,
+                          recent_matchday=recent_matchday,
+                          upcoming_matchday=upcoming_matchday,
+                          current_matchday_title=current_matchday_title,
+                          include_scorers=include_scorers,
+                          include_keepers=include_keepers,
                           date_start=date_start_str if date_start_str else 'Inicio',
                           date_end=date_end_str if date_end_str else 'Actualidad',
-                          report_note=report_note)
-
-
-
+                          report_note=report_note,
+                          today=today_str)
 
 
 @league_bp.route('/leagues/<league_id>/modify_points', methods=['POST'])

@@ -34,12 +34,12 @@
     <div class="w-full max-w-full overflow-x-auto pb-8 relative">
         <!-- Capture Target -->
         <div id="capture-target"
-            class="share-container {% if league.owner.can_custom_role_style %}{{ league.custom_role_style or league.owner.assigned_role_style or 'mint' }}{% else %}{{ league.owner.assigned_role_style or 'mint' }}{% endif %} w-[800px] min-w-[800px] mx-auto p-8 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden" style="background-color: var(--bg-color); color: var(--text-color);">
+            class="share-container {% if league.owner.can_custom_role_style %}{{ league.custom_role_style or league.owner.assigned_role_style or 'mint' }}{% else %}{{ league.owner.assigned_role_style or 'mint' }}{% endif %} w-[800px] min-w-[800px] mx-auto p-8 rounded-xl border border-white/10 shadow-2xl relative overflow-hidden"
+            style="background-color: var(--bg-color); color: var(--text-color);">
             <!-- Background Decor -->
             <div class="absolute top-0 right-0 w-96 h-96 blur-[100px] rounded-full pointer-events-none bg-glow-1">
             </div>
-            <div
-                class="absolute bottom-0 left-0 w-64 h-64 blur-[80px] rounded-full pointer-events-none bg-glow-2">
+            <div class="absolute bottom-0 left-0 w-64 h-64 blur-[80px] rounded-full pointer-events-none bg-glow-2">
             </div>
 
             <!-- Header -->
@@ -47,10 +47,12 @@
             <div class="flex items-center gap-6 mb-8 relative z-10 px-4">
                 {% if is_premium and league.logo_url %}
                 <img src="{{ league.logo_url }}"
-                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2" style="background-color: var(--logo-bg);">
+                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2"
+                    style="background-color: var(--logo-bg);">
                 {% else %}
                 <img src="{{ url_for('static', filename='img/LigaPro_Manager.png') }}"
-                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2" style="background-color: var(--logo-bg);">
+                    class="w-28 h-28 object-contain rounded-xl shadow-lg border border-white/10 p-2"
+                    style="background-color: var(--logo-bg);">
                 {% endif %}
 
                 <div class="text-left">
@@ -62,8 +64,12 @@
                     <p class="text-white/60 text-lg uppercase tracking-widest font-medium">Reporte Oficial</p>
                     {% endif %}
 
-                    <p class="text-white/40 text-sm mt-2 font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}
-                    </p>
+                    <div class="flex items-center gap-4 mt-2">
+                        <p class="text-white/40 text-sm font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}</p>
+                        {% if current_matchday_title %}
+                        <p class="bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-0.5 rounded text-xs font-bold uppercase tracking-widest">{{ current_matchday_title }}</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -73,13 +79,15 @@
 
                 {% if include_standings and standings %}
                 <!-- Standings -->
-                <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                <div class="glass rounded-lg p-5 border"
+                    style="background-color: var(--glass-bg); border-color: var(--glass-border);">
                     <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-tabla);">
                         <i class="fas fa-trophy"></i> Tabla General
                     </h3>
                     <table class="w-full text-lg">
                         <thead>
-                            <tr class="text-white/40 text-sm uppercase border-b border-white/10" style="color: var(--text-color); opacity: 0.6;">
+                            <tr class="text-white/40 text-sm uppercase border-b border-white/10"
+                                style="color: var(--text-color); opacity: 0.6;">
                                 <th class="text-left pb-2">#</th>
                                 <th class="text-left pb-2">Equipo</th>
                                 <th class="text-center pb-2">PJ</th>
@@ -116,7 +124,8 @@
                                 <td class="py-2">{{ s.goals_for }}</td>
                                 <td class="py-2">{{ s.goals_against }}</td>
                                 <td class="py-2">{{ s.goal_difference }}</td>
-                                <td class="py-3 font-bold text-2xl" style="color: var(--accent-color);">{{ s.points }}</td>
+                                <td class="py-3 font-bold text-2xl" style="color: var(--accent-color);">{{ s.points }}
+                                </td>
                                 </tr>
                                 {% endfor %}
                         </tbody>
@@ -126,10 +135,12 @@
 
                 {% if include_upcoming and upcoming_matches %}
                 <!-- Upcoming Matches -->
-                <div class="glass rounded-lg p-6 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
-                    <h3
-                        class="font-bold mb-6 text-xl flex items-center gap-2 border-b border-white/10 pb-3" style="color: var(--header-partidos);">
-                        <i class="fas fa-calendar-alt"></i> Próximos Partidos
+                <div class="glass rounded-lg p-6 border"
+                    style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                    <h3 class="font-bold mb-6 text-xl flex items-center gap-2 border-b border-white/10 pb-3"
+                        style="color: var(--header-partidos);">
+                        <i class="fas fa-calendar-alt"></i> Próximos Partidos {% if upcoming_matchday %}- Jornada {{
+                        upcoming_matchday }}{% endif %}
                     </h3>
                     <div class="space-y-8">
                         {% set days = {'Monday': 'Lunes', 'Tuesday': 'Martes', 'Wednesday': 'Miércoles', 'Thursday':
@@ -173,7 +184,8 @@
 
                                 <div
                                     class="bg-white/5 p-4 rounded-lg border border-white/5 relative overflow-hidden group">
-                                    <div class="absolute top-0 left-0 w-1 h-full" style="background-color: var(--accent-color); opacity: 0.5;"></div>
+                                    <div class="absolute top-0 left-0 w-1 h-full"
+                                        style="background-color: var(--accent-color); opacity: 0.5;"></div>
 
                                     {% if match.stage != 'regular' or match.is_practice %}
                                     <div class="mb-3 flex justify-center gap-2">
@@ -188,7 +200,8 @@
                                         </span>
                                         {% endif %}
                                         {% if match.is_practice %}
-                                        <span class="bg-amber-500/20 text-amber-500 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1">
+                                        <span
+                                            class="bg-amber-500/20 text-amber-500 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full flex items-center gap-1">
                                             <i class="fas fa-dumbbell"></i> Práctica
                                         </span>
                                         {% endif %}
@@ -196,7 +209,8 @@
                                     {% endif %}
 
                                     <div class="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
-                                        <div class="flex items-center gap-2 font-mono text-lg font-bold" style="color: var(--text-color);">
+                                        <div class="flex items-center gap-2 font-mono text-lg font-bold"
+                                            style="color: var(--text-color);">
                                             <i class="far fa-clock" style="color: var(--header-partidos);"></i>
                                             {{ match.match_date.strftime('%I:%M %p') }}
                                         </div>
@@ -245,9 +259,11 @@
 
                 {% if include_recent and recent_matches %}
                 <!-- Recent Matches -->
-                <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                <div class="glass rounded-lg p-5 border"
+                    style="background-color: var(--glass-bg); border-color: var(--glass-border);">
                     <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-resultados);">
-                        <i class="fas fa-check-circle"></i> Resultados ({{ date_start }} - {{ date_end }})
+                        <i class="fas fa-check-circle"></i> Resultados ({{ date_start }} - {{ date_end }}) {% if
+                        recent_matchday %}- Jornada {{ recent_matchday }}{% endif %}
                     </h3>
                     <div class="grid grid-cols-2 gap-4">
                         {% for match in recent_matches %}
@@ -255,7 +271,8 @@
                             class="bg-white/5 p-3 rounded flex flex-col items-center gap-2 text-sm border border-white/5 relative overflow-hidden group">
                             {% if match.is_practice %}
                             <div class="absolute top-0 right-0">
-                                <span class="bg-amber-500/20 text-amber-500 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-bl">Práctica</span>
+                                <span
+                                    class="bg-amber-500/20 text-amber-500 text-[8px] font-bold uppercase px-1.5 py-0.5 rounded-bl">Práctica</span>
                             </div>
                             {% endif %}
                             <div class="flex justify-between items-center w-full">
@@ -265,14 +282,16 @@
                                     <img src="{{ teams_dict[match.home_team_id].shield_url }}"
                                         class="w-5 h-5 object-contain flex-shrink-0">
                                     {% endif %}
-                                    <span class="font-medium leading-tight">{{ teams_dict[match.home_team_id].name }}</span>
+                                    <span class="font-medium leading-tight">{{ teams_dict[match.home_team_id].name
+                                        }}</span>
                                 </div>
                                 <span
                                     class="bg-black/40 px-3 py-1 rounded font-bold mx-2 text-white whitespace-nowrap flex-shrink-0">
                                     {{ match.home_score }} - {{ match.away_score }}
                                 </span>
                                 <div class="flex items-center justify-start gap-2 flex-1 text-left">
-                                    <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name }}</span>
+                                    <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name
+                                        }}</span>
                                     {% if is_premium and league.show_team_logos and
                                     teams_dict[match.away_team_id].shield_url %}
                                     <img src="{{ teams_dict[match.away_team_id].shield_url }}"
@@ -289,7 +308,8 @@
                 {% if (include_scorers and top_scorers) or (include_keepers and top_goalkeepers) %}
                 <div class="grid grid-cols-2 gap-6">
                     {% if include_scorers and top_scorers %}
-                    <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                    <div class="glass rounded-lg p-5 border"
+                        style="background-color: var(--glass-bg); border-color: var(--glass-border);">
                         <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-goleadores);">
                             <i class="fas fa-futbol"></i> Goleadores
                         </h3>
@@ -309,7 +329,8 @@
                     {% endif %}
 
                     {% if include_keepers and top_goalkeepers %}
-                    <div class="glass rounded-lg p-5 border" style="background-color: var(--glass-bg); border-color: var(--glass-border);">
+                    <div class="glass rounded-lg p-5 border"
+                        style="background-color: var(--glass-bg); border-color: var(--glass-border);">
                         <h3 class="font-bold mb-4 flex items-center gap-2" style="color: var(--header-arqueros);">
                             <i class="fas fa-shield-alt"></i> Arqueros
                         </h3>
@@ -333,10 +354,12 @@
                 {% if report_note %}
                 <!-- Custom Note (Premium) -->
                 <div class="relative z-10 px-4 mb-8 mt-8">
-                    <div class="border rounded-lg p-4 flex gap-4 items-start shadow-xl" style="background-color: var(--note-bg); border-color: var(--note-border);">
+                    <div class="border rounded-lg p-4 flex gap-4 items-start shadow-xl"
+                        style="background-color: var(--note-bg); border-color: var(--note-border);">
                         <i class="fas fa-info-circle mt-1 text-lg" style="color: var(--note-icon);"></i>
                         <div>
-                            <h3 class="font-bold text-sm uppercase tracking-wider mb-1" style="color: var(--note-title);">Nota Importante
+                            <h3 class="font-bold text-sm uppercase tracking-wider mb-1"
+                                style="color: var(--note-title);">Nota Importante
                             </h3>
                             <p class="text-white text-lg font-medium leading-relaxed">{{ report_note }}</p>
                         </div>
@@ -354,24 +377,30 @@
 
     <!-- Hidden PDF Capture Target (Landscape - Ink Saving) -->
     <div id="pdf-capture-wrapper" class="hidden">
-        <div id="pdf-capture-target" class="bg-white text-black w-[1120px] p-12 relative font-sans">
-            
-            <!-- PDF Header (Ultra Compact) -->
-            <div class="flex items-center gap-4 mb-4 border-b border-slate-800 pb-4">
-                {% set logo_src = league.logo_url if (is_premium and league.logo_url) else url_for('static', filename='img/LigaPro_Manager.png') %}
-                <img src="{{ logo_src }}" class="w-14 h-14 object-contain rounded-lg border border-slate-200 p-1 bg-white">
+        <div id="pdf-capture-target" class="bg-white text-black w-[1120px] p-6 relative font-sans">
+
+            <div class="flex items-center gap-4 mb-2 border-b border-slate-800 pb-2">
+                {% set logo_src = league.logo_url if (is_premium and league.logo_url) else url_for('static',
+                filename='img/LigaPro_Manager.png') %}
+                <img src="{{ logo_src }}"
+                    class="w-14 h-14 object-contain rounded-lg border border-slate-200 p-1 bg-white">
 
                 <div class="flex-1">
-                    <h1 class="text-2xl font-black uppercase tracking-tight text-slate-900 leading-none mb-1">{{ league.name }}</h1>
+                    <h1 class="text-2xl font-black uppercase tracking-tight text-slate-900 leading-none mb-1">{{
+                        league.name }}</h1>
                     {% if is_premium and league.slogan %}
                     <p class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-bold">{{ league.slogan }}</p>
                     {% else %}
-                    <p class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-bold">Resumen Oficial de Competencia</p>
+                    <p class="text-slate-500 text-[10px] uppercase tracking-[0.2em] font-bold">Resumen Oficial de
+                        Competencia</p>
                     {% endif %}
                 </div>
 
                 <div class="text-right flex flex-col items-end gap-0.5">
-                    <span class="bg-slate-900 text-white px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded">{{ league.category or 'LIBRE' }}</span>
+                    <span
+                        class="bg-slate-900 text-white px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded">
+                        {% if current_matchday_title %}{{ current_matchday_title }}{% else %}{{ league.category or 'LIBRE' }}{% endif %}
+                    </span>
                     <span class="text-slate-400 text-[8px] font-mono uppercase">{{ today }}</span>
                 </div>
             </div>
@@ -381,39 +410,42 @@
                 <!-- Left Column: Standings -->
                 <div class="space-y-4">
                     <div>
-                        <h2 class="text-[11px] font-black uppercase tracking-widest mb-3 flex items-center gap-2" style="color: var(--header-tabla, #0f172a);">
+                        <h2 class="text-[11px] font-black uppercase tracking-widest mb-3 flex items-center gap-2"
+                            style="color: var(--header-tabla, #0f172a);">
                             <span class="w-1 h-3 bg-current rounded-full"></span> Tabla General
                         </h2>
                         <table class="w-full text-[10px] border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-y border-slate-200 text-slate-500 uppercase text-[8px] font-bold">
-                                    <th class="py-1.5 px-1 text-center w-5">#</th>
-                                    <th class="py-1.5 px-1 text-left">Equipo</th>
-                                    <th class="py-1.5 px-0.5 text-center w-6">PJ</th>
-                                    <th class="py-1.5 px-0.5 text-center w-6">G</th>
-                                    <th class="py-1.5 px-0.5 text-center w-6">E</th>
-                                    <th class="py-1.5 px-0.5 text-center w-6">P</th>
-                                    <th class="py-1.5 px-0.5 text-center w-7">GF</th>
-                                    <th class="py-1.5 px-0.5 text-center w-7">GC</th>
-                                    <th class="py-1.5 px-0.5 text-center w-7">DG</th>
-                                    <th class="py-1.5 px-1 text-center w-8 bg-slate-100 text-slate-900">PTS</th>
+                                <tr
+                                    class="bg-slate-50 border-y border-slate-200 text-slate-500 uppercase text-[8px] font-bold">
+                                    <th class="py-0.5 px-1 text-center w-5">#</th>
+                                    <th class="py-0.5 px-1 text-left">Equipo</th>
+                                    <th class="py-0.5 px-0.5 text-center w-6">PJ</th>
+                                    <th class="py-0.5 px-0.5 text-center w-6">G</th>
+                                    <th class="py-0.5 px-0.5 text-center w-6">E</th>
+                                    <th class="py-0.5 px-0.5 text-center w-6">P</th>
+                                    <th class="py-0.5 px-0.5 text-center w-7">GF</th>
+                                    <th class="py-0.5 px-0.5 text-center w-7">GC</th>
+                                    <th class="py-0.5 px-0.5 text-center w-7">DG</th>
+                                    <th class="py-0.5 px-1 text-center w-8 bg-slate-100 text-slate-900">PTS</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for s in standings %}
-                                <tr class="border-b border-slate-100 hover:bg-slate-50/50">
-                                    <td class="py-1.5 px-1 text-center font-bold text-slate-400">{{ loop.index }}</td>
-                                    <td class="py-1.5 px-1 font-bold text-slate-900 truncate max-w-[130px]">
+                                <tr class="border-b border-slate-200 hover:bg-slate-50">
+                                    <td class="py-0.5 px-1 text-center font-bold text-slate-500">{{ loop.index }}</td>
+                                    <td class="py-0.5 px-1 font-bold text-slate-900 truncate max-w-[130px]">
                                         {{ s.team.name }}
                                     </td>
-                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.played }}</td>
-                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.won }}</td>
-                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.drawn }}</td>
-                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.lost }}</td>
-                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.goals_for }}</td>
-                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.goals_against }}</td>
-                                    <td class="py-1.5 px-0.5 text-center text-slate-600">{{ s.goal_difference }}</td>
-                                    <td class="py-1.5 px-1 text-center font-black text-xs bg-slate-50 text-slate-900">{{ s.points }}</td>
+                                    <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.played }}</td>
+                                    <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.won }}</td>
+                                    <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.drawn }}</td>
+                                    <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.lost }}</td>
+                                    <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.goals_for }}</td>
+                                    <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.goals_against }}</td>
+                                    <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.goal_difference }}</td>
+                                    <td class="py-0.5 px-1 text-center font-black text-[10px] bg-slate-50 text-slate-900">{{
+                                        s.points }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -427,16 +459,21 @@
                     <div class="grid grid-cols-2 gap-4">
                         {% if include_scorers and top_scorers %}
                         <div>
-                            <h3 class="text-[9px] font-black uppercase tracking-widest mb-2" style="color: var(--header-goleo, #0f172a);">Pichichi</h3>
+                            <h3 class="text-[9px] font-black uppercase tracking-widest mb-2"
+                                style="color: var(--header-goleo, #0f172a);">Pichichi</h3>
                             <div class="space-y-1">
                                 {% for stat in top_scorers[:5] %}
-                                <div class="flex justify-between items-center text-[9px] border-b border-dotted border-slate-200 pb-0.5">
+                                <div
+                                    class="flex justify-between items-center text-[9px] border-b border-slate-300 pb-0.5">
                                     <div class="flex items-center truncate mr-2">
-                                        <span class="font-bold text-slate-400 w-3 mr-1">{{ loop.index }}.</span>
-                                        <span class="font-black text-[7px] bg-slate-100 text-slate-600 px-1 rounded mr-1">[{{ stat.team_initials }}]</span>
-                                        <span class="font-medium text-slate-700 truncate">{{ stat.player_name }}</span>
+                                        <span class="font-bold text-slate-500 w-3 mr-1">{{ loop.index }}.</span>
+                                        <span
+                                            class="font-black text-[7px] text-slate-600 mr-1">[{{
+                                            stat.team_initials }}]</span>
+                                        <span class="font-medium text-slate-900 truncate">{{ stat.player_name }}</span>
                                         {% if stat.player_number %}
-                                        <span class="ml-1 text-[7px] font-bold text-slate-400">{{ stat.player_number }}</span>
+                                        <span class="ml-1 text-[7px] font-bold text-slate-500">{{ stat.player_number
+                                            }}</span>
                                         {% endif %}
                                     </div>
                                     <span class="font-black text-slate-900">{{ stat.value }}</span>
@@ -448,16 +485,21 @@
 
                         {% if include_keepers and top_goalkeepers %}
                         <div>
-                            <h3 class="text-[9px] font-black uppercase tracking-widest mb-2" style="color: var(--header-arqueros, #0f172a);">Arqueros</h3>
+                            <h3 class="text-[9px] font-black uppercase tracking-widest mb-2"
+                                style="color: var(--header-arqueros, #0f172a);">Arqueros</h3>
                             <div class="space-y-1">
                                 {% for stat in top_goalkeepers[:5] %}
-                                <div class="flex justify-between items-center text-[9px] border-b border-dotted border-slate-200 pb-0.5">
+                                <div
+                                    class="flex justify-between items-center text-[9px] border-b border-slate-300 pb-0.5">
                                     <div class="flex items-center truncate mr-2">
-                                        <span class="font-bold text-slate-400 w-3 mr-1">{{ loop.index }}.</span>
-                                        <span class="font-black text-[7px] bg-slate-100 text-slate-600 px-1 rounded mr-1">[{{ stat.team_initials }}]</span>
-                                        <span class="font-medium text-slate-700 truncate">{{ stat.player_name }}</span>
+                                        <span class="font-bold text-slate-500 w-3 mr-1">{{ loop.index }}.</span>
+                                        <span
+                                            class="font-black text-[7px] text-slate-600 mr-1">[{{
+                                            stat.team_initials }}]</span>
+                                        <span class="font-medium text-slate-900 truncate">{{ stat.player_name }}</span>
                                         {% if stat.player_number %}
-                                        <span class="ml-1 text-[7px] font-bold text-slate-400">{{ stat.player_number }}</span>
+                                        <span class="ml-1 text-[7px] font-bold text-slate-500">{{ stat.player_number
+                                            }}</span>
                                         {% endif %}
                                     </div>
                                     <span class="font-black text-slate-900">{{ stat.value }}</span>
@@ -471,20 +513,26 @@
                     <!-- Recent Results (Compact) -->
                     {% if include_recent and recent_matches %}
                     <div>
-                        <h2 class="text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2" style="color: var(--header-resultados, #0f172a);">
-                            <span class="w-1 h-2.5 bg-current rounded-full"></span> Últimos Resultados
+                        <h2 class="text-[10px] font-black uppercase tracking-widest mb-2 mt-2 flex items-center gap-2"
+                            style="color: var(--header-resultados, #0f172a);">
+                            <span class="w-1 h-2.5 bg-current rounded-full"></span> Últimos Resultados {% if
+                            recent_matchday %}- Jornada {{ recent_matchday }}{% endif %}
                         </h2>
-                        <div class="grid gap-1.5">
+                        <div class="grid gap-0">
                             {% for match in recent_matches[:5] %}
-                            <div class="flex items-center justify-between p-1.5 border border-slate-100 rounded bg-white shadow-sm">
-                                <span class="text-[8.5px] font-bold text-slate-900 text-right w-[40%] truncate">{{ teams_dict[match.home_team_id].name }}</span>
-                                <div class="flex flex-col items-center px-2 border-x border-slate-50 mx-1">
-                                    <span class="text-[9px] font-black text-slate-900 leading-tight">{{ match.home_score }} - {{ match.away_score }}</span>
+                            <div class="flex items-center justify-between py-1 border-b border-slate-400">
+                                <span class="text-[8.5px] font-bold text-slate-900 text-right w-[42%] pr-1 truncate">{{
+                                    teams_dict[match.home_team_id].name }}</span>
+                                <div class="flex flex-col items-center justify-center w-[16%]">
+                                    <span class="text-[10px] font-black text-slate-900 leading-none">{{ match.home_score
+                                        }} - {{ match.away_score }}</span>
                                     {% if match.is_practice %}
-                                    <span class="text-[5px] font-black uppercase text-amber-600 tracking-tighter">PRÁCT.</span>
+                                    <span
+                                        class="text-[5px] font-black uppercase text-amber-700 tracking-tighter mt-0.5">PRÁCT.</span>
                                     {% endif %}
                                 </div>
-                                <span class="text-[8.5px] font-bold text-slate-900 text-left w-[40%] truncate">{{ teams_dict[match.away_team_id].name }}</span>
+                                <span class="text-[8.5px] font-bold text-slate-900 text-left w-[42%] pl-1 truncate">{{
+                                    teams_dict[match.away_team_id].name }}</span>
                             </div>
                             {% endfor %}
                         </div>
@@ -495,24 +543,29 @@
 
             <!-- Bottom Section: Upcoming Matches (Full Width 2-Column) -->
             {% if include_upcoming and upcoming_matches %}
-            <div class="border-t border-slate-100 pt-5">
-                <h2 class="text-[11px] font-black uppercase tracking-widest mb-4 flex items-center gap-2" style="color: var(--accent-color, #0f172a);">
-                    <span class="w-1.5 h-3 bg-current rounded-full"></span> Próxima Agenda
+            <div class="border-t-2 border-slate-800 pt-3">
+                <h2 class="text-[11px] font-black uppercase tracking-widest mb-2 flex items-center gap-2"
+                    style="color: var(--accent-color, #0f172a);">
+                    <span class="w-1.5 h-3 bg-current rounded-full"></span> Próxima Agenda {% if upcoming_matchday %}-
+                    Jornada {{ upcoming_matchday }}{% endif %}
                 </h2>
-                <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                <div class="grid grid-cols-2 gap-x-12 gap-y-1">
                     {% for match in upcoming_matches %}
-                    <div class="flex items-center p-2 border border-slate-100 rounded-md bg-slate-50/30">
-                        <div class="text-center w-14 border-r border-slate-200 pr-2 mr-3">
-                            <div class="text-[9px] font-black text-slate-900 whitespace-nowrap">{{ match.match_date_display }}</div>
-                            <div class="text-[7.5px] font-bold text-slate-900 mt-0.5">{{ match.match_time_display }}</div>
+                    <div class="flex items-center py-1 border-b border-slate-400">
+                        <div class="text-left w-14 border-r border-slate-400 pr-1 mr-2 flex flex-col justify-center">
+                            <div class="text-[8px] font-black text-slate-900 whitespace-nowrap">{{
+                                match.match_date_display }}</div>
+                            <div class="text-[7.5px] font-bold text-slate-700 mt-0.5">{{ match.match_time_display }}
+                            </div>
                         </div>
                         <div class="flex-1 flex items-center justify-between text-[10px] font-bold text-slate-900">
-                            <span class="truncate w-[43%] text-right">{{ teams_dict[match.home_team_id].name }}</span>
-                            <span class="text-[7px] text-slate-300 font-black px-1.5">VS</span>
-                            <span class="truncate w-[43%] text-left">{{ teams_dict[match.away_team_id].name }}</span>
+                            <span class="truncate w-[44%] text-right pr-1">{{ teams_dict[match.home_team_id].name }}</span>
+                            <span class="text-[7px] text-slate-600 font-black">VS</span>
+                            <span class="truncate w-[44%] text-left pl-1">{{ teams_dict[match.away_team_id].name }}</span>
                         </div>
                         {% if match.is_practice %}
-                        <span class="ml-2 text-[6px] font-black text-amber-600 border border-amber-200 px-1 rounded uppercase">P</span>
+                        <span
+                            class="ml-1 text-[6px] font-black text-amber-700 uppercase">P</span>
                         {% endif %}
                     </div>
                     {% endfor %}
@@ -521,14 +574,16 @@
             {% endif %}
 
             {% if report_note %}
-            <div class="mt-4 p-3 border border-slate-100 rounded-md bg-slate-50/50 italic text-slate-500 text-[9px] leading-relaxed">
-                <strong class="text-[8px] inline-block mr-1 uppercase font-black not-italic text-slate-900">Nota:</strong>
-                {{ report_note }}
+            <div
+                class="mt-3 py-1 text-center italic text-slate-700 text-[10px] leading-relaxed">
+                <strong
+                    class="uppercase font-black not-italic text-slate-900 mr-2">AVISO:</strong>{{ report_note }}
             </div>
             {% endif %}
 
             <!-- PDF Footer -->
-            <div class="mt-auto pt-6 border-t border-slate-200 flex justify-between items-center text-[7px] font-black text-slate-300 uppercase tracking-[0.4em]">
+            <div
+                class="mt-auto pt-4 border-t border-slate-300 flex justify-between items-center text-[7px] font-black text-slate-400 uppercase tracking-[0.4em]">
                 <div>LigaPro Manager - Reporte Oficial</div>
                 <div>Generado el {{ today }} | Página 1 de 1</div>
             </div>
