@@ -64,8 +64,12 @@
                     <p class="text-white/60 text-lg uppercase tracking-widest font-medium">Reporte Oficial</p>
                     {% endif %}
 
-                    <p class="text-white/40 text-sm mt-2 font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}
-                    </p>
+                    <div class="flex items-center gap-4 mt-2">
+                        <p class="text-white/40 text-sm font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}</p>
+                        {% if current_matchday_title %}
+                        <p class="bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-0.5 rounded text-xs font-bold uppercase tracking-widest">{{ current_matchday_title }}</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -375,7 +379,6 @@
     <div id="pdf-capture-wrapper" class="hidden">
         <div id="pdf-capture-target" class="bg-white text-black w-[1120px] p-6 relative font-sans">
 
-            <!-- PDF Header (Ultra Compact) -->
             <div class="flex items-center gap-4 mb-2 border-b border-slate-800 pb-2">
                 {% set logo_src = league.logo_url if (is_premium and league.logo_url) else url_for('static',
                 filename='img/LigaPro_Manager.png') %}
@@ -395,8 +398,9 @@
 
                 <div class="text-right flex flex-col items-end gap-0.5">
                     <span
-                        class="bg-slate-900 text-white px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded">{{
-                        league.category or 'LIBRE' }}</span>
+                        class="bg-slate-900 text-white px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded">
+                        {% if current_matchday_title %}{{ current_matchday_title }}{% else %}{{ league.category or 'LIBRE' }}{% endif %}
+                    </span>
                     <span class="text-slate-400 text-[8px] font-mono uppercase">{{ today }}</span>
                 </div>
             </div>

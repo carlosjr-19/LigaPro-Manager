@@ -3,6 +3,7 @@ function openShareModal() {
     document.getElementById('shareModal').classList.add('flex');
     toggleDateInputs();
     toggleUpcomingDateInputs();
+    if(typeof toggleCurrentMatchdayInput === 'function') { toggleCurrentMatchdayInput(); }
 }
 
 function closeShareModal() {

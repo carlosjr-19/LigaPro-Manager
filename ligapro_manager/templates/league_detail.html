@@ -2033,18 +2033,34 @@
 
     <!-- Share Modal -->
     <div id="shareModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[200] p-4">
-        <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative">
-            <button onclick="closeShareModal()" class="absolute top-4 right-4 text-white/40 hover:text-white">
+        <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative max-h-[90vh] flex flex-col">
+            <button onclick="closeShareModal()" class="absolute top-4 right-4 text-white/40 hover:text-white z-10">
                 <i class="fas fa-times"></i>
             </button>
 
             <form action="{{ url_for('league.generate_share_report', league_id=league.id) }}" method="GET"
-                target="_self" class="p-6">
+                target="_self" class="p-6 overflow-y-auto">
                 <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
                     <i class="fas fa-file-export text-blue-400"></i> Generar Reporte
                 </h3>
 
                 <div class="space-y-4">
+                    <!-- Current Matchday (Title Badge) -->
+                    {% if league.show_matchday_in_report %}
+                    <div class="border border-white/10 rounded p-3">
+                        <label class="flex items-center gap-3 mb-3 cursor-pointer">
+                            <input type="checkbox" name="include_current_matchday" id="check_current_matchday" onchange="toggleCurrentMatchdayInput()"
+                                class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                            <span class="flex-1">Título de Jornada (Aparece en Encabezado)</span>
+                        </label>
+                        <div id="current_matchday_input" class="hidden pl-7">
+                            <label class="block text-white/40 text-xs mb-1">Título</label>
+                            <input type="text" name="current_matchday_title" placeholder="Ej: Jornada 3"
+                                class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Standings -->
                     <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
                         <input type="checkbox" name="include_standings" checked
