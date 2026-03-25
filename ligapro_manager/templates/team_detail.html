@@ -36,7 +36,7 @@
                     <p class="text-white/60">{{ league.name }}</p>
                     {% if team.captain_name %}
                     <p class="text-white/40 text-sm mt-1">
-                        <i class="fas fa-user-tie mr-1"></i> Capitán: {{ team.captain_name }}
+                        <i class="fas fa-user-tie mr-1"></i> Delegado: {{ team.captain_name }}
                     </p>
                     {% endif %}
                 </div>
@@ -225,13 +225,13 @@
 
                         <form method="POST" action="{{ url_for('team.add_captain', team_id=team.id) }}"
                             class="space-y-2">
-                            <input type="text" name="captain_name" placeholder="Nombre del capitán"
+                            <input type="text" name="captain_name" placeholder="Nombre del delegado"
                                 class="input-field text-sm" required>
                             <button type="submit" class="btn-secondary w-full text-sm" {% if team.captain_user_id
-                                %}onclick="return confirm('¿Reemplazar al capitán actual? Se generarán nuevas credenciales.')"
+                                %}onclick="return confirm('¿Reemplazar al delegado actual? Se generarán nuevas credenciales.')"
                                 {% endif %}>
                                 <i class="fas fa-user-plus mr-2"></i>
-                                {% if team.captain_user_id %}Cambiar Capitán{% else %}Asignar Capitán{% endif %}
+                                {% if team.captain_user_id %}Cambiar Delegado{% else %}Asignar Delegado{% endif %}
                             </button>
                         </form>
 
@@ -259,7 +259,7 @@
                 {% if team.captain_email and current_user.role == 'owner' %}
                 <div class="card border-warning/30">
                     <h3 class="font-bold mb-4 text-warning">
-                        <i class="fas fa-key mr-2"></i>Credenciales Capitán
+                        <i class="fas fa-key mr-2"></i>Credenciales Delegado
                     </h3>
                     <div class="space-y-2 text-sm">
                         <div class="bg-white/5 p-3 rounded">
@@ -292,7 +292,7 @@
                                 </div>
                                 <div>
                                     <span class="text-sm font-bold text-white/80 group-hover:text-white transition-colors">Pública</span>
-                                    <p class="text-[10px] text-white/40 leading-tight">Visible para el capitán</p>
+                                    <p class="text-[10px] text-white/40 leading-tight">Visible para el delegado</p>
                                 </div>
                             </label>
                         </div>

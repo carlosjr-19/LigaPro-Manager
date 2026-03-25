@@ -9,7 +9,7 @@ class LeagueForm(FlaskForm):
     win_points = IntegerField('Puntos por Victoria', validators=[DataRequired()], default=3)
     draw_points = IntegerField('Puntos por Empate', validators=[DataRequired()], default=1)
     # Field handles by template conditional, but need it in form
-    show_stats = BooleanField('Mostrar Estadísticas a Capitanes', default=True)
+    show_stats = BooleanField('Mostrar Estadísticas a Delegados', default=True)
     logo_url = StringField('URL del Logo (Premium)', validators=[Optional()])
     slogan = StringField('Slogan de la Liga (Premium)', validators=[Optional(), Length(max=255)])
     credential_color = StringField('Color de Credencial (Hex)', validators=[Optional(), Length(max=10)], default='#dc2626')

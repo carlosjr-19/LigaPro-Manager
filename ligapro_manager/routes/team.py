@@ -207,7 +207,7 @@ def add_captain(team_id):
     
     captain_name = request.form.get('captain_name')
     if not captain_name:
-        flash('Nombre del capitán requerido.', 'danger')
+        flash('Nombre del delegado requerido.', 'danger')
         return redirect(url_for('team.team_detail', team_id=team_id))
     
     # Define captain email (deterministic based on team ID)
@@ -225,7 +225,7 @@ def add_captain(team_id):
         # Ensure role and team_id are correct
         captain.role = 'captain'
         captain.team_id = team.id
-        flash(f'Capitán actualizado. Contraseña restablecida: {captain_password}', 'success')
+        flash(f'Delegado actualizado. Contraseña restablecida: {captain_password}', 'success')
     else:
         # Create new captain user
         captain = User(
@@ -236,7 +236,7 @@ def add_captain(team_id):
             team_id=team.id
         )
         db.session.add(captain)
-        flash(f'Capitán asignado. Email: {captain_email}, Contraseña: {captain_password}', 'success')
+        flash(f'Delegado asignado. Email: {captain_email}, Contraseña: {captain_password}', 'success')
     
     # Update team record
     db.session.flush() # Ensure captain has ID if new
@@ -335,7 +335,7 @@ def generate_credentials(team_id):
              has_access = True
              
     if not has_access:
-        flash('Esta función requiere Premium (Dueño de Liga o Plan Capitán).', 'warning')
+        flash('Esta función requiere Premium (Dueño de Liga o Plan Delegado).', 'warning')
         if is_captain and not is_owner:
             return redirect(url_for('premium.captain_premium'))
         else:

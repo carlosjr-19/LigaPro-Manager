@@ -20,7 +20,7 @@
                     <a href="{{ url_for('admin.users', role='owner') }}"
                         class="btn-sm {% if current_role == 'owner' %}btn-primary{% else %}btn-secondary{% endif %}">Owners</a>
                     <a href="{{ url_for('admin.users', role='captain') }}"
-                        class="btn-sm {% if current_role == 'captain' %}btn-primary{% else %}btn-secondary{% endif %}">Capitanes</a>
+                        class="btn-sm {% if current_role == 'captain' %}btn-primary{% else %}btn-secondary{% endif %}">Delegados</a>
                 </div>
 
                 <form action="{{ url_for('admin.users') }}" method="GET" class="flex w-full md:w-auto gap-2">

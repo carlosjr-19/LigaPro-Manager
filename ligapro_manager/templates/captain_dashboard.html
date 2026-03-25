@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard Capitán - LigaPro Manager{% endblock %}
+{% block title %}Dashboard Delegado - LigaPro Manager{% endblock %}
 
 {% block content %}
 <div class="min-h-screen">
@@ -17,7 +17,7 @@
                     {% endif %}
                     <div>
                         <h1 class="text-xl font-bold">{{ team.name }}</h1>
-                        <p class="text-white/60 text-sm">{{ league.name }} • Capitán: {{ current_user.name }}</p>
+                        <p class="text-white/60 text-sm">{{ league.name }} • Delegado: {{ current_user.name }}</p>
                     </div>
                 </div>
                 <a href="{{ url_for('auth.logout') }}" class="btn-secondary text-sm">
@@ -169,7 +169,7 @@
                 <div class="card bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border-blue-500/30">
                     <h3 class="font-bold mb-4 flex items-center gap-2">
                         <i class="fas fa-crown text-blue-400"></i>
-                        <span>Herramientas de Capitán</span>
+                        <span>Herramientas de Delegado</span>
                     </h3>
 
                     {% if current_user.is_active_premium %}
