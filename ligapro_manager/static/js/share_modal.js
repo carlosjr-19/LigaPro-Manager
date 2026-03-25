@@ -32,3 +32,15 @@ function toggleUpcomingDateInputs() {
         }
     }
 }
+
+function toggleCurrentMatchdayInput() {
+    const isChecked = document.getElementById('check_current_matchday')?.checked;
+    const inputs = document.getElementById('current_matchday_input');
+    if (inputs) {
+        if (isChecked) {
+            inputs.classList.remove('hidden');
+        } else {
+            inputs.classList.add('hidden');
+        }
+    }
+}

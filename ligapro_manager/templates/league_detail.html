@@ -2033,7 +2033,8 @@
 
     <!-- Share Modal -->
     <div id="shareModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-[200] p-4">
-        <div class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative max-h-[90vh] flex flex-col">
+        <div
+            class="bg-[#1a2234] border border-white/10 rounded-xl w-full max-w-lg shadow-2xl relative max-h-[90vh] flex flex-col">
             <button onclick="closeShareModal()" class="absolute top-4 right-4 text-white/40 hover:text-white z-10">
                 <i class="fas fa-times"></i>
             </button>
@@ -2045,11 +2046,18 @@
                 </h3>
 
                 <div class="space-y-4">
+                    <!-- Standings -->
+                    <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
+                        <input type="checkbox" name="include_standings" checked
+                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
+                        <span class="flex-1">Tabla de Posiciones</span>
+                    </label>
                     <!-- Current Matchday (Title Badge) -->
                     {% if league.show_matchday_in_report %}
                     <div class="border border-white/10 rounded p-3">
                         <label class="flex items-center gap-3 mb-3 cursor-pointer">
-                            <input type="checkbox" name="include_current_matchday" id="check_current_matchday" onchange="toggleCurrentMatchdayInput()"
+                            <input type="checkbox" name="include_current_matchday" id="check_current_matchday"
+                                onchange="toggleCurrentMatchdayInput()"
                                 class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
                             <span class="flex-1">Título de Jornada (Aparece en Encabezado)</span>
                         </label>
@@ -2060,13 +2068,6 @@
                         </div>
                     </div>
                     {% endif %}
-
-                    <!-- Standings -->
-                    <label class="flex items-center gap-3 p-3 bg-white/5 rounded hover:bg-white/10 cursor-pointer">
-                        <input type="checkbox" name="include_standings" checked
-                            class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                        <span class="flex-1">Tabla de Posiciones</span>
-                    </label>
 
                     <!-- Recent -->
                     <div class="border border-white/10 rounded p-3">
