@@ -1029,7 +1029,7 @@
             <div id="playoff-list-view" class="space-y-8">
                 {% for stage_name, stage_matches in [('repechaje', playoff_matches.repechaje), ('round_of_16',
                 playoff_matches.round_of_16), ('quarterfinal',
-                playoff_matches.quarterfinal), ('semifinal', playoff_matches.semifinal), ('final',
+                playoff_matches.quarterfinal), ('semifinal', playoff_matches.semifinal), ('tercer_lugar', playoff_matches.tercer_lugar), ('final',
                 playoff_matches.final)] %}
                 {% if stage_matches %}
                 <div>
@@ -1037,10 +1037,12 @@
                                     {% if stage_name == 'repechaje' %}text-warning{% endif %}
                                     {% if stage_name == 'quarterfinal' %}text-blue-400{% endif %}
                                     {% if stage_name == 'semifinal' %}text-primary{% endif %}
+                                    {% if stage_name == 'tercer_lugar' %}text-orange-400{% endif %}
                                     {% if stage_name == 'final' %}text-yellow-400{% endif %}">
                         {% if stage_name == 'repechaje' %}⚡ Repechaje{% endif %}
                         {% if stage_name == 'quarterfinal' %}🏆 Cuartos de Final{% endif %}
                         {% if stage_name == 'semifinal' %}🔥 Semifinales{% endif %}
+                        {% if stage_name == 'tercer_lugar' %}🥉 Tercer Lugar{% endif %}
                         {% if stage_name == 'final' %}👑 Final{% endif %}
                     </h3>
                     <div class="space-y-3">
