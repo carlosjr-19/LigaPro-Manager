@@ -271,7 +271,7 @@ def reset_playoffs(league_id):
     # Delete all playoff matches
     deleted = Match.query.filter(
         Match.league_id == league_id,
-        Match.stage.in_(['repechaje', 'quarterfinal', 'semifinal', 'final'])
+        Match.stage.in_(['repechaje', 'quarterfinal', 'semifinal', 'tercer_lugar', 'final'])
     ).delete(synchronize_session=False)
     
     # Reset league playoff state
@@ -306,7 +306,7 @@ def generate_playoffs(league_id):
     # Delete existing playoff matches
     Match.query.filter(
         Match.league_id == league_id,
-        Match.stage.in_(['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'final'])
+        Match.stage.in_(['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'tercer_lugar', 'final'])
     ).delete(synchronize_session=False)
     
     # Clear playoff state
@@ -474,7 +474,7 @@ def advance_playoff_round(league_id):
     # Get all playoff matches
     playoff_matches = Match.query.filter(
         Match.league_id == league_id,
-        Match.stage.in_(['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'final'])
+        Match.stage.in_(['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'tercer_lugar', 'final'])
     ).all()
     
     if not playoff_matches:
@@ -510,8 +510,7 @@ def advance_playoff_round(league_id):
     
     # Calculate qualified teams for next round
     winners = []
-    # Calculate qualified teams for next round
-    winners = []
+    losers = []
 
     if league.playoff_type == 'double' and active_stage != 'final':
         # Double Leg Logic: Aggregate Score
@@ -533,8 +532,10 @@ def advance_playoff_round(league_id):
                 # For now, let's just take the winner of this match if only 1 exists
                 if match.home_score > match.away_score:
                     winners.append(match.home_team_id)
+                    losers.append(match.away_team_id)
                 else:
                     winners.append(match.away_team_id)
+                    losers.append(match.home_team_id)
                 continue
 
             # Calculate aggregate
@@ -554,19 +555,13 @@ def advance_playoff_round(league_id):
             
             if team1_goals > team2_goals:
                 winners.append(team1_id)
+                losers.append(team2_id)
             elif team2_goals > team1_goals:
                 winners.append(team2_id)
+                losers.append(team1_id)
             else:
-                # Aggregate Tie
-                # 1. Away Goals? (Not requested, but common)
-                # 2. Seeding (Higher seed advances) - User asked for "mayor diferencia", if equal?
-                # Let's stick to seeding/Home advantage of first leg fallback
-                # Default: The team that was Home in the FIRST match of the pair? No, usually higher seed.
-                # Let's add both to a potential winner list and let the seeding sort below pick correct one?
-                # No, we need to pick ONE.
-                # Fallback: Pick team1 (randomly essentially if we don't check seed here)
-                # Ideally check standings points
-                winners.append(team1_id) # Simplify for now, seeding check is complicated here without re-fetching standings
+                winners.append(team1_id)
+                losers.append(team2_id)
             
             processed_pairs.add(pair_id)
 
@@ -575,12 +570,13 @@ def advance_playoff_round(league_id):
         for match in active_stage_matches:
             if match.home_score > match.away_score:
                 winners.append(match.home_team_id)
+                losers.append(match.away_team_id)
             elif match.away_score > match.home_score:
                 winners.append(match.away_team_id)
+                losers.append(match.home_team_id)
             else:
-                 # Tie-breaker: Setup a rule (e.g. better seed, or home team)
-                 # Defaulting to Home Team for now (should implement penalties or seeding check)
                 winners.append(match.home_team_id)
+                losers.append(match.away_team_id)
 
     # Add byes if coming from repechaje
     if active_stage == 'repechaje' and league.playoff_bye_teams:
@@ -663,6 +659,44 @@ def advance_playoff_round(league_id):
             db.session.add(match2)
             created_count += 1
         
+    # Add Tercer Lugar if advancing to Final
+    if next_stage == 'final' and len(losers) >= 2:
+        third_home_id = losers[0]
+        third_away_id = losers[1]
+        
+        match_third = Match(
+            league_id=league_id,
+            home_team_id=third_home_id,
+            away_team_id=third_away_id,
+            court_id=default_court_id,
+            match_date=datetime.now(timezone.utc),
+            stage='tercer_lugar',
+            match_name=f"Tercer Lugar: {teams_dict[third_home_id].name} vs {teams_dict[third_away_id].name}" + (" (Ida)" if league.playoff_type == 'double' else "")
+        )
+        if league.auto_fill_prices:
+            match_third.referee_cost_home = str(league.price_per_match)
+            match_third.referee_cost_away = str(league.price_per_match)
+            match_third.referee_cost = str(league.price_referee)
+        db.session.add(match_third)
+        created_count += 1
+        
+        if league.playoff_type == 'double':
+            match_third_vuelta = Match(
+                league_id=league_id,
+                home_team_id=third_away_id,
+                away_team_id=third_home_id,
+                court_id=default_court_id,
+                match_date=datetime.now(timezone.utc),
+                stage='tercer_lugar',
+                match_name=f"Tercer Lugar: {teams_dict[third_away_id].name} vs {teams_dict[third_home_id].name} (Vuelta)"
+            )
+            if league.auto_fill_prices:
+                match_third_vuelta.referee_cost_home = str(league.price_per_match)
+                match_third_vuelta.referee_cost_away = str(league.price_per_match)
+                match_third_vuelta.referee_cost = str(league.price_referee)
+            db.session.add(match_third_vuelta)
+            created_count += 1
+            
     db.session.commit()
     flash(f'Ronda generada: {next_stage} ({created_count} partidos).', 'success')
     return redirect(url_for('league.league_detail', league_id=league_id, _anchor='playoff'))

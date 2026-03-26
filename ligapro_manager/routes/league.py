@@ -224,9 +224,10 @@ def league_detail(league_id):
         'round_of_16': Match.query.filter_by(league_id=league_id, stage='round_of_16').all(),
         'quarterfinal': Match.query.filter_by(league_id=league_id, stage='quarterfinal').all(),
         'semifinal': Match.query.filter_by(league_id=league_id, stage='semifinal').all(),
+        'tercer_lugar': Match.query.filter_by(league_id=league_id, stage='tercer_lugar').all(),
         'final': Match.query.filter_by(league_id=league_id, stage='final').all()
     }
-    stages_order = ['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'final']
+    stages_order = ['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'tercer_lugar', 'final']
     has_playoffs = any(len(m) > 0 for m in playoff_matches.values())
     
     teams_dict = {t.id: t for t in all_teams}
