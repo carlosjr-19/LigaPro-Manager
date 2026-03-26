@@ -76,9 +76,9 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.13.0)
+## 🔄 Últimas Actualizaciones (v0.13.1)
 
-- **Título de Jornadas Personalizable**: Agregamos campos que imprimen en los badges de los encabezados (Imagen/PDF) la jornada que se cursa o las venideras.
+- **Partido por el Tercer Lugar (Liguilla)**: Ahora, al procesar las semifinales, la plataforma generará paralelamente el escenario cruzado con los perdedores para disputarse la llave oficial por el Tercer Lugar del podio sin afectar a la Gran Final.
 - **Renombramiento de Rol**: Todos los paneles y roles orientados al equipo asumen ahora oficialmente el término de "Delegados".
 - **Formato PDF Extremo-Compacto**: Se implementaron bordes limpios y distancias más estrechas para que reportes de ligas con más de 16 equipos quepan milimétricamente en *una sola impresión* física, optimizando tinta y legibilidad.
 - **Scroll del Generador Responsivo**: Mejorado el comportamiento Modal para resoluciones cortas y en desktop.

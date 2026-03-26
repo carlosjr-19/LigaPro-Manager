@@ -1,6 +1,17 @@
-## 0.13.0
+## 0.13.1
 
-Personalización de Título de Jornadas, Terminología "Delegado" y Layout Compacto de PDF.
+Implementación de Partido por el 3er Lugar en Liguillas.
+
+- **Generación Automática de Bronce**: Cuando una Liguilla de corte directo o repechaje supera la fase de Semifinales, el motor de llaves ahora evalúa inmediatamente a los dos equipos que resultaron perdedores.
+- **Tercer Lugar Paralelo**: Se crea de manera instantánea la llave cruzada del "Tercer Lugar" acompañando a la "Gran Final", heredando automáticamente los atributos de la liguilla (como cobros arbitrales e ida/vuelta).
+- **Interfaz Interactiva**: El Dashboard de la liga ahora renderiza esta fase con un estilo bronce/naranja exclusivo entre las llaves de Semifinal y de Final para que pueda ser editada fácilmente.
+
+## Modificado
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/routes/match.py`
+* `ligapro_manager/templates/league_detail.html`
+
+## 0.13.0
 
 - **Título Editable de Jornadas**: Nueva función (si la liga lo habilita) que permite añadir campos personalizados para indicar el número o título de "Jornada Actual" y "Próxima Jornada" en las capturas de imágenes y PDFs generados.
 - **Formato PDF Ultra-Compacto**: Se rediseñó exhaustivamente la plantilla de guardado en PDF para la vista compartida. Se removieron contenedores acolchonados y tarjetas voluminosas en la agenda y resultados en favor de líneas vectorizadas, ahorrando drásticamente el espacio e imprimiendo la liga completa en una sola cara orientada al ahorro de tinta (contraste más negro).
