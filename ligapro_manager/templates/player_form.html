@@ -63,6 +63,18 @@
                     <p id="upload-status" class="hidden text-sm mt-2"></p>
                 </div>
 
+                {% if team.league.owner.is_active_premium and team.league.show_player_registration_date %}
+                <div>
+                    <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">
+                        Fecha de registro (opcional)
+                    </label>
+                    {{ form.registration_date(class="input-field", type="date") }}
+                    {% for error in form.registration_date.errors %}
+                    <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
                 <div class="flex gap-4">
                     <button type="submit" class="btn-primary flex-1">
                         <i class="fas fa-save mr-2"></i>

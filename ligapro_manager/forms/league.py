@@ -29,3 +29,4 @@ class LeagueForm(FlaskForm):
     enable_shutdown_tiebreaker = BooleanField('Habilitar desempate de partidos en shutdown', default=False)
     show_matchday_in_report = BooleanField('Mostrar Jornada en Rol', default=False)
     allow_captains_add_players = BooleanField('Permitir añadir jugadores', default=True)
+    show_player_registration_date = BooleanField('Mostrar fecha de registro de los jugadores', default=False)
