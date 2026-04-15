@@ -35,7 +35,8 @@ def create_player(team_id):
             team_id=team_id,
             number=form.number.data,
             curp=form.curp.data,
-            photo_url=form.photo_url.data
+            photo_url=form.photo_url.data,
+            registration_date=form.registration_date.data
         )
         db.session.add(player)
         db.session.commit()
@@ -69,6 +70,11 @@ def edit_player(player_id):
         player.number = form.number.data
         player.curp = form.curp.data
         player.photo_url = form.photo_url.data
+        if 'registration_date' in form.data and form.registration_date.data is not None:
+             player.registration_date = form.registration_date.data
+        elif form.registration_date.raw_data and not form.registration_date.data:
+             # Form submitted with empty date
+             player.registration_date = None
         db.session.commit()
         flash('Jugador actualizado.', 'success')
         return redirect(url_for('team.team_detail', team_id=team.id))

@@ -11,4 +11,5 @@ class Player(db.Model):
     curp = db.Column(db.String(20), nullable=True)
     number = db.Column(db.Integer, nullable=True)
     photo_url = db.Column(db.String(500), nullable=True)
+    registration_date = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))

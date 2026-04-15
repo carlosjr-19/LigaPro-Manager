@@ -134,7 +134,9 @@ def run_migrations():
                     "ALTER TABLE matches ADD COLUMN is_practice BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE leagues ADD COLUMN show_matchday_in_report BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE leagues ADD COLUMN allow_captains_add_players BOOLEAN DEFAULT TRUE",
-                    "ALTER TABLE team_notes ADD COLUMN is_public BOOLEAN DEFAULT TRUE"
+                    "ALTER TABLE team_notes ADD COLUMN is_public BOOLEAN DEFAULT TRUE",
+                    "ALTER TABLE leagues ADD COLUMN show_player_registration_date BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE players ADD COLUMN registration_date DATE"
                 ]
                 
                 for migration in migrations:

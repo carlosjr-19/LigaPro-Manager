@@ -47,6 +47,7 @@ class League(db.Model):
     enable_shutdown_tiebreaker = db.Column(db.Boolean, default=False)
     show_matchday_in_report = db.Column(db.Boolean, default=False)
     allow_captains_add_players = db.Column(db.Boolean, default=True)
+    show_player_registration_date = db.Column(db.Boolean, default=False)
 
     @property
     def active_teams_count(self):
