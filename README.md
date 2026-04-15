@@ -76,12 +76,10 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.13.1)
+## 🔄 Últimas Actualizaciones (v0.14.0)
 
-- **Partido por el Tercer Lugar (Liguilla)**: Ahora, al procesar las semifinales, la plataforma generará paralelamente el escenario cruzado con los perdedores para disputarse la llave oficial por el Tercer Lugar del podio sin afectar a la Gran Final.
-- **Renombramiento de Rol**: Todos los paneles y roles orientados al equipo asumen ahora oficialmente el término de "Delegados".
-- **Formato PDF Extremo-Compacto**: Se implementaron bordes limpios y distancias más estrechas para que reportes de ligas con más de 16 equipos quepan milimétricamente en *una sola impresión* física, optimizando tinta y legibilidad.
-- **Scroll del Generador Responsivo**: Mejorado el comportamiento Modal para resoluciones cortas y en desktop.
+- **Credenciales con Registro de Antigüedad**: Los dueños Premium ahora pueden registrar y lucir directamente la fecha exacta en la que un jugador fue dado de alta, incluyéndose en el formato de plástico de manera armónica arriba de su fotografía.
+- **Etiquetas Globales Adiestradas**: Las clasificaciones de etiquetas `Práctica` rompen barreras en los Paneles Particulares; se añadieron oficialmente dentro de la libreta de partidos al ver los detalles de un sólo Equipo (Delegado).
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager
