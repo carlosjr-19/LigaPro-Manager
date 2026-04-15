@@ -1,3 +1,25 @@
+## 0.14.0
+
+Implementación de Fecha de Registro y Etiquetas de Práctica en Equipos.
+
+- **Fecha de Registro**: Agregada una nueva opción a la personalización visual (exclusivo Premium) para que aparezca la fecha de registro en las tarjetas de credencial impresas, posicionada de manera estandarizada arriba de la fotografía del jugador.
+- **Formularios Dinámicos**: Una vez encendida la configuración de liga, la fecha de registro se integra al cuestionario al editar o crear un jugador.
+- **Historial de Prácticas**: Ahora el listado de "Partidos" en el panel detallado de cada Equipo marca con una etiqueta amarilla de `Práctica` aquellos encuentros que sean amistosos asistiéndole visualmente a los manejadores de los respectivos planteles.
+- **Persistencia Cuidada**: Mejoras al recolector de formulario general (Settings) validando el procesamiento del modelo.
+
+## Modificado
+* `ligapro_manager/models/league.py`
+* `ligapro_manager/models/player.py`
+* `ligapro_manager/forms/league.py`
+* `ligapro_manager/forms/player.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/routes/player.py`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/player_form.html`
+* `ligapro_manager/templates/credentials.html`
+* `ligapro_manager/templates/team_detail.html`
+* `ligapro_manager/ligapro_manager.py`
+
 ## 0.13.1
 
 Implementación de Partido por el 3er Lugar en Liguillas.

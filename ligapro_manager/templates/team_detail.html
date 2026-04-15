@@ -148,8 +148,14 @@
                     <div class="space-y-3">
                         {% for match in matches %}
                         <div class="p-3 bg-white/5 rounded-lg">
-                            <p class="text-white/40 text-xs mb-2">{{ match.match_date.strftime('%d/%m/%Y %I:%M %p') }}
-                            </p>
+                            <div class="flex justify-between items-center mb-2">
+                                <p class="text-white/40 text-xs">{{ match.match_date.strftime('%d/%m/%Y %I:%M %p') }}</p>
+                                {% if match.is_practice %}
+                                <span class="bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded text-[10px] font-bold border border-yellow-500/30">
+                                    🏋️ PRÁCTICA
+                                </span>
+                                {% endif %}
+                            </div>
                             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
                                 <div class="flex items-center gap-3 flex-1 justify-end w-full sm:w-auto">
                                     <span class="font-medium text-right" style="{% if match.is_completed %}
