@@ -65,9 +65,12 @@
                     {% endif %}
 
                     <div class="flex items-center gap-4 mt-2">
-                        <p class="text-white/40 text-sm font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}</p>
+                        <p class="text-white/40 text-sm font-mono"><i class="far fa-calendar-alt mr-2"></i>{{ today }}
+                        </p>
                         {% if current_matchday_title %}
-                        <p class="bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-0.5 rounded text-xs font-bold uppercase tracking-widest">{{ current_matchday_title }}</p>
+                        <p
+                            class="bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-0.5 rounded text-xs font-bold uppercase tracking-widest">
+                            {{ current_matchday_title }}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -285,10 +288,18 @@
                                     <span class="font-medium leading-tight">{{ teams_dict[match.home_team_id].name
                                         }}</span>
                                 </div>
-                                <span
-                                    class="bg-black/40 px-3 py-1 rounded font-bold mx-2 text-white whitespace-nowrap flex-shrink-0">
-                                    {{ match.home_score }} - {{ match.away_score }}
-                                </span>
+                                <div class="flex flex-col items-center justify-center mx-2 flex-shrink-0">
+                                    <span class="bg-black/40 px-3 py-1 rounded font-bold text-white whitespace-nowrap">
+                                        {{ match.home_score }} - {{ match.away_score }}
+                                    </span>
+                                    {% if league.enable_shutdown_tiebreaker and match.home_score is not none and
+                                    match.home_score == match.away_score and match.shutdown_winner_id %}
+                                    <span
+                                        class="text-[9px] text-amber-500 font-bold uppercase mt-1 leading-none tracking-wider">GN:
+                                        {{ teams_dict[match.shutdown_winner_id].name[:10] if match.shutdown_winner_id in
+                                        teams_dict else 'Ganador' }}</span>
+                                    {% endif %}
+                                </div>
                                 <div class="flex items-center justify-start gap-2 flex-1 text-left">
                                     <span class="font-medium leading-tight">{{ teams_dict[match.away_team_id].name
                                         }}</span>
@@ -399,7 +410,8 @@
                 <div class="text-right flex flex-col items-end gap-0.5">
                     <span
                         class="bg-slate-900 text-white px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded">
-                        {% if current_matchday_title %}{{ current_matchday_title }}{% else %}{{ league.category or 'LIBRE' }}{% endif %}
+                        {% if current_matchday_title %}{{ current_matchday_title }}{% else %}{{ league.category or
+                        'LIBRE' }}{% endif %}
                     </span>
                     <span class="text-slate-400 text-[8px] font-mono uppercase">{{ today }}</span>
                 </div>
@@ -444,7 +456,9 @@
                                     <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.goals_for }}</td>
                                     <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.goals_against }}</td>
                                     <td class="py-0.5 px-0.5 text-center text-slate-700">{{ s.goal_difference }}</td>
-                                    <td class="py-0.5 px-1 text-center font-black text-[10px] bg-slate-50 text-slate-900">{{
+                                    <td
+                                        class="py-0.5 px-1 text-center font-black text-[10px] bg-slate-50 text-slate-900">
+                                        {{
                                         s.points }}</td>
                                 </tr>
                                 {% endfor %}
@@ -467,8 +481,7 @@
                                     class="flex justify-between items-center text-[9px] border-b border-slate-300 pb-0.5">
                                     <div class="flex items-center truncate mr-2">
                                         <span class="font-bold text-slate-500 w-3 mr-1">{{ loop.index }}.</span>
-                                        <span
-                                            class="font-black text-[7px] text-slate-600 mr-1">[{{
+                                        <span class="font-black text-[7px] text-slate-600 mr-1">[{{
                                             stat.team_initials }}]</span>
                                         <span class="font-medium text-slate-900 truncate">{{ stat.player_name }}</span>
                                         {% if stat.player_number %}
@@ -493,8 +506,7 @@
                                     class="flex justify-between items-center text-[9px] border-b border-slate-300 pb-0.5">
                                     <div class="flex items-center truncate mr-2">
                                         <span class="font-bold text-slate-500 w-3 mr-1">{{ loop.index }}.</span>
-                                        <span
-                                            class="font-black text-[7px] text-slate-600 mr-1">[{{
+                                        <span class="font-black text-[7px] text-slate-600 mr-1">[{{
                                             stat.team_initials }}]</span>
                                         <span class="font-medium text-slate-900 truncate">{{ stat.player_name }}</span>
                                         {% if stat.player_number %}
@@ -526,6 +538,13 @@
                                 <div class="flex flex-col items-center justify-center w-[16%]">
                                     <span class="text-[10px] font-black text-slate-900 leading-none">{{ match.home_score
                                         }} - {{ match.away_score }}</span>
+                                    {% if league.enable_shutdown_tiebreaker and match.home_score is not none and
+                                    match.home_score == match.away_score and match.shutdown_winner_id %}
+                                    <span
+                                        class="text-[6px] font-black uppercase text-amber-600 mt-0.5 whitespace-nowrap">GN:
+                                        {{ teams_dict[match.shutdown_winner_id].name[:10] if match.shutdown_winner_id in
+                                        teams_dict else 'Ganador' }}</span>
+                                    {% endif %}
                                     {% if match.is_practice %}
                                     <span
                                         class="text-[5px] font-black uppercase text-amber-700 tracking-tighter mt-0.5">PRÁCT.</span>
@@ -559,13 +578,14 @@
                             </div>
                         </div>
                         <div class="flex-1 flex items-center justify-between text-[10px] font-bold text-slate-900">
-                            <span class="truncate w-[44%] text-right pr-1">{{ teams_dict[match.home_team_id].name }}</span>
+                            <span class="truncate w-[44%] text-right pr-1">{{ teams_dict[match.home_team_id].name
+                                }}</span>
                             <span class="text-[7px] text-slate-600 font-black">VS</span>
-                            <span class="truncate w-[44%] text-left pl-1">{{ teams_dict[match.away_team_id].name }}</span>
+                            <span class="truncate w-[44%] text-left pl-1">{{ teams_dict[match.away_team_id].name
+                                }}</span>
                         </div>
                         {% if match.is_practice %}
-                        <span
-                            class="ml-1 text-[6px] font-black text-amber-700 uppercase">P</span>
+                        <span class="ml-1 text-[6px] font-black text-amber-700 uppercase">P</span>
                         {% endif %}
                     </div>
                     {% endfor %}
@@ -574,10 +594,8 @@
             {% endif %}
 
             {% if report_note %}
-            <div
-                class="mt-3 py-1 text-center italic text-slate-700 text-[10px] leading-relaxed">
-                <strong
-                    class="uppercase font-black not-italic text-slate-900 mr-2">AVISO:</strong>{{ report_note }}
+            <div class="mt-3 py-1 text-center italic text-slate-700 text-[10px] leading-relaxed">
+                <strong class="uppercase font-black not-italic text-slate-900 mr-2">AVISO:</strong>{{ report_note }}
             </div>
             {% endif %}
 

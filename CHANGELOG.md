@@ -1,3 +1,17 @@
+## 0.15.0
+
+Indicador de Ganador en Desempate (Shutdown) y Números de Jugadores en Goleo.
+
+- **Indicador de Shutdown**: Los partidos que terminen en empate y se decidan por desempate en "Shutdown" (punto extra) ahora muestran un identificador visual ("SD: [Equipo]" o "GN: [Equipo]") debajo del marcador, informando qué escuadra se llevó la victoria. Esto aplica para las vistas de la liga, el historial de cada equipo y el reporte exportable (tanto web como PDF).
+- **Números en Goleadores**: Al añadir estadísticas de goleo en la administración de la liga, el listado de jugadores ahora incluye el formato "Nombre #Número" para aquellos futbolistas que tengan un dorsal registrado, facilitando su identificación rápida.
+
+## Modificado
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/static/js/league_detail.js`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/team_detail.html`
+* `ligapro_manager/templates/share_report.html`
+
 ## 0.14.0
 
 Implementación de Fecha de Registro y Etiquetas de Práctica en Equipos.

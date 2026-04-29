@@ -14,7 +14,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     window.playersByTeam[teamId].forEach(player => {
                         const option = document.createElement('option');
                         option.value = player.id; // Send ID to ligapro_manager
-                        option.textContent = player.name;
+                        if (player.number != null && player.number !== '') {
+                            option.textContent = `${player.name} #${player.number}`;
+                        } else {
+                            option.textContent = player.name;
+                        }
                         playerSelect.appendChild(option);
                     });
                 }

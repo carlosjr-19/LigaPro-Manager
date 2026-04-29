@@ -428,11 +428,23 @@
                                     <div
                                         class="flex items-center gap-1 sm:gap-2 min-w-[50px] sm:min-w-[80px] justify-center flex-shrink-0">
                                         {% if match.is_completed %}
-                                        <span class="text-lg sm:text-2xl font-bold text-primary">{{ match.home_score
-                                            }}</span>
-                                        <span class="text-white/40">-</span>
-                                        <span class="text-lg sm:text-2xl font-bold text-primary">{{ match.away_score
-                                            }}</span>
+                                        <div class="flex flex-col items-center justify-center">
+                                            <div class="flex items-center gap-1 sm:gap-2">
+                                                <span class="text-lg sm:text-2xl font-bold text-primary">{{
+                                                    match.home_score }}</span>
+                                                <span class="text-white/40">-</span>
+                                                <span class="text-lg sm:text-2xl font-bold text-primary">{{
+                                                    match.away_score }}</span>
+                                            </div>
+                                            {% if league.enable_shutdown_tiebreaker and match.home_score is not none and
+                                            match.home_score == match.away_score and match.shutdown_winner_id %}
+                                            <span
+                                                class="text-[9px] sm:text-[10px] text-amber-500 font-bold uppercase whitespace-nowrap mt-0.5"
+                                                title="Ganador en Shutdown">GN: {{
+                                                teams_dict[match.shutdown_winner_id].name[:10] if
+                                                match.shutdown_winner_id in teams_dict else 'Ganador' }}</span>
+                                            {% endif %}
+                                        </div>
                                         {% else %}
                                         <span class="text-white/40 text-xs sm:text-sm">vs</span>
                                         {% endif %}
@@ -589,11 +601,18 @@
                                         {% endif %}
                                     </div>
                                     <div
-                                        class="flex items-center gap-2 min-w-[40px] sm:min-w-[60px] justify-center flex-shrink-0">
+                                        class="flex flex-col items-center justify-center min-w-[40px] sm:min-w-[60px] flex-shrink-0">
                                         {% if match.is_completed %}
                                         <span class="font-bold text-primary text-sm sm:text-base whitespace-nowrap">{{
-                                            match.home_score }} - {{
-                                            match.away_score }}</span>
+                                            match.home_score }} - {{ match.away_score }}</span>
+                                        {% if league.enable_shutdown_tiebreaker and match.home_score is not none and
+                                        match.home_score == match.away_score and match.shutdown_winner_id %}
+                                        <span
+                                            class="text-[9px] text-amber-500 font-bold uppercase whitespace-nowrap mt-0.5"
+                                            title="Ganador en Shutdown">GN: {{
+                                            teams_dict[match.shutdown_winner_id].name[:10] if match.shutdown_winner_id
+                                            in teams_dict else 'Ganador' }}</span>
+                                        {% endif %}
                                         {% else %}
                                         <span class="text-white/40 text-xs whitespace-nowrap">vs</span>
                                         {% endif %}
@@ -1029,7 +1048,8 @@
             <div id="playoff-list-view" class="space-y-8">
                 {% for stage_name, stage_matches in [('repechaje', playoff_matches.repechaje), ('round_of_16',
                 playoff_matches.round_of_16), ('quarterfinal',
-                playoff_matches.quarterfinal), ('semifinal', playoff_matches.semifinal), ('tercer_lugar', playoff_matches.tercer_lugar), ('final',
+                playoff_matches.quarterfinal), ('semifinal', playoff_matches.semifinal), ('tercer_lugar',
+                playoff_matches.tercer_lugar), ('final',
                 playoff_matches.final)] %}
                 {% if stage_matches %}
                 <div>
