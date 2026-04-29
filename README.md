@@ -76,10 +76,11 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.14.0)
+## 🔄 Últimas Actualizaciones (v0.15.0)
 
+- **Identificador de Desempate (Shutdown)**: En los partidos que terminen en empate y se decidan mediante "Shutdown" (punto extra), ahora aparece una referencia explícita debajo del marcador con el equipo ganador. Este identificador ("SD: [Equipo]" o "GN: [Equipo]") es visible en la liga principal, historial de equipos y reportes compartidos.
+- **Dorsales en Goleadores**: Se incluyó el número del jugador en el select de estadísticas de goleo ("Nombre #Número"), permitiendo a los administradores identificar a los anotadores de forma mucho más ágil.
 - **Credenciales con Registro de Antigüedad**: Los dueños Premium ahora pueden registrar y lucir directamente la fecha exacta en la que un jugador fue dado de alta, incluyéndose en el formato de plástico de manera armónica arriba de su fotografía.
-- **Etiquetas Globales Adiestradas**: Las clasificaciones de etiquetas `Práctica` rompen barreras en los Paneles Particulares; se añadieron oficialmente dentro de la libreta de partidos al ver los detalles de un sólo Equipo (Delegado).
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

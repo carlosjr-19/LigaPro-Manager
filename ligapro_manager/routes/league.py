@@ -239,7 +239,7 @@ def league_detail(league_id):
     players_by_team = {}
     for team in active_teams:
         players = Player.query.filter_by(team_id=team.id).order_by(Player.name).all()
-        players_by_team[team.id] = [{'id': p.id, 'name': p.name, 'photo_url': p.photo_url} for p in players]
+        players_by_team[team.id] = [{'id': p.id, 'name': p.name, 'photo_url': p.photo_url, 'number': p.number} for p in players]
     
     # Get Season Stats
     top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).all()
