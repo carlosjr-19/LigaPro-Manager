@@ -1590,6 +1590,23 @@
                         </div>
                     </div>
 
+                    <div class="flex items-center gap-3 pt-4 border-t border-white/10">
+                        {{ form.enable_player_limit(class="w-5 h-5 rounded border-white/20 bg-white/5 text-primary focus:ring-primary", form="leagueSettingsForm", id="toggle-player-limit") }}
+                        <div>
+                            <label class="block text-sm font-bold text-white mb-1">
+                                Establecer límite de jugadores por equipo
+                            </label>
+                            <p class="text-xs text-white/50">
+                                Restringe la cantidad máxima de jugadores que puede tener un equipo.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div id="player-limit-box" class="mt-4 pl-8 space-y-2 {% if not league.enable_player_limit %}hidden{% endif %}">
+                        <label class="block text-sm text-white/60 uppercase tracking-wide">Cantidad máxima permitida</label>
+                        {{ form.max_players_per_team(class="input-field w-32", type="number", min="1", form="leagueSettingsForm") }}
+                    </div>
+
                     <!-- Standing Highlighting -->
                     <div class="mt-6 pt-4 border-t border-white/10">
                         <div class="flex items-center justify-between mb-4">
@@ -1935,67 +1952,6 @@
         const CLOUDINARY_CLOUD_NAME = '{{ cloudinary_cloud_name }}';
         const CLOUDINARY_UPLOAD_PRESET = '{{ cloudinary_upload_preset }}';
 
-                            <!-- Recent -->
-                            <div class="border border-white/10 rounded p-3">
-                                <label class="flex items-center gap-3 mb-3 cursor-pointer">
-                                    <input type="checkbox" name="include_recent" id="check_recent"
-                                        onchange="toggleDateInputs()"
-                                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                                    <span class="flex-1">Resultados Recientes</span>
-                                </label>
-                                <div id="date_inputs" class="grid grid-cols-2 gap-2 text-sm hidden pl-7">
-                                    <div>
-                                        <label class="block text-white/40 text-xs mb-1">Desde</label>
-                                        <input type="date" name="date_start"
-                                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                                    </div>
-                                    <div>
-                                        <label class="block text-white/40 text-xs mb-1">Hasta</label>
-                                        <input type="date" name="date_end"
-                                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                                    </div>
-                                    {% if league.show_matchday_in_report %}
-                                    <div class="col-span-2 mt-1">
-                                        <label class="block text-white/40 text-xs mb-1">Jornada de últimos partidos</label>
-                                        <input type="text" name="recent_matchday" placeholder="Ej: 12"
-                                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!--Upcoming -->
-            <div class="border border-white/10 rounded p-3">
-                <label
-                    class="flex items-center gap-3 mb-3 cursor-pointer {% if not upcoming_matches %}opacity-50 pointer-events-none{% endif %}">
-                    <input type="checkbox" name="include_upcoming" id="check_upcoming"
-                        onchange="toggleUpcomingDateInputs()" {% if upcoming_matches %}checked{% else
-                                        %}disabled{% endif %}
-                                        class="form-checkbox bg-transparent border-white/20 text-blue-500 rounded">
-                    <span class="flex-1">Próximos Partidos</span>
-                    {% if not upcoming_matches %}
-                    <span class="text-xs text-red-400">Sin datos</span>
-                    {% endif %}
-                </label>
-                <div id="upcoming_date_inputs" class="grid grid-cols-2 gap-2 text-sm hidden pl-7">
-                    <div>
-                        <label class="block text-white/40 text-xs mb-1">Desde</label>
-                        <input type="date" name="upcoming_date_start"
-                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                    </div>
-                    <div>
-                        <label class="block text-white/40 text-xs mb-1">Hasta</label>
-                        <input type="date" name="upcoming_date_end"
-                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                    </div>
-                    {% if league.show_matchday_in_report %}
-                    <div class="col-span-2 mt-1">
-                        <label class="block text-white/40 text-xs mb-1">Jornada Próxima</label>
-                        <input type="text" name="upcoming_matchday" placeholder="Ej: 13"
-                            class="w-full bg-black/20 border border-white/10 rounded px-2 py-1 text-white text-xs">
-                    </div>
-                    {% endif %}
-                </div>
                 const cameraBtn = document.getElementById('camera-btn');
                 const cameraInput = document.getElementById('player-camera-input');
                 const photoUrlInput = document.getElementById('photo_url_input');

@@ -27,6 +27,12 @@ def create_player(team_id):
     if current_user.role == 'captain' and not league.allow_captains_add_players:
         flash('La liga ha desactivado la opción para que los delegados agreguen jugadores.', 'warning')
         return redirect(url_for('team.team_detail', team_id=team_id))
+        
+    # Check player limits
+    if league.enable_player_limit and league.max_players_per_team:
+        if len(team.players) >= league.max_players_per_team:
+            flash(f'El equipo ha alcanzado el límite máximo de jugadores ({league.max_players_per_team}).', 'danger')
+            return redirect(url_for('team.team_detail', team_id=team_id))
     
     form = PlayerForm()
     if form.validate_on_submit():
@@ -63,6 +69,11 @@ def edit_player(player_id):
         if league.user_id != current_user.id:
             flash('No tienes acceso.', 'danger')
             return redirect(url_for('main.dashboard'))
+            
+    # Restrict Captains from editing players if disabled in league settings
+    if current_user.role == 'captain' and not league.allow_captains_add_players:
+        flash('La liga ha desactivado la opción para que los delegados editen jugadores.', 'warning')
+        return redirect(url_for('team.team_detail', team_id=team.id))
     
     form = PlayerForm(obj=player)
     if form.validate_on_submit():
@@ -98,6 +109,11 @@ def delete_player(player_id):
         if league.user_id != current_user.id:
             flash('No tienes acceso.', 'danger')
             return redirect(url_for('main.dashboard'))
+            
+    # Restrict Captains from deleting players if disabled in league settings
+    if current_user.role == 'captain' and not league.allow_captains_add_players:
+        flash('La liga ha desactivado la opción para que los delegados eliminen jugadores.', 'warning')
+        return redirect(url_for('team.team_detail', team_id=team.id))
     
     team_id = player.team_id
     db.session.delete(player)

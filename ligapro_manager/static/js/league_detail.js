@@ -71,6 +71,19 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Toggle player limit visibility
+    const playerLimitToggle = document.getElementById('toggle-player-limit');
+    if (playerLimitToggle) {
+        playerLimitToggle.addEventListener('change', function () {
+            const box = document.getElementById('player-limit-box');
+            if (this.checked) {
+                box.classList.remove('hidden');
+            } else {
+                box.classList.add('hidden');
+            }
+        });
+    }
+
     // Validate highlight range
     const hStart = document.getElementById('h-start');
     const hEnd = document.getElementById('h-end');

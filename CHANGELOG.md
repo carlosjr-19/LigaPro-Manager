@@ -1,3 +1,20 @@
+## 0.16.0
+
+Restricción de Jugadores por Equipo (Premium) y Correcciones Visuales.
+
+- **Límite de Jugadores por Equipo**: Funcionalidad exclusiva para usuarios Premium que permite a los administradores de liga establecer un máximo de jugadores permitidos por equipo.
+- **Bloqueo Visual de Jugadores**: Si un equipo excede el límite de jugadores configurado, los jugadores adicionales se muestran bloqueados (estilo grisáceo) indicando "Límite Alcanzado", y no pueden ser seleccionados para la impresión de credenciales ni editados.
+- **Corrección de Cámara Web**: Se corrigió un error crítico en el código de la plantilla de detalles de la liga que bloqueaba el uso del botón de cámara en la "Personalización Visual", permitiendo de nuevo la carga directa de imágenes para el logo de la liga mediante Cloudinary.
+- **Seguridad y Restricciones Mejoradas**: Los capitanes ahora están estrictamente restringidos en el backend de agregar más jugadores si el límite de jugadores ha sido alcanzado. Además, las vistas correspondientes ocultan el botón de añadir automáticamente.
+
+## Modificado
+* `ligapro_manager/models/league.py`
+* `ligapro_manager/forms/league.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/routes/player.py`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/team_detail.html`
+
 ## 0.15.0
 
 Indicador de Ganador en Desempate (Shutdown) y Números de Jugadores en Goleo.

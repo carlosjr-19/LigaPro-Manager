@@ -30,3 +30,5 @@ class LeagueForm(FlaskForm):
     show_matchday_in_report = BooleanField('Mostrar Jornada en Rol', default=False)
     allow_captains_add_players = BooleanField('Permitir añadir jugadores', default=True)
     show_player_registration_date = BooleanField('Mostrar fecha de registro de los jugadores', default=False)
+    enable_player_limit = BooleanField('Establecer límite de jugadores por equipo', default=False)
+    max_players_per_team = IntegerField('Límite de jugadores', validators=[Optional(), NumberRange(min=1)], default=15)
