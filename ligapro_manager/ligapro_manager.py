@@ -136,7 +136,9 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN allow_captains_add_players BOOLEAN DEFAULT TRUE",
                     "ALTER TABLE team_notes ADD COLUMN is_public BOOLEAN DEFAULT TRUE",
                     "ALTER TABLE leagues ADD COLUMN show_player_registration_date BOOLEAN DEFAULT FALSE",
-                    "ALTER TABLE players ADD COLUMN registration_date DATE"
+                    "ALTER TABLE players ADD COLUMN registration_date DATE",
+                    "ALTER TABLE leagues ADD COLUMN enable_player_limit BOOLEAN DEFAULT FALSE",
+                    "ALTER TABLE leagues ADD COLUMN max_players_per_team INTEGER"
                 ]
                 
                 for migration in migrations:

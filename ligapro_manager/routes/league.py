@@ -339,6 +339,8 @@ def edit_league(league_id):
             league.enable_shutdown_tiebreaker = form.enable_shutdown_tiebreaker.data
             league.allow_captains_add_players = form.allow_captains_add_players.data
             league.show_player_registration_date = form.show_player_registration_date.data
+            league.enable_player_limit = form.enable_player_limit.data
+            league.max_players_per_team = form.max_players_per_team.data
 
         db.session.commit()
         flash('Liga actualizada.', 'success')

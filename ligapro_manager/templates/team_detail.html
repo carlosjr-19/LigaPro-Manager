@@ -80,10 +80,16 @@
                             {% endif %}
 
                             {% if current_user.role != 'captain' or league.allow_captains_add_players %}
+                            {% if league.enable_player_limit and league.max_players_per_team and players|length >= league.max_players_per_team %}
+                            <span class="btn-primary text-sm opacity-50 cursor-not-allowed" title="Límite máximo de jugadores alcanzado">
+                                <i class="fas fa-plus mr-1"></i>Añadir
+                            </span>
+                            {% else %}
                             <a href="{{ url_for('player.create_player', team_id=team.id) }}"
                                 class="btn-primary text-sm">
                                 <i class="fas fa-plus mr-1"></i>Añadir
                             </a>
+                            {% endif %}
                             {% endif %}
                         </div>
                     </div>
@@ -91,10 +97,11 @@
                     {% if players %}
                     <div class="space-y-3">
                         {% for player in players %}
-                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                        {% set is_blocked = league.enable_player_limit and league.max_players_per_team and loop.index > league.max_players_per_team %}
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg {% if is_blocked %}opacity-50 grayscale{% endif %}">
                             <div class="flex items-center gap-3">
                                 {% if can_print and (current_user.role != 'captain' or
-                                league.allow_captains_add_players) %}
+                                league.allow_captains_add_players) and not is_blocked %}
                                 <input type="checkbox"
                                     class="player-print-cb w-4 h-4 text-primary bg-gray-700 border-gray-600 rounded focus:ring-primary focus:ring-2"
                                     value="{{ player.id }}">
@@ -112,6 +119,9 @@
                                         <span class="text-primary font-bold mr-1">#{{ player.number }}</span>
                                         {% endif %}
                                         {{ player.name }}
+                                        {% if is_blocked %}
+                                        <span class="ml-2 text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded uppercase font-bold border border-red-500/30">Límite Alcanzado</span>
+                                        {% endif %}
                                     </p>
                                     {% if player.curp %}
                                     <p class="text-white/40 text-xs">{{ player.curp }}</p>
@@ -119,9 +129,10 @@
                                 </div>
                             </div>
                             <div class="flex gap-2">
+                                {% if current_user.role != 'captain' or league.allow_captains_add_players %}
                                 {% if current_user.is_active_premium %}
                                 <a href="{{ url_for('player.edit_player', player_id=player.id) }}"
-                                    class="text-white/40 hover:text-white">
+                                    class="text-white/40 hover:text-white {% if is_blocked %}pointer-events-none{% endif %}">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 {% endif %}
@@ -131,6 +142,7 @@
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
+                                {% endif %}
                             </div>
                         </div>
                         {% endfor %}

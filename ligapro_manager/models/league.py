@@ -48,6 +48,8 @@ class League(db.Model):
     show_matchday_in_report = db.Column(db.Boolean, default=False)
     allow_captains_add_players = db.Column(db.Boolean, default=True)
     show_player_registration_date = db.Column(db.Boolean, default=False)
+    enable_player_limit = db.Column(db.Boolean, default=False)
+    max_players_per_team = db.Column(db.Integer, nullable=True)
 
     @property
     def active_teams_count(self):
