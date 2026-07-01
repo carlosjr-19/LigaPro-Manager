@@ -1,12 +1,15 @@
 ## 1.0.0
 
-Sección de Goleadores en la Vista de Equipo.
+Sección de Goleadores en la Vista de Equipo y Buscador de Estadísticas.
 
 - **Goleadores del Equipo**: Ahora los delegados (capitanes) y administradores pueden ver una tabla con los máximos anotadores de su propio equipo directamente en la vista "Ver Mi Equipo". Esta lista muestra el nombre, fotografía y cantidad de goles registrados por el administrador, permitiendo un seguimiento más detallado del rendimiento de los jugadores internamente.
+- **Buscador en Estadísticas**: Se añadió un buscador dinámico en la sección de estadísticas generales de la liga, tanto para los Goleadores como para los Arqueros Menos Goleados, permitiendo ubicar fácilmente a los jugadores mediante un filtrado en tiempo real.
 
 ## Modificado
 * `ligapro_manager/routes/team.py`
 * `ligapro_manager/templates/team_detail.html`
+* `ligapro_manager/templates/league_detail.html`
+
 
 ## 0.16.0
 

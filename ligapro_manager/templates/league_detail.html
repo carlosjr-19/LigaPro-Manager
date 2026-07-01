@@ -792,8 +792,12 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Top Scorers -->
                 <div>
-                    <div class="flex justify-between items-center mb-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                         <h3 class="text-xl font-bold text-primary"><i class="fas fa-futbol mr-2"></i>Goleadores</h3>
+                        <div class="relative w-full sm:w-64">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40"></i>
+                            <input type="text" id="search-scorers" placeholder="Buscar jugador..." class="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-primary transition-colors">
+                        </div>
                     </div>
 
                     {% if current_user.role == 'owner' %}
@@ -840,7 +844,7 @@
                                     {% if current_user.role == 'owner' %}<th class="p-3"></th>{% endif %}
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-white/5">
+                            <tbody id="scorers-table-body" class="divide-y divide-white/5">
                                 {% for stat in top_scorers %}
                                 <tr class="hover:bg-white/5">
                                     <td class="p-3 font-bold text-white/40">{{ loop.index }}</td>
@@ -875,9 +879,12 @@
 
                 <!-- Goalkeepers -->
                 <div>
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold text-blue-400"><i class="fas fa-hand-paper mr-2"></i>Arquero Menos
-                            Goleado</h3>
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                        <h3 class="text-xl font-bold text-blue-400"><i class="fas fa-hand-paper mr-2"></i>Arquero Menos Goleado</h3>
+                        <div class="relative w-full sm:w-64">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40"></i>
+                            <input type="text" id="search-keepers" placeholder="Buscar arquero..." class="w-full bg-black/20 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-400 transition-colors">
+                        </div>
                     </div>
 
                     {% if current_user.role == 'owner' %}
@@ -923,7 +930,7 @@
                                     {% if current_user.role == 'owner' %}<th class="p-3"></th>{% endif %}
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-white/5">
+                            <tbody id="keepers-table-body" class="divide-y divide-white/5">
                                 {% for stat in top_goalkeepers %}
                                 <tr class="hover:bg-white/5">
                                     <td class="p-3 font-bold text-white/40">{{ loop.index }}</td>
@@ -2243,6 +2250,36 @@
         </div>
     </div>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function setupTableFilter(inputId, tbodyId) {
+                const searchInput = document.getElementById(inputId);
+                const tableBody = document.getElementById(tbodyId);
+                
+                if (!searchInput || !tableBody) return;
+                
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const rows = tableBody.getElementsByTagName('tr');
+                    
+                    for (let row of rows) {
+                        // El nombre del jugador está en la celda con índice 1
+                        const playerNameCell = row.cells[1];
+                        if (playerNameCell) {
+                            const playerName = playerNameCell.textContent.toLowerCase();
+                            if (playerName.includes(searchTerm)) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        }
+                    }
+                });
+            }
+            
+            setupTableFilter('search-scorers', 'scorers-table-body');
+            setupTableFilter('search-keepers', 'keepers-table-body');
+        });
+
                                     function openModificarPuntajesModal() {
                                         document.getElementById('modificarPuntajesModal').classList.remove('hidden');
                                     document.getElementById('modificarPuntajesModal').classList.add('flex');
