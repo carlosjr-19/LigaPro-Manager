@@ -1,3 +1,13 @@
+## 1.0.0
+
+Sección de Goleadores en la Vista de Equipo.
+
+- **Goleadores del Equipo**: Ahora los delegados (capitanes) y administradores pueden ver una tabla con los máximos anotadores de su propio equipo directamente en la vista "Ver Mi Equipo". Esta lista muestra el nombre, fotografía y cantidad de goles registrados por el administrador, permitiendo un seguimiento más detallado del rendimiento de los jugadores internamente.
+
+## Modificado
+* `ligapro_manager/routes/team.py`
+* `ligapro_manager/templates/team_detail.html`
+
 ## 0.16.0
 
 Restricción de Jugadores por Equipo (Premium) y Correcciones Visuales.

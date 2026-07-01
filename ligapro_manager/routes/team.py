@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from extensions import db, bcrypt
-from models import League, Team, Match, Player, TeamNote, User
+from models import League, Team, Match, Player, TeamNote, User, SeasonStat
 from forms import TeamForm, PlayerForm
 from utils.decorators import owner_required
 
@@ -92,13 +92,16 @@ def team_detail(team_id):
     
     teams_dict = {t.id: t for t in Team.query.filter_by(league_id=league.id).all()}
     
+    team_scorers = SeasonStat.query.filter_by(team_id=team_id, stat_type='goals').filter(SeasonStat.value > 0).order_by(SeasonStat.value.desc()).all()
+    
     return render_template('team_detail.html', 
                           team=team, 
                           league=league,
                           players=players,
                           notes=notes,
                           matches=matches,
-                          teams_dict=teams_dict)
+                          teams_dict=teams_dict,
+                          team_scorers=team_scorers)
 
 
 @team_bp.route('/teams/<team_id>/edit', methods=['GET', 'POST'])
