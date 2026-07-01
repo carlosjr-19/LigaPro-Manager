@@ -152,6 +152,36 @@
                     {% endif %}
                 </div>
 
+                <!-- Team Scorers -->
+                {% if team_scorers %}
+                <div class="card">
+                    <h2 class="text-xl font-bold mb-6">
+                        <i class="fas fa-futbol mr-2 text-primary"></i>Goleadores del Equipo
+                    </h2>
+                    <div class="space-y-3">
+                        {% for stat in team_scorers %}
+                        <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="font-bold text-white/40 w-6 text-center">{{ loop.index }}</span>
+                                {% if stat.photo_url %}
+                                <img src="{{ stat.photo_url }}" class="w-10 h-10 rounded-full object-cover">
+                                {% else %}
+                                <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-white/40"></i>
+                                </div>
+                                {% endif %}
+                                <p class="font-bold text-lg">{{ stat.player_name }}</p>
+                            </div>
+                            <div class="bg-primary/20 px-4 py-2 rounded-lg border border-primary/30">
+                                <span class="font-bold text-xl text-primary">{{ stat.value }}</span>
+                                <span class="text-sm text-primary/80 uppercase ml-1 tracking-wider">Goles</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Matches -->
                 <div class="card">
                     <h2 class="text-xl font-bold mb-6">

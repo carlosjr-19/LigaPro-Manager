@@ -76,11 +76,12 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v0.16.0)
+## 🔄 Últimas Actualizaciones (v1.0.0)
 
-- **Límite de Jugadores por Equipo**: Funcionalidad Premium que permite establecer un tope máximo de jugadores por escuadra. Bloquea de forma automática (tanto visual como funcionalmente) la adición y edición de jugadores extra para dueños y delegados.
-- **Corrección de Cámara Web**: Solución de un error que impedía el uso de la cámara del dispositivo o la carga directa de imágenes a la nube (Cloudinary) para los logos y escudos institucionales.
-- **Seguridad en Ligas Activas**: Si se limita el acceso a delegados (capitanes), ahora el panel les bloquea cualquier modificación de forma estricta desde el servidor, resguardando la integridad de las plantillas.
+- **Goleadores del Equipo**: Los equipos ahora cuentan con su propia tabla de máximos anotadores directamente en la vista detallada de su plantilla, permitiendo a delegados visualizar el rendimiento de goleo de sus propios jugadores de manera aislada y rápida.
+- **Límite de Jugadores por Equipo (0.16.0)**: Funcionalidad Premium que permite establecer un tope máximo de jugadores por escuadra. Bloquea de forma automática (tanto visual como funcionalmente) la adición y edición de jugadores extra para dueños y delegados.
+- **Corrección de Cámara Web (0.16.0)**: Solución de un error que impedía el uso de la cámara del dispositivo o la carga directa de imágenes a la nube (Cloudinary) para los logos y escudos institucionales.
+- **Seguridad en Ligas Activas (0.16.0)**: Si se limita el acceso a delegados (capitanes), ahora el panel les bloquea cualquier modificación de forma estricta desde el servidor, resguardando la integridad de las plantillas.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager
