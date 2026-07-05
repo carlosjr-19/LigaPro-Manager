@@ -243,7 +243,14 @@ def league_detail(league_id):
     
     # Get Season Stats
     top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).all()
+    for stat in top_scorers:
+        player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
+        stat.player_number = f"#{player.number}" if (player and player.number) else ""
+        
     top_goalkeepers = SeasonStat.query.filter_by(league_id=league_id, stat_type='conceded').order_by(SeasonStat.value.asc()).all()
+    for stat in top_goalkeepers:
+        player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
+        stat.player_number = f"#{player.number}" if (player and player.number) else ""
     
     # Dashboard Data
     recent_matches = Match.query.filter(
