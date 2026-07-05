@@ -1,4 +1,12 @@
 from models import League, Team, Match
+import unicodedata
+
+def normalize_name(name):
+    """Normalize name by removing accents and converting to lowercase."""
+    if not name:
+        return ""
+    return ''.join(c for c in unicodedata.normalize('NFD', name)
+                  if unicodedata.category(c) != 'Mn').lower().strip()
 
 def calculate_standings(league_id, include_playoffs=False):
     """Calculate standings for a league"""
