@@ -4,7 +4,7 @@ from extensions import db
 from models import League, Team, Match, Player, Court, SeasonStat
 from forms import LeagueForm, StatForm, MatchForm
 from utils.decorators import owner_required, premium_required
-from utils.helpers import calculate_standings
+from utils.helpers import calculate_standings, normalize_name
 from sqlalchemy import or_
 from datetime import datetime
 import json
@@ -241,16 +241,24 @@ def league_detail(league_id):
         players = Player.query.filter_by(team_id=team.id).order_by(Player.name).all()
         players_by_team[team.id] = [{'id': p.id, 'name': p.name, 'photo_url': p.photo_url, 'number': p.number} for p in players]
     
+    def find_player_number(team_id, player_name):
+        norm_stat_name = normalize_name(player_name)
+        if team_id in players_by_team:
+            for p_data in players_by_team[team_id]:
+                if normalize_name(p_data['name']) == norm_stat_name:
+                    return p_data['number']
+        return None
+
     # Get Season Stats
     top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).all()
     for stat in top_scorers:
-        player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
-        stat.player_number = f"#{player.number}" if (player and player.number) else ""
+        num = find_player_number(stat.team_id, stat.player_name)
+        stat.player_number = f"#{num}" if num else ""
         
     top_goalkeepers = SeasonStat.query.filter_by(league_id=league_id, stat_type='conceded').order_by(SeasonStat.value.asc()).all()
     for stat in top_goalkeepers:
-        player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
-        stat.player_number = f"#{player.number}" if (player and player.number) else ""
+        num = find_player_number(stat.team_id, stat.player_name)
+        stat.player_number = f"#{num}" if num else ""
     
     # Dashboard Data
     recent_matches = Match.query.filter(
@@ -267,6 +275,27 @@ def league_detail(league_id):
     stat_form = StatForm()
     if current_user.role == 'owner' or current_user.role == 'admin':
         stat_form.team_id.choices = [(t.id, t.name) for t in active_teams]
+        
+    # Pass teams_history for Matrix Modal UI
+    teams_history = {}
+    all_completed_history = Match.query.filter_by(league_id=league_id, is_completed=True, is_practice=False).order_by(Match.match_date.asc()).all()
+    for m in all_completed_history:
+        if m.home_team_id not in teams_history:
+            teams_history[m.home_team_id] = {}
+        if m.away_team_id not in teams_history[m.home_team_id]:
+            teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None}
+            
+        if m.away_team_id not in teams_history:
+            teams_history[m.away_team_id] = {}
+        if m.home_team_id not in teams_history[m.away_team_id]:
+            teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None}
+
+        teams_history[m.home_team_id][m.away_team_id]['count'] += 1
+        teams_history[m.away_team_id][m.home_team_id]['count'] += 1
+        
+        date_str = m.match_date.strftime('%Y-%m-%d') if m.match_date else None
+        teams_history[m.home_team_id][m.away_team_id]['last_date'] = date_str
+        teams_history[m.away_team_id][m.home_team_id]['last_date'] = date_str
     
     return render_template('league_detail.html', 
                           league=league, 
@@ -287,6 +316,7 @@ def league_detail(league_id):
                           stat_form=stat_form,
                           matches_pagination=matches_pagination,
                           teams_js=teams_js,
+                          teams_history=teams_history,
                           scheduling_teams=scheduling_teams,
                           matches_by_date=matches_by_date,
                           spanish_months=spanish_months,
@@ -585,17 +615,29 @@ def generate_share_report(league_id):
         top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).limit(5).all()
         for stat in top_scorers:
             stat.team_initials = stat.team.name[:3].upper() if stat.team else "???"
-            # Attempt to find player number
-            player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
-            stat.player_number = f"#{player.number}" if (player and player.number) else ""
+            # Attempt to find player number robustly
+            num = None
+            players = Player.query.filter_by(team_id=stat.team_id).all()
+            norm_name = normalize_name(stat.player_name)
+            for p in players:
+                if normalize_name(p.name) == norm_name:
+                    num = p.number
+                    break
+            stat.player_number = f"#{num}" if num else ""
         
     if include_keepers:
         top_goalkeepers = SeasonStat.query.filter_by(league_id=league_id, stat_type='conceded').order_by(SeasonStat.value.asc()).limit(5).all()
         for stat in top_goalkeepers:
             stat.team_initials = stat.team.name[:3].upper() if stat.team else "???"
-            # Attempt to find player number
-            player = Player.query.filter_by(team_id=stat.team_id, name=stat.player_name).first()
-            stat.player_number = f"#{player.number}" if (player and player.number) else ""
+            # Attempt to find player number robustly
+            num = None
+            players = Player.query.filter_by(team_id=stat.team_id).all()
+            norm_name = normalize_name(stat.player_name)
+            for p in players:
+                if normalize_name(p.name) == norm_name:
+                    num = p.number
+                    break
+            stat.player_number = f"#{num}" if num else ""
         
     is_premium = league.owner.is_active_premium
     today_str = datetime.now().strftime('%d/%m/%Y')

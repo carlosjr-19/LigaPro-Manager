@@ -326,6 +326,25 @@ function openMatrixModal(cellData) {
     document.getElementById('matrix_away_team_id').value = cellData.away_id;
     document.getElementById('matrix_match_round').value = cellData.round || 1;
 
+    // Check for last encounter
+    const alertBox = document.getElementById('matrix_last_match_alert');
+    const dateText = document.getElementById('matrix_last_match_date_text');
+    
+    if (window.teamsHistory && window.teamsHistory[cellData.home_id] && window.teamsHistory[cellData.home_id][cellData.away_id]) {
+        const historyData = window.teamsHistory[cellData.home_id][cellData.away_id];
+        if (historyData.last_date) {
+            // Formatting date for display: YYYY-MM-DD -> DD [mes] YYYY
+            const d = new Date(historyData.last_date + 'T12:00:00');
+            const options = { day: 'numeric', month: 'short', year: 'numeric' };
+            dateText.textContent = d.toLocaleDateString('es-MX', options);
+            alertBox.classList.remove('hidden');
+        } else {
+            alertBox.classList.add('hidden');
+        }
+    } else {
+        alertBox.classList.add('hidden');
+    }
+
     // Practice Match
     const practiceToggle = document.getElementById('matrix_is_practice');
     if (practiceToggle) {

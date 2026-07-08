@@ -76,8 +76,9 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v1.0.0)
+## 🔄 Últimas Actualizaciones (v1.0.1)
 
+- **Historial de Enfrentamientos Previos**: Al agendar partidos (tanto en formulario clásico como en matriz interactiva), el panel ahora muestra la fecha del último encuentro registrado entre ambos equipos seleccionados, mejorando el contexto de las rivalidades para los administradores.
 - **Buscador en Estadísticas**: Se implementó un buscador dinámico que permite filtrar en tiempo real las listas de Goleadores y Arqueros Menos Goleados, optimizando la gestión de estadísticas extensas.
 - **Goleadores del Equipo**: Los equipos ahora cuentan con su propia tabla de máximos anotadores directamente en la vista detallada de su plantilla, permitiendo a delegados visualizar el rendimiento de goleo de sus propios jugadores de manera aislada y rápida.
 - **Límite de Jugadores por Equipo (0.16.0)**: Funcionalidad Premium que permite establecer un tope máximo de jugadores por escuadra. Bloquea de forma automática (tanto visual como funcionalmente) la adición y edición de jugadores extra para dueños y delegados.
