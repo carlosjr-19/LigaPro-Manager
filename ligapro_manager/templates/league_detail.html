@@ -1863,6 +1863,16 @@
                         <span id="matrix_away_name" class="text-xs text-center leading-tight">Away</span>
                     </div>
                 </h3>
+                
+                <div id="matrix_last_match_alert" class="hidden mb-6 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg text-sm text-blue-300 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <span class="font-bold">Último enfrentamiento:</span>
+                            <span id="matrix_last_match_date_text" class="ml-1">--</span>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Schedule -->
                 <div class="grid grid-cols-2 gap-4 mb-4">
@@ -2037,7 +2047,8 @@
     </script>
 
     <script>
-                                    window.teamsData = {{ teams_js | tojson | safe}};
+        window.teamsData = {{ teams_js | tojson | safe}};
+        window.teamsHistory = {{ teams_history | tojson | safe }};
     </script>
     <script src="{{ url_for('static', filename='js/league_detail.js') }}" defer></script>
     <script src="{{ url_for('static', filename='js/share_modal.js') }}" defer></script>

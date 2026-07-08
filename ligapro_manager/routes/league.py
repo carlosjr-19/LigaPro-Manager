@@ -275,6 +275,27 @@ def league_detail(league_id):
     stat_form = StatForm()
     if current_user.role == 'owner' or current_user.role == 'admin':
         stat_form.team_id.choices = [(t.id, t.name) for t in active_teams]
+        
+    # Pass teams_history for Matrix Modal UI
+    teams_history = {}
+    all_completed_history = Match.query.filter_by(league_id=league_id, is_completed=True, is_practice=False).order_by(Match.match_date.asc()).all()
+    for m in all_completed_history:
+        if m.home_team_id not in teams_history:
+            teams_history[m.home_team_id] = {}
+        if m.away_team_id not in teams_history[m.home_team_id]:
+            teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None}
+            
+        if m.away_team_id not in teams_history:
+            teams_history[m.away_team_id] = {}
+        if m.home_team_id not in teams_history[m.away_team_id]:
+            teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None}
+
+        teams_history[m.home_team_id][m.away_team_id]['count'] += 1
+        teams_history[m.away_team_id][m.home_team_id]['count'] += 1
+        
+        date_str = m.match_date.strftime('%Y-%m-%d') if m.match_date else None
+        teams_history[m.home_team_id][m.away_team_id]['last_date'] = date_str
+        teams_history[m.away_team_id][m.home_team_id]['last_date'] = date_str
     
     return render_template('league_detail.html', 
                           league=league, 
@@ -295,6 +316,7 @@ def league_detail(league_id):
                           stat_form=stat_form,
                           matches_pagination=matches_pagination,
                           teams_js=teams_js,
+                          teams_history=teams_history,
                           scheduling_teams=scheduling_teams,
                           matches_by_date=matches_by_date,
                           spanish_months=spanish_months,

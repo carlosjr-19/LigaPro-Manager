@@ -48,16 +48,26 @@ def create_match(league_id):
             return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
 
     # Calculate match history for frontend display
-    completed_matches = Match.query.filter_by(league_id=league_id, is_completed=True).all()
+    completed_matches = Match.query.filter_by(league_id=league_id, is_completed=True).order_by(Match.match_date.asc()).all()
     teams_history = {t.id: {} for t in teams}
     
+    months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+    
     for m in completed_matches:
-        # Check if teams still exist (in case deleted but match kept? usually safe due to FK but good practice)
         if m.home_team_id in teams_history and m.away_team_id in teams_history:
-            # Home vs Away
-            teams_history[m.home_team_id][m.away_team_id] = teams_history[m.home_team_id].get(m.away_team_id, 0) + 1
-            # Away vs Home
-            teams_history[m.away_team_id][m.home_team_id] = teams_history[m.away_team_id].get(m.home_team_id, 0) + 1
+            date_str = f"{m.match_date.day} {months[m.match_date.month - 1]} {m.match_date.year}" if m.match_date else None
+            
+            if m.away_team_id not in teams_history[m.home_team_id]:
+                teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None}
+            teams_history[m.home_team_id][m.away_team_id]['count'] += 1
+            if date_str:
+                teams_history[m.home_team_id][m.away_team_id]['last_date'] = date_str
+                
+            if m.home_team_id not in teams_history[m.away_team_id]:
+                teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None}
+            teams_history[m.away_team_id][m.home_team_id]['count'] += 1
+            if date_str:
+                teams_history[m.away_team_id][m.home_team_id]['last_date'] = date_str
             
     # Create a mapping of id -> name for easy JS lookup
     teams_map = {t.id: t.name for t in teams}
@@ -222,14 +232,27 @@ def edit_match(match_id):
             return redirect(url_for('league.league_detail', league_id=league_id, _anchor=anchor))
             
     # Calculate match history for frontend display (reuse logic)
-    completed_matches = Match.query.filter_by(league_id=league_id, is_completed=True).all()
+    completed_matches = Match.query.filter_by(league_id=league_id, is_completed=True).order_by(Match.match_date.asc()).all()
     teams_history = {t.id: {} for t in teams}
+    
+    months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
     
     for m in completed_matches:
         if m.id == match.id: continue # Exclude current match if it was somehow completed (safeguard)
         if m.home_team_id in teams_history and m.away_team_id in teams_history:
-            teams_history[m.home_team_id][m.away_team_id] = teams_history[m.home_team_id].get(m.away_team_id, 0) + 1
-            teams_history[m.away_team_id][m.home_team_id] = teams_history[m.away_team_id].get(m.home_team_id, 0) + 1
+            date_str = f"{m.match_date.day} {months[m.match_date.month - 1]} {m.match_date.year}" if m.match_date else None
+            
+            if m.away_team_id not in teams_history[m.home_team_id]:
+                teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None}
+            teams_history[m.home_team_id][m.away_team_id]['count'] += 1
+            if date_str:
+                teams_history[m.home_team_id][m.away_team_id]['last_date'] = date_str
+                
+            if m.home_team_id not in teams_history[m.away_team_id]:
+                teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None}
+            teams_history[m.away_team_id][m.home_team_id]['count'] += 1
+            if date_str:
+                teams_history[m.away_team_id][m.home_team_id]['last_date'] = date_str
             
     teams_map = {t.id: t.name for t in teams}
     

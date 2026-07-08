@@ -1,3 +1,18 @@
+## 1.0.1
+
+Historial de Enfrentamientos Previos al Agendar Partidos.
+
+- **Último Enfrentamiento Visual**: Al seleccionar dos equipos en cualquier interfaz de programación de partidos (formulario principal o vista de matriz), el sistema verifica automáticamente si existe un historial entre ambos y despliega visualmente la fecha de su último encuentro. Esto facilita la toma de decisiones para los administradores y mejora el contexto de la rivalidad al momento de calendarizar.
+- **Disponibilidad Global**: La validación funciona de forma asíncrona tanto en el formulario de edición tradicional (`match_form`) como dentro del cuadro modal interactivo de la Vista de Matriz (`league_detail`).
+
+## Modificado
+* `ligapro_manager/routes/match.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/templates/match_form.html`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/static/js/match_form.js`
+* `ligapro_manager/static/js/league_detail.js`
+
 ## 1.0.0
 
 Sección de Goleadores en la Vista de Equipo y Buscador de Estadísticas.
