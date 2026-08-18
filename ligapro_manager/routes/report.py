@@ -370,6 +370,10 @@ def global_schedule_history():
         
     matches = query.order_by(Match.match_date.desc()).all()
     
+    show_hidden = request.args.get('show_hidden', '0') == '1'
+    from models import IgnoredDiscrepancy
+    ignored_records = {x.hash_id for x in IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).all()}
+    
     history_events = []
     
     def parse_cost(val):
@@ -391,49 +395,64 @@ def global_schedule_history():
         default_ref_price = match.league.price_referee or 0
         
         # Check Home Team Debt – skip if waived (gifted)
+        hash_home = f"{match.id}_home"
         if not is_waived(match.referee_cost_home):
             paid_home = parse_cost(match.referee_cost_home)
             diff_home = paid_home - default_team_price
             if diff_home != 0:
-                history_events.append({
-                    'date': match.match_date,
-                    'league': match.league.name,
-                    'match': f"{match.home_team.name} vs {match.away_team.name}",
-                    'entity': f"Local: {match.home_team.name}",
-                    'expected': default_team_price,
-                    'paid': paid_home,
-                    'balance': diff_home
-                })
+                is_hidden = hash_home in ignored_records
+                if show_hidden or not is_hidden:
+                    history_events.append({
+                        'hash_id': hash_home,
+                        'is_hidden': is_hidden,
+                        'date': match.match_date,
+                        'league': match.league.name,
+                        'match': f"{match.home_team.name} vs {match.away_team.name}",
+                        'entity': f"Local: {match.home_team.name}",
+                        'expected': default_team_price,
+                        'paid': paid_home,
+                        'balance': diff_home
+                    })
             
         # Check Away Team Debt – skip if waived (gifted)
+        hash_away = f"{match.id}_away"
         if not is_waived(match.referee_cost_away):
             paid_away = parse_cost(match.referee_cost_away)
             diff_away = paid_away - default_team_price
             if diff_away != 0:
-                history_events.append({
-                    'date': match.match_date,
-                    'league': match.league.name,
-                    'match': f"{match.home_team.name} vs {match.away_team.name}",
-                    'entity': f"Visita: {match.away_team.name}",
-                    'expected': default_team_price,
-                    'paid': paid_away,
-                    'balance': diff_away
-                })
+                is_hidden = hash_away in ignored_records
+                if show_hidden or not is_hidden:
+                    history_events.append({
+                        'hash_id': hash_away,
+                        'is_hidden': is_hidden,
+                        'date': match.match_date,
+                        'league': match.league.name,
+                        'match': f"{match.home_team.name} vs {match.away_team.name}",
+                        'entity': f"Visita: {match.away_team.name}",
+                        'expected': default_team_price,
+                        'paid': paid_away,
+                        'balance': diff_away
+                    })
 
         # Check Referee Balance – skip if waived
+        hash_ref = f"{match.id}_ref"
         if not is_waived(match.referee_cost):
             paid_ref = parse_cost(match.referee_cost)
             diff_ref = paid_ref - default_ref_price
             if diff_ref != 0:
-                history_events.append({
-                    'date': match.match_date,
-                    'league': match.league.name,
-                    'match': f"{match.home_team.name} vs {match.away_team.name}",
-                    'entity': "Arbitro",
-                    'expected': default_ref_price,
-                    'paid': paid_ref,
-                    'balance': diff_ref
-                })
+                is_hidden = hash_ref in ignored_records
+                if show_hidden or not is_hidden:
+                    history_events.append({
+                        'hash_id': hash_ref,
+                        'is_hidden': is_hidden,
+                        'date': match.match_date,
+                        'league': match.league.name,
+                        'match': f"{match.home_team.name} vs {match.away_team.name}",
+                        'entity': "Arbitro",
+                        'expected': default_ref_price,
+                        'paid': paid_ref,
+                        'balance': diff_ref
+                    })
 
             
     # Sort events by date desc
@@ -444,7 +463,45 @@ def global_schedule_history():
     return render_template('report/history.html', 
                          events=history_events, 
                          leagues=leagues, 
-                         selected_league=league_id)
+                         selected_league=league_id,
+                         show_hidden=show_hidden)
+
+@report_bp.route('/global-schedule/history/toggle_hide', methods=['POST'])
+@login_required
+def toggle_hide_history():
+    if not getattr(current_user, 'is_ultra', False):
+        return jsonify({'success': False, 'message': 'Acceso denegado.'}), 403
+        
+    hash_id = request.form.get('hash_id')
+    if not hash_id:
+        return jsonify({'success': False, 'message': 'ID no proporcionado.'}), 400
+        
+    from models import IgnoredDiscrepancy
+    existing = IgnoredDiscrepancy.query.filter_by(user_id=current_user.id, hash_id=hash_id).first()
+    
+    if existing:
+        db.session.delete(existing)
+        action = 'unhidden'
+    else:
+        new_ignored = IgnoredDiscrepancy(user_id=current_user.id, hash_id=hash_id)
+        db.session.add(new_ignored)
+        action = 'hidden'
+        
+    db.session.commit()
+    return jsonify({'success': True, 'action': action})
+
+@report_bp.route('/global-schedule/history/unhide_all', methods=['POST'])
+@login_required
+def unhide_all_history():
+    if not getattr(current_user, 'is_ultra', False):
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('report.global_schedule_history'))
+        
+    from models import IgnoredDiscrepancy
+    IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).delete()
+    db.session.commit()
+    flash('Se han vuelto a mostrar todos los registros.', 'success')
+    return redirect(url_for('report.global_schedule_history'))
 
 @report_bp.route('/global-schedule/export')
 @login_required
@@ -988,6 +1045,7 @@ def global_schedule_financials():
     selected_year = None
     date_from_str = None
     date_to_str = None
+    group_by = request.args.get('group_by', 'day')
 
     if report_type == 'date_range':
         # Handles date ranges
@@ -1033,7 +1091,20 @@ def global_schedule_financials():
     court_totals = {} # Store total profit per court for the entire period
 
     for match in matches:
-        date_key = match.match_date.strftime('%Y-%m-%d')
+        if group_by == 'week':
+            start_of_week = match.match_date - timedelta(days=match.match_date.weekday())
+            end_of_week = start_of_week + timedelta(days=6)
+            date_key = f"Semana {start_of_week.isocalendar()[1]} ({start_of_week.strftime('%d/%m')} - {end_of_week.strftime('%d/%m')})"
+            date_obj_sort = start_of_week
+        elif group_by == 'month':
+            months_es_dict = {1:"Enero", 2:"Febrero", 3:"Marzo", 4:"Abril", 5:"Mayo", 6:"Junio", 7:"Julio", 8:"Agosto", 9:"Septiembre", 10:"Octubre", 11:"Noviembre", 12:"Diciembre"}
+            month_name = months_es_dict.get(match.match_date.month, "")
+            date_key = f"{month_name} {match.match_date.year}"
+            date_obj_sort = match.match_date.replace(day=1)
+        else: # day
+            date_key = match.match_date.strftime('%d/%m/%Y')
+            date_obj_sort = match.match_date
+
         court_name = match.court.name if match.court else "Sin Cancha"
         
         if not match.league: continue
@@ -1049,7 +1120,8 @@ def global_schedule_financials():
         
         if date_key not in financial_data:
             financial_data[date_key] = {
-                'date_obj': match.match_date,
+                'date_obj': date_obj_sort,
+                'display_date': date_key,
                 'courts': {},
                 'daily_total': 0,
                 'daily_income': 0,
@@ -1078,7 +1150,8 @@ def global_schedule_financials():
         
         if date_key not in court_totals[court_name]['dates']:
             court_totals[court_name]['dates'][date_key] = {
-                'date_obj': match.match_date,
+                'date_obj': date_obj_sort,
+                'display_date': date_key,
                 'income': 0,
                 'expense': 0,
                 'profit': 0
@@ -1123,7 +1196,8 @@ def global_schedule_financials():
                          leagues=leagues,
                          selected_league_id=selected_league_id,
                          filename_suffix=filename_suffix,
-                         court_totals=court_totals)
+                         court_totals=court_totals,
+                         group_by=group_by)
 
 @report_bp.route('/global-schedule/financials/export')
 @login_required
@@ -1135,6 +1209,7 @@ def export_global_financials():
     report_type = getattr(current_user, 'financial_report_type', 'period')
     cancha_name = request.args.get('cancha')
     league_id = request.args.get('league_id')
+    group_by = request.args.get('group_by', 'day')
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
     
     if league_id:
@@ -1191,14 +1266,27 @@ def export_global_financials():
             if match.match_date.date() < match.league.charge_start_date:
                 continue
 
-        date_key = match.match_date.strftime('%Y-%m-%d')
+        if group_by == 'week':
+            start_of_week = match.match_date - timedelta(days=match.match_date.weekday())
+            end_of_week = start_of_week + timedelta(days=6)
+            date_key = f"Semana {start_of_week.isocalendar()[1]} ({start_of_week.strftime('%d/%m')} - {end_of_week.strftime('%d/%m')})"
+            date_obj_sort = start_of_week
+        elif group_by == 'month':
+            months_es_dict = {1:"Enero", 2:"Febrero", 3:"Marzo", 4:"Abril", 5:"Mayo", 6:"Junio", 7:"Julio", 8:"Agosto", 9:"Septiembre", 10:"Octubre", 11:"Noviembre", 12:"Diciembre"}
+            month_name = months_es_dict.get(match.match_date.month, "")
+            date_key = f"{month_name} {match.match_date.year}"
+            date_obj_sort = match.match_date.replace(day=1)
+        else: # day
+            date_key = match.match_date.strftime('%d/%m/%Y')
+            date_obj_sort = match.match_date
+
         court_name = match.court.name if match.court else "Sin Cancha"
         income = parse_cost(match.referee_cost_home) + parse_cost(match.referee_cost_away)
         expense = parse_cost(match.referee_cost)
         profit = income - expense
         
         if date_key not in financial_data:
-            financial_data[date_key] = {'date_obj': match.match_date, 'courts': {}}
+            financial_data[date_key] = {'date_obj': date_obj_sort, 'display_date': date_key, 'courts': {}}
         if court_name not in financial_data[date_key]['courts']:
             financial_data[date_key]['courts'][court_name] = {'income': 0, 'expense': 0, 'profit': 0}
             
@@ -1216,7 +1304,8 @@ def export_global_financials():
         
         if date_key not in court_totals[court_name]['dates']:
             court_totals[court_name]['dates'][date_key] = {
-                'date_obj': match.match_date,
+                'date_obj': date_obj_sort,
+                'display_date': date_key,
                 'income': 0,
                 'expense': 0,
                 'profit': 0
@@ -1262,7 +1351,7 @@ def export_global_financials():
             sorted_dates = sorted(c_stats['dates'].values(), key=lambda x: x['date_obj'])
             
             for d_stats in sorted_dates:
-                date_str = d_stats['date_obj'].strftime('%d/%m/%Y')
+                date_str = d_stats['display_date']
                 
                 ws.cell(row=current_row, column=1, value=date_str)
                 ws.cell(row=current_row, column=2, value=court_name)
@@ -1289,7 +1378,7 @@ def export_global_financials():
             
     else:
         for day in sorted_data:
-            date_str = day['date_obj'].strftime('%d/%m/%Y')
+            date_str = day['display_date']
             daily_profit = 0
             daily_income = 0
             daily_expense = 0
@@ -1347,6 +1436,7 @@ def share_global_financials():
     report_type = getattr(current_user, 'financial_report_type', 'period')
     cancha_name = request.args.get('cancha')
     league_id = request.args.get('league_id')
+    group_by = request.args.get('group_by', 'day')
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
     
     if league_id:
@@ -1405,14 +1495,27 @@ def share_global_financials():
             if match.match_date.date() < match.league.charge_start_date:
                 continue
 
-        date_key = match.match_date.strftime('%Y-%m-%d')
+        if group_by == 'week':
+            start_of_week = match.match_date - timedelta(days=match.match_date.weekday())
+            end_of_week = start_of_week + timedelta(days=6)
+            date_key = f"Semana {start_of_week.isocalendar()[1]} ({start_of_week.strftime('%d/%m')} - {end_of_week.strftime('%d/%m')})"
+            date_obj_sort = start_of_week
+        elif group_by == 'month':
+            months_es_dict = {1:"Enero", 2:"Febrero", 3:"Marzo", 4:"Abril", 5:"Mayo", 6:"Junio", 7:"Julio", 8:"Agosto", 9:"Septiembre", 10:"Octubre", 11:"Noviembre", 12:"Diciembre"}
+            month_name = months_es_dict.get(match.match_date.month, "")
+            date_key = f"{month_name} {match.match_date.year}"
+            date_obj_sort = match.match_date.replace(day=1)
+        else: # day
+            date_key = match.match_date.strftime('%d/%m/%Y')
+            date_obj_sort = match.match_date
+
         court_name = match.court.name if match.court else "Sin Cancha"
         income = parse_cost(match.referee_cost_home) + parse_cost(match.referee_cost_away)
         expense = parse_cost(match.referee_cost)
         profit = income - expense
         
         if date_key not in financial_data:
-            financial_data[date_key] = {'date_obj': match.match_date, 'courts': {}, 'daily_income': 0, 'daily_expense': 0, 'daily_profit': 0}
+            financial_data[date_key] = {'date_obj': date_obj_sort, 'display_date': date_key, 'courts': {}, 'daily_income': 0, 'daily_expense': 0, 'daily_profit': 0}
         if court_name not in financial_data[date_key]['courts']:
             financial_data[date_key]['courts'][court_name] = {'income': 0, 'expense': 0, 'profit': 0}
             
@@ -1434,7 +1537,8 @@ def share_global_financials():
         
         if date_key not in court_totals[court_name]['dates']:
             court_totals[court_name]['dates'][date_key] = {
-                'date_obj': match.match_date,
+                'date_obj': date_obj_sort,
+                'display_date': date_key,
                 'income': 0,
                 'expense': 0,
                 'profit': 0
@@ -1463,7 +1567,8 @@ def share_global_financials():
                          total_profit=total_profit,
                          today=datetime.now().strftime('%d/%m/%Y'),
                          report_type=report_type,
-                         court_totals=court_totals)
+                         court_totals=court_totals,
+                         group_by=group_by)
 
 @report_bp.route('/settings', methods=['GET', 'POST'])
 @login_required

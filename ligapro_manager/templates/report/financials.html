@@ -91,6 +91,14 @@
                     {% endfor %}
                 </select>
 
+                <!-- Agrupar por Selector -->
+                <select name="group_by"
+                    class="w-full md:w-auto bg-black/20 border border-white/10 rounded px-3 py-1 text-white focus:outline-none focus:border-green-500">
+                    <option value="day" {% if group_by == 'day' %}selected{% endif %}>Agrupar por Día</option>
+                    <option value="week" {% if group_by == 'week' %}selected{% endif %}>Agrupar por Semana</option>
+                    <option value="month" {% if group_by == 'month' %}selected{% endif %}>Agrupar por Mes</option>
+                </select>
+
                 <button type="submit"
                     class="w-full md:w-auto mt-2 md:mt-0 bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded transition-colors text-center">
                     <i class="fas fa-search"></i> Buscar
@@ -99,20 +107,20 @@
 
             <div class="flex flex-wrap justify-center gap-2 w-full md:w-auto">
                 {% if report_type == 'date_range' %}
-                <a href="{{ url_for('report.share_global_financials', date_from=date_from, date_to=date_to, cancha=selected_cancha, league_id=selected_league_id) }}"
+                <a href="{{ url_for('report.share_global_financials', date_from=date_from, date_to=date_to, cancha=selected_cancha, league_id=selected_league_id, group_by=group_by) }}"
                     class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded border border-blue-400 transition-colors flex items-center text-sm shadow">
                     <i class="fas fa-image mr-2"></i>PNG
                 </a>
-                <a href="{{ url_for('report.export_global_financials', date_from=date_from, date_to=date_to, cancha=selected_cancha, league_id=selected_league_id) }}"
+                <a href="{{ url_for('report.export_global_financials', date_from=date_from, date_to=date_to, cancha=selected_cancha, league_id=selected_league_id, group_by=group_by) }}"
                     class="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded border border-green-500 transition-colors flex items-center text-sm shadow">
                     <i class="fas fa-file-excel mr-2"></i>Excel
                 </a>
                 {% else %}
-                <a href="{{ url_for('report.share_global_financials', month=selected_month, year=selected_year, cancha=selected_cancha, league_id=selected_league_id) }}"
+                <a href="{{ url_for('report.share_global_financials', month=selected_month, year=selected_year, cancha=selected_cancha, league_id=selected_league_id, group_by=group_by) }}"
                     class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded border border-blue-400 transition-colors flex items-center text-sm shadow">
                     <i class="fas fa-image mr-2"></i>PNG
                 </a>
-                <a href="{{ url_for('report.export_global_financials', month=selected_month, year=selected_year, cancha=selected_cancha, league_id=selected_league_id) }}"
+                <a href="{{ url_for('report.export_global_financials', month=selected_month, year=selected_year, cancha=selected_cancha, league_id=selected_league_id, group_by=group_by) }}"
                     class="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded border border-green-500 transition-colors flex items-center text-sm shadow">
                     <i class="fas fa-file-excel mr-2"></i>Excel
                 </a>
@@ -208,8 +216,8 @@
                         </tr>
                         {% for date_str, d_stats in c_stats.dates.items()|sort(attribute='1.date_obj') %}
                         <tr class="hover:bg-white/5 transition-colors">
-                            <td class="py-3 px-6 font-mono text-white/60 print:text-black">
-                                {{ d_stats.date_obj.strftime('%d/%m/%Y') }}
+                            <td class="py-3 px-6 font-mono text-white/60 print:text-black whitespace-nowrap">
+                                {{ d_stats.display_date }}
                             </td>
                             <td class="py-3 px-6 font-bold uppercase">{{ court }}</td>
                             <td class="py-3 px-6 text-right font-mono text-blue-300 print:text-black">${{ d_stats.income
@@ -238,8 +246,8 @@
                         {% for day in financial_data %}
                         {% for court, stats in day.courts.items() %}
                         <tr class="hover:bg-white/5 transition-colors">
-                            <td class="py-3 px-6 font-mono text-white/60 print:text-black">
-                                {{ day.date_obj.strftime('%d/%m/%Y') }}
+                            <td class="py-3 px-6 font-mono text-white/60 print:text-black whitespace-nowrap">
+                                {{ day.display_date }}
                             </td>
                             <td class="py-3 px-6 font-bold uppercase">{{ court }}</td>
                             <td class="py-3 px-6 text-right font-mono text-blue-300 print:text-black">${{ stats.income
@@ -256,7 +264,7 @@
                         <tr class="bg-white/5 font-bold border-b border-white/10 print:bg-gray-100 print:border-black">
                             <td colspan="2"
                                 class="py-2 px-6 text-right text-xs uppercase tracking-wider text-white/50 print:text-black">
-                                Total Día:</td>
+                                Total {% if group_by == 'day' %}Día{% else %}{{ day.display_date }}{% endif %}:</td>
                             <td class="py-2 px-6 text-right font-mono text-blue-400 print:text-black">${{
                                 day.daily_income }}</td>
                             <td class="py-2 px-6 text-right font-mono text-red-400 print:text-black">${{

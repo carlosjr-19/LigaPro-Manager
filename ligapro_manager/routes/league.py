@@ -283,19 +283,27 @@ def league_detail(league_id):
         if m.home_team_id not in teams_history:
             teams_history[m.home_team_id] = {}
         if m.away_team_id not in teams_history[m.home_team_id]:
-            teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None}
+            teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None, 'last_time': None, 'last_court_name': None}
             
         if m.away_team_id not in teams_history:
             teams_history[m.away_team_id] = {}
         if m.home_team_id not in teams_history[m.away_team_id]:
-            teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None}
+            teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None, 'last_time': None, 'last_court_name': None}
 
         teams_history[m.home_team_id][m.away_team_id]['count'] += 1
         teams_history[m.away_team_id][m.home_team_id]['count'] += 1
         
         date_str = m.match_date.strftime('%Y-%m-%d') if m.match_date else None
+        time_str = m.match_date.strftime('%I:%M %p') if m.match_date else None
+        court_name = m.court.name if m.court else '-- Sin Cancha --'
+
         teams_history[m.home_team_id][m.away_team_id]['last_date'] = date_str
+        teams_history[m.home_team_id][m.away_team_id]['last_time'] = time_str
+        teams_history[m.home_team_id][m.away_team_id]['last_court_name'] = court_name
+
         teams_history[m.away_team_id][m.home_team_id]['last_date'] = date_str
+        teams_history[m.away_team_id][m.home_team_id]['last_time'] = time_str
+        teams_history[m.away_team_id][m.home_team_id]['last_court_name'] = court_name
     
     return render_template('league_detail.html', 
                           league=league, 
