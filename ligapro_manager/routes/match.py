@@ -278,6 +278,10 @@ def edit_match(match_id):
 def reset_season(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     
+    # Archive finances before deleting matches
+    from utils.helpers import archive_league_finances
+    archive_league_finances(league)
+    
     # Delete ALL matches (regular + playoff)
     deleted = Match.query.filter_by(league_id=league_id).delete(synchronize_session=False)
     

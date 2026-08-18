@@ -408,6 +408,9 @@ def delete_league(league_id):
     if not is_league_accessible(current_user.id, league.id):
         flash('Has excedido tu límite de ligas gratuitas. Actualiza a Premium para eliminar esta liga.', 'warning')
         return redirect(url_for('premium.premium'))
+    # Archive finances before deleting
+    from utils.helpers import archive_league_finances
+    archive_league_finances(league)
 
     db.session.delete(league)
     db.session.commit()
