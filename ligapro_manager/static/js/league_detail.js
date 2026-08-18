@@ -336,7 +336,11 @@ function openMatrixModal(cellData) {
             // Formatting date for display: YYYY-MM-DD -> DD [mes] YYYY
             const d = new Date(historyData.last_date + 'T12:00:00');
             const options = { day: 'numeric', month: 'short', year: 'numeric' };
-            dateText.textContent = d.toLocaleDateString('es-MX', options);
+            let text = d.toLocaleDateString('es-MX', options);
+            if (historyData.last_time && historyData.last_court_name) {
+                text += ` - ${historyData.last_time} (${historyData.last_court_name})`;
+            }
+            dateText.textContent = text;
             alertBox.classList.remove('hidden');
         } else {
             alertBox.classList.add('hidden');

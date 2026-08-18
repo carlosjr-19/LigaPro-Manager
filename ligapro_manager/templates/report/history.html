@@ -48,10 +48,20 @@
                     </option>
                     {% endfor %}
                 </select>
+                <input type="hidden" name="show_hidden" value="{{ '1' if show_hidden else '0' }}">
             </form>
 
-            <div class="text-white/40 text-sm">
-                Mostrando eventos con discrepancias según precios configurados.
+            <div class="flex items-center gap-3">
+                <form method="POST" action="{{ url_for('report.unhide_all_history') }}">
+                    <button type="submit" class="bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded text-white text-xs transition-colors" title="Mostrar todos los registros ocultos">
+                        <i class="fas fa-eye mr-1"></i> Restaurar Todos
+                    </button>
+                </form>
+                <a href="{{ url_for('report.global_schedule_history', league_id=selected_league, show_hidden='0' if show_hidden else '1') }}" 
+                   class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 px-3 py-1.5 rounded text-xs transition-colors border border-blue-500/30">
+                    <i class="fas {{ 'fa-eye-slash' if show_hidden else 'fa-eye' }} mr-1"></i>
+                    {{ 'Ocultar registros ignorados' if show_hidden else 'Ver registros ignorados' }}
+                </a>
             </div>
         </div>
 
@@ -75,11 +85,12 @@
                             <th class="py-3 px-6 text-right">Debía / Esperado</th>
                             <th class="py-3 px-6 text-right">Pagó</th>
                             <th class="py-3 px-6 text-right">Balance</th>
+                            <th class="py-3 px-6 text-center w-16">Acción</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-white/5 text-white/80">
                         {% for event in events %}
-                        <tr class="hover:bg-white/5 transition-colors">
+                        <tr class="hover:bg-white/5 transition-colors {{ 'opacity-50' if event.is_hidden else '' }}" id="row-{{ event.hash_id }}">
                             <td class="py-3 px-6 font-mono text-white/60">{{ event.date.strftime('%d/%m/%Y') }}</td>
                             <td class="py-3 px-6 font-bold text-xs uppercase">{{ event.league }}</td>
                             <td class="py-3 px-6">{{ event.match }}</td>
@@ -93,6 +104,13 @@
                                 class="py-3 px-6 text-right font-bold {{ 'text-green-400' if event.balance > 0 else 'text-red-400' }}">
                                 {{ '+' if event.balance > 0 else '' }}{{ event.balance }}
                             </td>
+                            <td class="py-3 px-6 text-center">
+                                <button type="button" onclick="toggleHide('{{ event.hash_id }}', this)" 
+                                        class="text-white/40 hover:text-white transition-colors"
+                                        title="{{ 'Mostrar registro' if event.is_hidden else 'Ocultar registro' }}">
+                                    <i class="fas {{ 'fa-eye' if event.is_hidden else 'fa-eye-slash' }}"></i>
+                                </button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -102,4 +120,49 @@
         </div>
     </main>
 </div>
+
+<script>
+function toggleHide(hashId, btn) {
+    const formData = new FormData();
+    formData.append('hash_id', hashId);
+    
+    {% if csrf_token %}
+    formData.append('csrf_token', '{{ csrf_token() }}');
+    {% endif %}
+
+    fetch("{{ url_for('report.toggle_hide_history') }}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const row = document.getElementById('row-' + hashId);
+            const isHiddenNow = data.action === 'hidden';
+            
+            {% if show_hidden %}
+            if (isHiddenNow) {
+                row.classList.add('opacity-50');
+                btn.innerHTML = '<i class="fas fa-eye"></i>';
+                btn.title = 'Mostrar registro';
+            } else {
+                row.classList.remove('opacity-50');
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                btn.title = 'Ocultar registro';
+            }
+            {% else %}
+            if (isHiddenNow) {
+                row.style.display = 'none';
+            }
+            {% endif %}
+        } else {
+            alert(data.message || "Error al procesar la solicitud.");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error de red.");
+    });
+}
+</script>
 {% endblock %}

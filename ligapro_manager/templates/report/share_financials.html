@@ -133,7 +133,7 @@
                             {% for date_str, d_stats in c_stats.dates.items()|sort(attribute='1.date_obj') %}
                             <tr class="hover:bg-white/5 transition-colors text-xs">
                                 <td class="py-3 px-4 text-left font-mono text-white/60 font-bold whitespace-nowrap">
-                                    {{ d_stats.date_obj.strftime('%d/%m/%Y') }}
+                                    {{ d_stats.display_date }}
                                 </td>
                                 <td class="py-3 px-4 text-left font-bold uppercase tracking-wider text-white/90">
                                     {{ court }}
@@ -168,7 +168,7 @@
                             {% for court, stats in day.courts.items() %}
                             <tr class="hover:bg-white/5 transition-colors text-xs">
                                 <td class="py-3 px-4 text-left font-mono text-white/60 font-bold whitespace-nowrap">
-                                    {{ day.date_obj.strftime('%d/%m/%Y') }}
+                                    {{ day.display_date }}
                                 </td>
                                 <td class="py-3 px-4 text-left font-bold uppercase tracking-wider text-white/90">
                                     {{ court }}
@@ -190,7 +190,7 @@
                             <tr class="bg-black/20">
                                 <td colspan="2"
                                     class="py-2 px-4 text-right text-[10px] font-bold uppercase tracking-widest text-white/40">
-                                    TOTAL DÍA {{ day.date_obj.strftime('%d/%m') }}:
+                                    TOTAL {% if group_by == 'day' %}DÍA {{ day.date_obj.strftime('%d/%m') }}{% else %}{{ day.display_date }}{% endif %}:
                                 </td>
                                 <td class="py-2 px-4 text-center font-mono font-bold text-blue-400/80 text-xs">${{
                                     day.daily_income }}</td>

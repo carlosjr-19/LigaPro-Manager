@@ -177,7 +177,9 @@
                                     {% if match.league.custom_color_active and match.league.custom_name_color %}
                                     style="color: {{ match.league.custom_name_color }} !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;"
                                     {% endif %}>
-                                    {{ match.league.name }}
+                                    <a href="{{ url_for('league.league_detail', league_id=match.league.id) }}#matches" class="hover:underline transition-all" title="Ver partidos de {{ match.league.name }}">
+                                        {{ match.league.name }}
+                                    </a>
                                     {% if match.is_practice %}
                                     <span class="ml-1 text-yellow-400 text-[9px] font-bold tracking-widest print:hidden" title="Partido de práctica - no cuenta en la tabla">PRÁCT.</span>
                                     {% endif %}

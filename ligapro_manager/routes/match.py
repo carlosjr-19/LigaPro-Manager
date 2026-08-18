@@ -56,18 +56,24 @@ def create_match(league_id):
     for m in completed_matches:
         if m.home_team_id in teams_history and m.away_team_id in teams_history:
             date_str = f"{m.match_date.day} {months[m.match_date.month - 1]} {m.match_date.year}" if m.match_date else None
+            time_str = m.match_date.strftime('%I:%M %p') if m.match_date else None
+            court_name = m.court.name if m.court else '-- Sin Cancha --'
             
             if m.away_team_id not in teams_history[m.home_team_id]:
-                teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None}
+                teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None, 'last_time': None, 'last_court_name': None}
             teams_history[m.home_team_id][m.away_team_id]['count'] += 1
             if date_str:
                 teams_history[m.home_team_id][m.away_team_id]['last_date'] = date_str
+                teams_history[m.home_team_id][m.away_team_id]['last_time'] = time_str
+                teams_history[m.home_team_id][m.away_team_id]['last_court_name'] = court_name
                 
             if m.home_team_id not in teams_history[m.away_team_id]:
-                teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None}
+                teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None, 'last_time': None, 'last_court_name': None}
             teams_history[m.away_team_id][m.home_team_id]['count'] += 1
             if date_str:
                 teams_history[m.away_team_id][m.home_team_id]['last_date'] = date_str
+                teams_history[m.away_team_id][m.home_team_id]['last_time'] = time_str
+                teams_history[m.away_team_id][m.home_team_id]['last_court_name'] = court_name
             
     # Create a mapping of id -> name for easy JS lookup
     teams_map = {t.id: t.name for t in teams}
@@ -241,18 +247,24 @@ def edit_match(match_id):
         if m.id == match.id: continue # Exclude current match if it was somehow completed (safeguard)
         if m.home_team_id in teams_history and m.away_team_id in teams_history:
             date_str = f"{m.match_date.day} {months[m.match_date.month - 1]} {m.match_date.year}" if m.match_date else None
+            time_str = m.match_date.strftime('%I:%M %p') if m.match_date else None
+            court_name = m.court.name if m.court else '-- Sin Cancha --'
             
             if m.away_team_id not in teams_history[m.home_team_id]:
-                teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None}
+                teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None, 'last_time': None, 'last_court_name': None}
             teams_history[m.home_team_id][m.away_team_id]['count'] += 1
             if date_str:
                 teams_history[m.home_team_id][m.away_team_id]['last_date'] = date_str
+                teams_history[m.home_team_id][m.away_team_id]['last_time'] = time_str
+                teams_history[m.home_team_id][m.away_team_id]['last_court_name'] = court_name
                 
             if m.home_team_id not in teams_history[m.away_team_id]:
-                teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None}
+                teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None, 'last_time': None, 'last_court_name': None}
             teams_history[m.away_team_id][m.home_team_id]['count'] += 1
             if date_str:
                 teams_history[m.away_team_id][m.home_team_id]['last_date'] = date_str
+                teams_history[m.away_team_id][m.home_team_id]['last_time'] = time_str
+                teams_history[m.away_team_id][m.home_team_id]['last_court_name'] = court_name
             
     teams_map = {t.id: t.name for t in teams}
     

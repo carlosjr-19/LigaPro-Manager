@@ -42,7 +42,11 @@ function checkLastEncounter() {
     if (homeId && awayId && homeId !== awayId) {
         const history = window.teamsHistory[homeId];
         if (history && history[awayId] && history[awayId].last_date) {
-            dateSpan.textContent = history[awayId].last_date;
+            let text = history[awayId].last_date;
+            if (history[awayId].last_time && history[awayId].last_court_name) {
+                text += ` - ${history[awayId].last_time} (${history[awayId].last_court_name})`;
+            }
+            dateSpan.textContent = text;
             alertBox.classList.remove('hidden');
             return;
         }
