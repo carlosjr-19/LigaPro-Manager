@@ -136,6 +136,14 @@
                                             </div>
                                         </label>
                                     </div>
+                                    <div class="mt-1">
+                                        <select name="player_registry_template"
+                                            class="h-6 text-xs bg-white/10 border-none rounded text-white focus:ring-0 w-full"
+                                            title="Registro de Liga">
+                                            <option value="registro1" {% if user.player_registry_template == 'registro1' or not user.player_registry_template %}selected{% endif %}>Registro 1 (Predeterminado)</option>
+                                            <option value="registro2" {% if user.player_registry_template == 'registro2' %}selected{% endif %}>Registro 2</option>
+                                        </select>
+                                    </div>
                                     <style>
                                         input:checked ~ .toggle-bg {
                                             background-color: #10b981; /* Tailwind emerald-500 */

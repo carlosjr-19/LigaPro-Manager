@@ -76,14 +76,12 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v1.0.1)
+## 🔄 Últimas Actualizaciones (v1.0.2)
 
-- **Historial de Enfrentamientos Previos**: Al agendar partidos (tanto en formulario clásico como en matriz interactiva), el panel ahora muestra la fecha del último encuentro registrado entre ambos equipos seleccionados, mejorando el contexto de las rivalidades para los administradores.
-- **Buscador en Estadísticas**: Se implementó un buscador dinámico que permite filtrar en tiempo real las listas de Goleadores y Arqueros Menos Goleados, optimizando la gestión de estadísticas extensas.
-- **Goleadores del Equipo**: Los equipos ahora cuentan con su propia tabla de máximos anotadores directamente en la vista detallada de su plantilla, permitiendo a delegados visualizar el rendimiento de goleo de sus propios jugadores de manera aislada y rápida.
-- **Límite de Jugadores por Equipo (0.16.0)**: Funcionalidad Premium que permite establecer un tope máximo de jugadores por escuadra. Bloquea de forma automática (tanto visual como funcionalmente) la adición y edición de jugadores extra para dueños y delegados.
-- **Corrección de Cámara Web (0.16.0)**: Solución de un error que impedía el uso de la cámara del dispositivo o la carga directa de imágenes a la nube (Cloudinary) para los logos y escudos institucionales.
-- **Seguridad en Ligas Activas (0.16.0)**: Si se limita el acceso a delegados (capitanes), ahora el panel les bloquea cualquier modificación de forma estricta desde el servidor, resguardando la integridad de las plantillas.
+- **Impresión 1:1 Oficial de Credenciales**: El motor de exportación a PDF ahora bloquea el escalado en impresiones tamaño A4, garantizando que el diseño del "Registro 2" mida exactamente 8.6 cm x 5.4 cm al imprimir, igualando las medidas de una identificación oficial (INE mexicano / ID-1) para facilitar el enmicado y copias traseras.
+- **Historial de Enfrentamientos Previos (1.0.1)**: Al agendar partidos (tanto en formulario clásico como en matriz interactiva), el panel ahora muestra la fecha del último encuentro registrado entre ambos equipos seleccionados, mejorando el contexto de las rivalidades para los administradores.
+- **Buscador en Estadísticas (1.0.0)**: Se implementó un buscador dinámico que permite filtrar en tiempo real las listas de Goleadores y Arqueros Menos Goleados, optimizando la gestión de estadísticas extensas.
+- **Goleadores del Equipo (1.0.0)**: Los equipos ahora cuentan con su propia tabla de máximos anotadores directamente en la vista detallada de su plantilla, permitiendo a delegados visualizar el rendimiento de goleo de sus propios jugadores de manera aislada y rápida.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

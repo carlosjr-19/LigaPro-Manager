@@ -172,6 +172,7 @@ def update_user_colors(user_id):
     color_loss = request.form.get('color_loss')
     highlight_mode = request.form.get('highlight_mode', 'simple')
     assigned_role_style = request.form.get('assigned_role_style')
+    player_registry_template = request.form.get('player_registry_template')
     
     if color_win and color_loss:
         user.color_win = color_win
@@ -179,6 +180,8 @@ def update_user_colors(user_id):
         user.highlight_mode = highlight_mode
         if assigned_role_style:
             user.assigned_role_style = assigned_role_style
+        if player_registry_template:
+            user.player_registry_template = player_registry_template
             
         user.can_custom_role_style = True if request.form.get('can_custom_role_style') == 'on' else False
         
