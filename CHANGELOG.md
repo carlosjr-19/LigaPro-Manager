@@ -1,3 +1,13 @@
+## 1.0.2
+
+Actualización del Diseño de Credenciales "Registro 2".
+
+- **Rediseño Visual de Registro 2**: Se actualizaron los componentes visuales de la plantilla "Registro 2" de credenciales. El logo y el nombre del equipo ahora ocupan una posición central destacada (con fondo difuminado "glassmorphism") para mayor legibilidad. El nombre del jugador se movió a la parte superior junto con su número, truncando el texto automáticamente. El CURP fue movido debajo de la foto del jugador para una estructura más limpia.
+- **Tamaño de Impresión 1:1 Oficial**: Se actualizó el motor de exportación a PDF (`html2pdf`) configurándolo nativamente en formato A4 con dimensiones exactas en milímetros. Esto bloquea el re-escalado automático del navegador y garantiza que al imprimir el archivo, la credencial tenga el tamaño físico internacional estándar CR80 / ID-1 de 8.6 cm x 5.4 cm, igual al de una identificación oficial o INE mexicano, lo cual permite que las copias traseras coincidan a la perfección.
+
+## Modificado
+* `ligapro_manager/templates/credentials.html`
+
 ## 1.0.1
 
 Historial de Enfrentamientos Previos al Agendar Partidos.
