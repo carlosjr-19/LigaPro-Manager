@@ -52,9 +52,9 @@
         </div>
 
         {% if leagues %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="leagues-grid">
             {% for league in leagues %}
-            <div class="relative group">
+            <div class="relative group" data-id="{{ league.id }}">
                 {% set is_allowed = league.id in allowed_league_ids %}
                 <a href="{{ url_for('league.league_detail', league_id=league.id) }}"
                     class="card block transition-all relative overflow-hidden {{ 'hover:border-primary/50' if is_allowed else 'opacity-60 grayscale cursor-not-allowed border-red-500/30' }}">
@@ -123,4 +123,37 @@
         {% endif %}
     </main>
 </div>
+
+<!-- SortableJS for Drag and Drop -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var el = document.getElementById('leagues-grid');
+        if (el) {
+            Sortable.create(el, {
+                animation: 150,
+                ghostClass: 'opacity-50',
+                onEnd: function (evt) {
+                    var items = el.querySelectorAll('[data-id]');
+                    var order = Array.from(items).map(item => item.getAttribute('data-id'));
+                    
+                    fetch('{{ url_for("league.reorder_leagues") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ league_ids: order })
+                    }).then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('Error al guardar el orden:', data.error);
+                        }
+                    }).catch(error => {
+                        console.error('Error de red:', error);
+                    });
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
