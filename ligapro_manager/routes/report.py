@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
-from models import Match, League, Court, Team, OwnerCourtSetting, IgnoredDiscrepancy
+from models import Match, League, Court, Team, OwnerCourtSetting, IgnoredDiscrepancy, ArchivedFinance
 from extensions import db
 from sqlalchemy import func
 from datetime import datetime, timedelta
@@ -10,6 +10,80 @@ from openpyxl.utils import get_column_letter
 from io import BytesIO
 from flask import send_file
 import hashlib
+
+def process_archives(archived_finances, group_by, financial_data, court_totals, total_month_profit=None):
+    for archive in archived_finances:
+        match_date = datetime.combine(archive.date, datetime.min.time())
+        if group_by == 'week':
+            start_of_week = match_date - timedelta(days=match_date.weekday())
+            end_of_week = start_of_week + timedelta(days=6)
+            date_key = f"Semana {start_of_week.isocalendar()[1]} ({start_of_week.strftime('%d/%m')} - {end_of_week.strftime('%d/%m')})"
+            date_obj_sort = start_of_week
+        elif group_by == 'month':
+            months_es_dict = {1:"Enero", 2:"Febrero", 3:"Marzo", 4:"Abril", 5:"Mayo", 6:"Junio", 7:"Julio", 8:"Agosto", 9:"Septiembre", 10:"Octubre", 11:"Noviembre", 12:"Diciembre"}
+            month_name = months_es_dict.get(match_date.month, "")
+            date_key = f"{month_name} {match_date.year}"
+            date_obj_sort = match_date.replace(day=1)
+        else: # day
+            date_key = match_date.strftime('%d/%m/%Y')
+            date_obj_sort = match_date
+
+        court_name = archive.court_name
+        income = archive.income
+        expense = archive.expense
+        profit = archive.profit
+        
+        if date_key not in financial_data:
+            financial_data[date_key] = {
+                'date_obj': date_obj_sort,
+                'display_date': date_key,
+                'courts': {},
+                'daily_total': 0,
+                'daily_income': 0,
+                'daily_expense': 0,
+                'daily_profit': 0
+            }
+            
+        if court_name not in financial_data[date_key]['courts']:
+            financial_data[date_key]['courts'][court_name] = {'income': 0, 'expense': 0, 'profit': 0}
+            
+        financial_data[date_key]['courts'][court_name]['income'] += income
+        financial_data[date_key]['courts'][court_name]['expense'] += expense
+        financial_data[date_key]['courts'][court_name]['profit'] += profit
+        
+        if 'daily_total' in financial_data[date_key]:
+            financial_data[date_key]['daily_total'] += profit
+        if 'daily_income' in financial_data[date_key]:
+            financial_data[date_key]['daily_income'] += income
+        if 'daily_expense' in financial_data[date_key]:
+            financial_data[date_key]['daily_expense'] += expense
+        if 'daily_profit' in financial_data[date_key]:
+            financial_data[date_key]['daily_profit'] += profit
+            
+        if total_month_profit is not None:
+            total_month_profit += profit
+            
+        if court_name not in court_totals:
+            court_totals[court_name] = {'income': 0, 'expense': 0, 'profit': 0, 'dates': {}}
+            
+        court_totals[court_name]['income'] += income
+        court_totals[court_name]['expense'] += expense
+        court_totals[court_name]['profit'] += profit
+        
+        if 'dates' in court_totals[court_name]:
+            if date_key not in court_totals[court_name]['dates']:
+                court_totals[court_name]['dates'][date_key] = {
+                    'date_obj': date_obj_sort,
+                    'display_date': date_key,
+                    'income': 0,
+                    'expense': 0,
+                    'profit': 0
+                }
+            court_totals[court_name]['dates'][date_key]['income'] += income
+            court_totals[court_name]['dates'][date_key]['expense'] += expense
+            court_totals[court_name]['dates'][date_key]['profit'] += profit
+
+    return total_month_profit
 
 report_bp = Blueprint('report', __name__)
 
@@ -1161,6 +1235,31 @@ def global_schedule_financials():
         court_totals[court_name]['dates'][date_key]['expense'] += expense
         court_totals[court_name]['dates'][date_key]['profit'] += profit
 
+    # Process Archives
+    from models import ArchivedFinance
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    if selected_league_id:
+        league_obj = League.query.get(selected_league_id)
+        if league_obj: archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
+    if cancha_name:
+        if cancha_name == "Sin Cancha": archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
+        else: archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
+    
+    if report_type == 'date_range' and date_from_str and date_to_str:
+        try:
+            d_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            d_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            archive_query = archive_query.filter(ArchivedFinance.date >= d_from, ArchivedFinance.date <= d_to)
+        except: pass
+    elif selected_month and selected_year:
+        archive_query = archive_query.filter(
+            func.extract('month', ArchivedFinance.date) == selected_month,
+            func.extract('year', ArchivedFinance.date) == selected_year
+        )
+        
+    archived_finances = archive_query.all()
+    total_month_profit = process_archives(archived_finances, group_by, financial_data, court_totals, total_month_profit)
+
     # Convert to sorted list
     sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
     
@@ -1314,6 +1413,31 @@ def export_global_financials():
         court_totals[court_name]['dates'][date_key]['income'] += income
         court_totals[court_name]['dates'][date_key]['expense'] += expense
         court_totals[court_name]['dates'][date_key]['profit'] += profit
+
+    # Process Archives
+    from models import ArchivedFinance
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    if league_id:
+        league_obj = League.query.get(league_id)
+        if league_obj: archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
+    if cancha_name:
+        if cancha_name == "Sin Cancha": archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
+        else: archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
+    
+    if report_type == 'date_range' and 'date_from_str' in locals() and 'date_to_str' in locals() and date_from_str:
+        try:
+            d_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            d_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            archive_query = archive_query.filter(ArchivedFinance.date >= d_from, ArchivedFinance.date <= d_to)
+        except: pass
+    elif 'month' in locals() and 'year' in locals():
+        archive_query = archive_query.filter(
+            func.extract('month', ArchivedFinance.date) == month,
+            func.extract('year', ArchivedFinance.date) == year
+        )
+        
+    archived_finances = archive_query.all()
+    process_archives(archived_finances, group_by, financial_data, court_totals)
 
     sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
 
@@ -1551,6 +1675,37 @@ def share_global_financials():
         total_income += income
         total_expense += expense
         total_profit += profit
+
+    # Process Archives
+    from models import ArchivedFinance
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    if league_id:
+        league_obj = League.query.get(league_id)
+        if league_obj: archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
+    if cancha_name:
+        if cancha_name == "Sin Cancha": archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
+        else: archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
+    
+    if report_type == 'date_range' and 'date_from_str' in locals() and 'date_to_str' in locals() and date_from_str:
+        try:
+            d_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            d_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            archive_query = archive_query.filter(ArchivedFinance.date >= d_from, ArchivedFinance.date <= d_to)
+        except: pass
+    elif 'month' in locals() and 'year' in locals():
+        archive_query = archive_query.filter(
+            func.extract('month', ArchivedFinance.date) == month,
+            func.extract('year', ArchivedFinance.date) == year
+        )
+        
+    archived_finances = archive_query.all()
+    # share_global_financials also keeps track of global total_income, total_expense, total_profit
+    for archive in archived_finances:
+        total_income += archive.income
+        total_expense += archive.expense
+        total_profit += archive.profit
+        
+    process_archives(archived_finances, group_by, financial_data, court_totals)
 
     sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
 

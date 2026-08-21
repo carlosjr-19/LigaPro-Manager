@@ -22,7 +22,7 @@ def index():
 @login_required
 @owner_required
 def dashboard():
-    leagues = League.query.filter_by(user_id=current_user.id).order_by(League.created_at.asc()).all()
+    leagues = League.query.filter_by(user_id=current_user.id).order_by(League.display_order.asc(), League.created_at.asc()).all()
     
     allowed_league_ids = [l.id for l in leagues]
     if not current_user.is_active_premium and len(leagues) > 3:

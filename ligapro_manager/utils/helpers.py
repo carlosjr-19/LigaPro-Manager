@@ -139,3 +139,71 @@ def is_league_accessible(user_id, league_id):
     allowed_ids = [l.id for l in leagues[:3]]
     
     return league_id in allowed_ids
+
+def archive_league_finances(league):
+    """
+    Archives the financial data for a league before it gets deleted or reset.
+    Groups by Match Date and Court, then inserts into ArchivedFinance.
+    """
+    from extensions import db
+    from models import ArchivedFinance
+    
+    matches = Match.query.filter_by(league_id=league.id).all()
+    if not matches:
+        return
+        
+    def parse_cost(val):
+        if not val: return 0
+        if isinstance(val, str) and not val.isdigit(): return 0 
+        try: return int(val)
+        except: return 0
+        
+    def is_waived(val):
+        # We need to replicate the is_waived logic since we don't have it imported here
+        if isinstance(val, str) and val.upper() in ['NSP', 'GIFT']: # According to app logic usually NSP
+            return True
+        return False
+        
+    archives = {}
+    default_team_price = league.price_per_match or 0
+    
+    for match in matches:
+        # Respect Charge Start Date
+        if not league.charge_from_start and league.charge_start_date:
+            if match.match_date.date() < league.charge_start_date:
+                continue
+                
+        date_key = match.match_date.date()
+        court_name = match.court.name if match.court else "Sin Cancha"
+        key = (date_key, court_name)
+        
+        if key not in archives:
+            archives[key] = {'income': 0, 'expense': 0}
+            
+        income = 0
+        if not is_waived(match.referee_cost_home):
+            income += parse_cost(match.referee_cost_home)
+        if not is_waived(match.referee_cost_away):
+            income += parse_cost(match.referee_cost_away)
+            
+        expense = 0
+        if not is_waived(match.referee_cost):
+            expense += parse_cost(match.referee_cost)
+            
+        archives[key]['income'] += income
+        archives[key]['expense'] += expense
+        
+    for (date_key, court_name), totals in archives.items():
+        if totals['income'] == 0 and totals['expense'] == 0:
+            continue
+            
+        archive = ArchivedFinance(
+            user_id=league.user_id,
+            league_name=league.name,
+            court_name=court_name,
+            date=date_key,
+            income=totals['income'],
+            expense=totals['expense'],
+            profit=totals['income'] - totals['expense']
+        )
+        db.session.add(archive)

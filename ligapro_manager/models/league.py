@@ -21,6 +21,7 @@ class League(db.Model):
     credential_color = db.Column(db.String(10), default='#dc2626') # Premium only
     credential_phrase = db.Column(db.String(255), nullable=True) # Premium only
     show_team_logos = db.Column(db.Boolean, default=False) # Premium only
+    display_order = db.Column(db.Integer, default=0) # For custom ordering in dashboard
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
     # Relationships

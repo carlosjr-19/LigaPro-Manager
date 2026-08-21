@@ -408,6 +408,9 @@ def delete_league(league_id):
     if not is_league_accessible(current_user.id, league.id):
         flash('Has excedido tu límite de ligas gratuitas. Actualiza a Premium para eliminar esta liga.', 'warning')
         return redirect(url_for('premium.premium'))
+    # Archive finances before deleting
+    from utils.helpers import archive_league_finances
+    archive_league_finances(league)
 
     db.session.delete(league)
     db.session.commit()
@@ -725,3 +728,26 @@ def proxy_image():
     except Exception as e:
         print(f"Proxy Error: {e}")
         return str(e), 500
+
+@league_bp.route('/leagues/reorder', methods=['POST'])
+@login_required
+@owner_required
+def reorder_leagues():
+    try:
+        data = request.get_json()
+        if not data or 'league_ids' not in data:
+            return {'success': False, 'error': 'Invalid data'}, 400
+            
+        league_ids = data['league_ids']
+        
+        # Verify ownership of all leagues and update their display_order
+        for index, l_id in enumerate(league_ids):
+            league = League.query.filter_by(id=l_id, user_id=current_user.id).first()
+            if league:
+                league.display_order = index
+                
+        db.session.commit()
+        return {'success': True}
+    except Exception as e:
+        db.session.rollback()
+        return {'success': False, 'error': str(e)}, 500
