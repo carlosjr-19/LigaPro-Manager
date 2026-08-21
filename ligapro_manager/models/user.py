@@ -19,6 +19,7 @@ class User(UserMixin, db.Model):
     highlight_mode = db.Column(db.String(20), default='simple') # 'simple' or 'full'
     assigned_role_style = db.Column(db.String(50), default='mint') # mint, emerald, cyberpunk, maroon, original
     financial_report_type = db.Column(db.String(20), default='period') # 'period' or 'date_range'
+    player_registry_template = db.Column(db.String(20), default='registro1') # 'registro1', 'registro2'
     premium_expires_at = db.Column(db.DateTime, nullable=True)
     team_id = db.Column(db.String(36), db.ForeignKey('teams.id'), nullable=True)
     can_custom_role_style = db.Column(db.Boolean, default=False)
