@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Archivos Financieros{% endblock %}
+
+{% block content %}
+<div class="min-h-screen">
+    <header class="bg-card border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('report.index') }}" class="text-white/40 hover:text-white transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-600 bg-clip-text text-transparent">
+                    <i class="fas fa-archive mr-2"></i>Historial Archivado
+                </h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="bg-amber-500/10 text-amber-400 text-xs px-3 py-1 rounded-full border border-amber-500/20">
+                    <i class="fas fa-crown mr-1"></i>Ultra
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <div class="bg-card/50 backdrop-blur-md rounded-2xl border border-white/10 p-6 mb-8">
+            <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-2">Registros Financieros de Ligas Eliminadas/Restablecidas</h2>
+                    <p class="text-white/60 text-sm max-w-3xl">
+                        Aquí puedes ver el historial de las finanzas que fueron archivadas. Estos datos siguen sumando a tus estadísticas financieras globales mensuales. Si deseas borrar algún registro permanentemente (por ejemplo, para corregir un error), bórralo desde esta tabla.
+                    </p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 text-white/40 text-xs uppercase tracking-wider">
+                            <th class="p-4 w-10"></th>
+                            <th class="p-4 font-medium">Fecha</th>
+                            <th class="p-4 font-medium">Liga</th>
+                            <th class="p-4 font-medium">Cancha</th>
+                            <th class="p-4 font-medium text-right">Ingresos</th>
+                            <th class="p-4 font-medium text-right">Gastos (Árb.)</th>
+                            <th class="p-4 font-medium text-right">Ganancia Neta</th>
+                            <th class="p-4 font-medium text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        {% for batch in batches %}
+                        <tr class="hover:bg-white/5 transition-colors group cursor-pointer" id="row-{{ batch.id }}" onclick="toggleDetails('{{ batch.id }}')">
+                            <td class="p-4 text-white/40 text-center">
+                                {% if batch.matches %}
+                                <i class="fas fa-chevron-down transition-transform duration-300" id="icon-{{ batch.id }}"></i>
+                                {% else %}
+                                <i class="fas fa-minus opacity-30"></i>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-white text-sm">
+                                {{ batch.archived_date.strftime('%d/%m/%Y %H:%M') if batch.archived_date.strftime else batch.archived_date }}
+                            </td>
+                            <td class="p-4 text-white font-semibold">
+                                {{ batch.league_name }}
+                            </td>
+                            <td class="p-4 text-white/80 text-xs">
+                                {{ batch.courts }}
+                            </td>
+                            <td class="p-4 text-emerald-400 text-right font-medium" id="inc-{{ batch.id }}">
+                                ${{ batch.income }}
+                            </td>
+                            <td class="p-4 text-red-400 text-right font-medium" id="exp-{{ batch.id }}">
+                                ${{ batch.expense }}
+                            </td>
+                            <td class="p-4 text-white text-right font-bold {% if batch.profit >= 0 %}text-emerald-400{% else %}text-red-400{% endif %}" id="prof-{{ batch.id }}">
+                                ${{ batch.profit }}
+                            </td>
+                            <td class="p-4 text-center">
+                                <button onclick="deleteBatch({{ batch.archive_ids_json }}, '{{ batch.id }}', event)" 
+                                    class="w-8 h-8 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center mx-auto"
+                                    title="Eliminar lote completo">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% if batch.matches %}
+                        <tr id="details-{{ batch.id }}" class="hidden bg-black/40 border-l-2 border-amber-500/50">
+                            <td colspan="8" class="p-0">
+                                <div class="px-14 py-4 text-sm text-white/70">
+                                    <div class="mb-2 text-xs uppercase tracking-wider text-amber-400/80 font-bold">Desglose de Partidos del Lote</div>
+                                    <ul class="space-y-2">
+                                        {% for match in batch.matches %}
+                                        <li class="flex items-center gap-4 bg-white/5 px-4 py-2 rounded-lg border border-white/5 group/match" id="match-{{ match.arc_id }}-{{ match.match_idx }}">
+                                            <div class="flex flex-col text-white/40 w-20 text-xs">
+                                                <span>{{ match.match_date }}</span>
+                                                <span>{{ match.time }}</span>
+                                            </div>
+                                            <div class="text-white/50 w-24 text-xs truncate" title="{{ match.court_name }}">
+                                                {{ match.court_name }}
+                                            </div>
+                                            <div class="flex-1 flex justify-between items-center">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-medium text-white">{{ match.home }}</span>
+                                                    <span class="text-emerald-400 text-xs" data-val="{{ match.home_paid }}">${{ match.home_paid }}</span>
+                                                    <span class="text-white/30 text-xs mx-1">vs</span>
+                                                    <span class="font-medium text-white">{{ match.away }}</span>
+                                                    <span class="text-emerald-400 text-xs" data-val="{{ match.away_paid }}">${{ match.away_paid }}</span>
+                                                </div>
+                                                <div class="flex items-center gap-4">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-white/50 text-xs uppercase">Árbitro:</span>
+                                                        <span class="text-red-400 font-medium" data-val="{{ match.ref_paid }}">-${{ match.ref_paid }}</span>
+                                                    </div>
+                                                    <button onclick="deleteMatch('{{ match.arc_id }}', {{ match.match_idx }}, '{{ batch.id }}', this)" 
+                                                        class="w-6 h-6 rounded bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center opacity-0 group-hover/match:opacity-100"
+                                                        title="Eliminar solo este partido">
+                                                        <i class="fas fa-times text-xs"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="p-12 text-center text-white/40">
+                                <div class="flex flex-col items-center gap-3">
+                                    <i class="fas fa-folder-open text-4xl mb-2 opacity-50"></i>
+                                    <p>No hay registros archivados.</p>
+                                    <p class="text-sm">Se generarán automáticamente cuando elimines o restablezcas una liga.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    .bg-card { background-color: rgba(20, 20, 20, 1); }
+</style>
+
+<script>
+    function toggleDetails(id) {
+        const detailsRow = document.getElementById(`details-${id}`);
+        const icon = document.getElementById(`icon-${id}`);
+        if (!detailsRow) return;
+        
+        if (detailsRow.classList.contains('hidden')) {
+            detailsRow.classList.remove('hidden');
+            if(icon) icon.style.transform = 'rotate(180deg)';
+        } else {
+            detailsRow.classList.add('hidden');
+            if(icon) icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    async function deleteBatch(idsArray, batchId, event) {
+        if(event) event.stopPropagation();
+        
+        if (!confirm("¿Estás seguro de que deseas eliminar TODO el lote de registros permanentemente? Esta acción NO se puede deshacer.")) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/archived-finances/batch`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: idsArray })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                const row = document.getElementById(`row-${batchId}`);
+                const details = document.getElementById(`details-${batchId}`);
+                
+                row.style.opacity = '0';
+                row.style.transform = 'scale(0.95)';
+                if(details) details.remove();
+                
+                setTimeout(() => { row.remove(); }, 300);
+            } else {
+                alert(data.message || "Error al eliminar el lote.");
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+            alert("Error de red al intentar eliminar.");
+        }
+    }
+
+    async function deleteMatch(arcId, matchIdx, batchId, btnElement) {
+        if(event) event.stopPropagation();
+        
+        if (!confirm("¿Eliminar este partido del registro?")) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/archived-finances/${arcId}/match/${matchIdx}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                const li = document.getElementById(`match-${arcId}-${matchIdx}`);
+                
+                // Deduct amounts from UI
+                const incSpan = document.getElementById(`inc-${batchId}`);
+                const expSpan = document.getElementById(`exp-${batchId}`);
+                const profSpan = document.getElementById(`prof-${batchId}`);
+                
+                const homePaid = parseInt(li.querySelector('span[data-val]:nth-of-type(2)').getAttribute('data-val')) || 0;
+                const awayPaid = parseInt(li.querySelector('span[data-val]:nth-of-type(5)').getAttribute('data-val')) || 0;
+                const refPaid = parseInt(li.querySelector('span[data-val]:nth-of-type(2)[class*="text-red-400"]').getAttribute('data-val')) || 0;
+                
+                let currentInc = parseInt(incSpan.innerText.replace('$', '')) || 0;
+                let currentExp = parseInt(expSpan.innerText.replace('$', '')) || 0;
+                
+                currentInc -= (homePaid + awayPaid);
+                currentExp -= refPaid;
+                const currentProf = currentInc - currentExp;
+                
+                incSpan.innerText = '$' + currentInc;
+                expSpan.innerText = '$' + currentExp;
+                profSpan.innerText = '$' + currentProf;
+                
+                if (currentProf >= 0) {
+                    profSpan.className = "p-4 text-white text-right font-bold text-emerald-400";
+                } else {
+                    profSpan.className = "p-4 text-white text-right font-bold text-red-400";
+                }
+                
+                li.style.opacity = '0';
+                setTimeout(() => { 
+                    li.remove();
+                    // If no matches left in the ul, hide the whole batch
+                    const ul = document.querySelector(`#details-${batchId} ul`);
+                    if(ul && ul.children.length === 0) {
+                        const row = document.getElementById(`row-${batchId}`);
+                        const details = document.getElementById(`details-${batchId}`);
+                        row.remove();
+                        details.remove();
+                    }
+                }, 300);
+            } else {
+                alert(data.message || "Error al eliminar el partido.");
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+            alert("Error de red al intentar eliminar.");
+        }
+    }
+</script>
+{% endblock %}

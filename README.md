@@ -76,12 +76,12 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v1.0.2)
+## 🔄 Últimas Actualizaciones (v1.0.3)
 
-- **Impresión 1:1 Oficial de Credenciales**: El motor de exportación a PDF ahora bloquea el escalado en impresiones tamaño A4, garantizando que el diseño del "Registro 2" mida exactamente 8.6 cm x 5.4 cm al imprimir, igualando las medidas de una identificación oficial (INE mexicano / ID-1) para facilitar el enmicado y copias traseras.
+- **Desglose y Agrupación de Archivos Financieros (1.0.3)**: Rediseño completo de la sección de Archivos Financieros (Ultra). Al eliminar o restablecer una liga, los partidos se agrupan en un "Lote" inteligente por fecha y hora, mostrando un único renglón con los montos totales. Esta fila se puede desplegar en un formato de acordeón para visualizar el desglose exacto de todos los partidos archivados. Además, se permite el borrado individual de cada partido (recalculando los totales en tiempo real) o el borrado masivo de todo el lote, optimizando al mismo tiempo el almacenamiento en base de datos para usuarios gratuitos/premium.
+- **Impresión 1:1 Oficial de Credenciales (1.0.2)**: El motor de exportación a PDF ahora bloquea el escalado en impresiones tamaño A4, garantizando que el diseño del "Registro 2" mida exactamente 8.6 cm x 5.4 cm al imprimir, igualando las medidas de una identificación oficial (INE mexicano / ID-1) para facilitar el enmicado y copias traseras.
 - **Historial de Enfrentamientos Previos (1.0.1)**: Al agendar partidos (tanto en formulario clásico como en matriz interactiva), el panel ahora muestra la fecha del último encuentro registrado entre ambos equipos seleccionados, mejorando el contexto de las rivalidades para los administradores.
-- **Buscador en Estadísticas (1.0.0)**: Se implementó un buscador dinámico que permite filtrar en tiempo real las listas de Goleadores y Arqueros Menos Goleados, optimizando la gestión de estadísticas extensas.
-- **Goleadores del Equipo (1.0.0)**: Los equipos ahora cuentan con su propia tabla de máximos anotadores directamente en la vista detallada de su plantilla, permitiendo a delegados visualizar el rendimiento de goleo de sus propios jugadores de manera aislada y rápida.
+- **Buscador y Goleadores por Equipo (1.0.0)**: Buscador dinámico para las listas de Goleadores y Arqueros. Adicionalmente, las vistas de cada equipo ahora muestran su propia tabla interna de máximos anotadores.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

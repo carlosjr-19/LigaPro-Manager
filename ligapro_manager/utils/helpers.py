@@ -144,9 +144,11 @@ def archive_league_finances(league):
     """
     Archives the financial data for a league before it gets deleted or reset.
     Groups by Match Date and Court, then inserts into ArchivedFinance.
+    Saves match-level breakdown in details_json only if the owner is Ultra.
     """
     from extensions import db
     from models import ArchivedFinance
+    import json
     
     matches = Match.query.filter_by(league_id=league.id).all()
     if not matches:
@@ -159,13 +161,12 @@ def archive_league_finances(league):
         except: return 0
         
     def is_waived(val):
-        # We need to replicate the is_waived logic since we don't have it imported here
-        if isinstance(val, str) and val.upper() in ['NSP', 'GIFT']: # According to app logic usually NSP
+        if isinstance(val, str) and val.upper() in ['NSP', 'GIFT']: 
             return True
         return False
         
     archives = {}
-    default_team_price = league.price_per_match or 0
+    is_ultra = getattr(league.owner, 'is_ultra', False)
     
     for match in matches:
         # Respect Charge Start Date
@@ -178,24 +179,30 @@ def archive_league_finances(league):
         key = (date_key, court_name)
         
         if key not in archives:
-            archives[key] = {'income': 0, 'expense': 0}
+            archives[key] = {'income': 0, 'expense': 0, 'matches': []}
             
-        income = 0
-        if not is_waived(match.referee_cost_home):
-            income += parse_cost(match.referee_cost_home)
-        if not is_waived(match.referee_cost_away):
-            income += parse_cost(match.referee_cost_away)
+        income_home = parse_cost(match.referee_cost_home) if not is_waived(match.referee_cost_home) else 0
+        income_away = parse_cost(match.referee_cost_away) if not is_waived(match.referee_cost_away) else 0
+        expense_ref = parse_cost(match.referee_cost) if not is_waived(match.referee_cost) else 0
             
-        expense = 0
-        if not is_waived(match.referee_cost):
-            expense += parse_cost(match.referee_cost)
-            
-        archives[key]['income'] += income
-        archives[key]['expense'] += expense
+        archives[key]['income'] += (income_home + income_away)
+        archives[key]['expense'] += expense_ref
+        
+        if is_ultra:
+            archives[key]['matches'].append({
+                'home': match.home_team.name if match.home_team else 'Local',
+                'away': match.away_team.name if match.away_team else 'Visita',
+                'home_paid': income_home,
+                'away_paid': income_away,
+                'ref_paid': expense_ref,
+                'time': match.match_date.strftime('%H:%M') if match.match_date else ''
+            })
         
     for (date_key, court_name), totals in archives.items():
         if totals['income'] == 0 and totals['expense'] == 0:
             continue
+            
+        details_val = json.dumps(totals['matches']) if is_ultra and totals['matches'] else None
             
         archive = ArchivedFinance(
             user_id=league.user_id,
@@ -204,6 +211,8 @@ def archive_league_finances(league):
             date=date_key,
             income=totals['income'],
             expense=totals['expense'],
-            profit=totals['income'] - totals['expense']
+            profit=totals['income'] - totals['expense'],
+            details_json=details_val
         )
         db.session.add(archive)
+

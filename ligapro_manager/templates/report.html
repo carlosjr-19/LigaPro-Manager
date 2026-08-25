@@ -109,6 +109,39 @@
         {% else %}
     </div>
     {% endif %}
+
+    <!-- Archived Finances Card -->
+    {% if current_user.is_ultra %}
+    <a href="{{ url_for('report.archived_finances') }}"
+        class="card hover:bg-white/5 transition-all group border-l-4 border-amber-500">
+        {% else %}
+        <div class="card opacity-60 border-l-4 border-gray-600 grayscale cursor-not-allowed group">
+            {% endif %}
+            <div class="flex items-start justify-between mb-4">
+                <div
+                    class="w-12 h-12 bg-amber-500/20 rounded-lg flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-archive text-2xl"></i>
+                </div>
+                {% if current_user.is_ultra %}
+                <span
+                    class="bg-amber-500/10 text-amber-400 text-xs px-2 py-1 rounded border border-amber-500/20">Ultra</span>
+                {% else %}
+                <span
+                    class="bg-gray-500/10 text-gray-400 text-xs px-2 py-1 rounded border border-gray-500/20"><i
+                        class="fas fa-lock mr-1"></i>Bloqueado</span>
+                {% endif %}
+            </div>
+            <h3
+                class="text-xl font-bold mb-2 {% if current_user.is_ultra %}group-hover:text-amber-400{% endif %} transition-colors">
+                Archivos Financieros</h3>
+            <p class="text-white/40 text-sm">
+                Gestiona y elimina el historial de datos financieros de ligas eliminadas o restablecidas.
+            </p>
+            {% if current_user.is_ultra %}
+    </a>
+    {% else %}
+</div>
+{% endif %}
 </div>
 </main>
 </div>
