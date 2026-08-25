@@ -1868,3 +1868,124 @@ def api_financial_stats():
         'labels': final_labels,
         'values': values
     })
+
+@report_bp.route('/archived-finances')
+@report_bp.route('/archived-finances')
+@login_required
+def archived_finances():
+    if not getattr(current_user, 'is_ultra', False):
+        flash('Acceso denegado.', 'danger')
+        return redirect(url_for('report.index'))
+        
+    from models import ArchivedFinance
+    import json
+    
+    # Sort by created_at desc so newest batches appear first
+    archives = ArchivedFinance.query.filter_by(user_id=current_user.id).order_by(ArchivedFinance.created_at.desc(), ArchivedFinance.date.desc()).all()
+    
+    batches_dict = {}
+    
+    for arc in archives:
+        # Group by league_name and created_at (formatted to minute to catch items created in the same loop)
+        batch_key = f"{arc.league_name}_{arc.created_at.strftime('%Y%m%d%H%M') if arc.created_at else arc.date.strftime('%Y%m%d')}"
+        
+        if batch_key not in batches_dict:
+            batches_dict[batch_key] = {
+                'id': batch_key,
+                'league_name': arc.league_name,
+                'archived_date': arc.created_at if arc.created_at else arc.date,
+                'courts': set(),
+                'income': 0,
+                'expense': 0,
+                'profit': 0,
+                'archive_ids': [],
+                'matches': []
+            }
+            
+        b = batches_dict[batch_key]
+        b['courts'].add(arc.court_name)
+        b['income'] += arc.income
+        b['expense'] += arc.expense
+        b['profit'] += arc.profit
+        b['archive_ids'].append(arc.id)
+        
+        if arc.details_json:
+            try:
+                matches_list = json.loads(arc.details_json)
+                for idx, m in enumerate(matches_list):
+                    m['arc_id'] = arc.id
+                    m['match_idx'] = idx
+                    m['court_name'] = arc.court_name
+                    m['match_date'] = arc.date
+                    b['matches'].append(m)
+            except:
+                pass
+
+    batch_list = list(batches_dict.values())
+    batch_list.sort(key=lambda x: x['archived_date'], reverse=True)
+    
+    for b in batch_list:
+        b['courts'] = ", ".join(sorted(list(b['courts'])))
+        b['archive_ids_json'] = json.dumps(b['archive_ids'])
+        
+    return render_template('report/archived_finances.html', batches=batch_list)
+
+@report_bp.route('/api/archived-finances/batch', methods=['DELETE'])
+@login_required
+def delete_archived_finance_batch():
+    if not getattr(current_user, 'is_ultra', False):
+        return jsonify({'success': False, 'message': 'Acceso denegado.'}), 403
+        
+    from models import ArchivedFinance
+    data = request.get_json() or {}
+    ids = data.get('ids', [])
+    
+    if not ids:
+        return jsonify({'success': False, 'message': 'No se proporcionaron IDs.'}), 400
+        
+    for arc_id in ids:
+        archive = ArchivedFinance.query.filter_by(id=arc_id, user_id=current_user.id).first()
+        if archive:
+            db.session.delete(archive)
+            
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Lote eliminado correctamente.'})
+
+@report_bp.route('/api/archived-finances/<arc_id>/match/<int:match_idx>', methods=['DELETE'])
+@login_required
+def delete_archived_finance_match(arc_id, match_idx):
+    if not getattr(current_user, 'is_ultra', False):
+        return jsonify({'success': False, 'message': 'Acceso denegado.'}), 403
+        
+    from models import ArchivedFinance
+    import json
+    
+    archive = ArchivedFinance.query.filter_by(id=arc_id, user_id=current_user.id).first()
+    if not archive:
+        return jsonify({'success': False, 'message': 'Registro no encontrado.'}), 404
+        
+    if not archive.details_json:
+        return jsonify({'success': False, 'message': 'El registro no tiene desglose de partidos.'}), 400
+        
+    try:
+        matches = json.loads(archive.details_json)
+        if match_idx < 0 or match_idx >= len(matches):
+            return jsonify({'success': False, 'message': 'Índice de partido inválido.'}), 400
+            
+        match = matches.pop(match_idx)
+        
+        archive.income -= (int(match.get('home_paid', 0)) + int(match.get('away_paid', 0)))
+        archive.expense -= int(match.get('ref_paid', 0))
+        archive.profit = archive.income - archive.expense
+        
+        if archive.income == 0 and archive.expense == 0:
+            db.session.delete(archive)
+        else:
+            archive.details_json = json.dumps(matches)
+            
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Partido eliminado correctamente.'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500

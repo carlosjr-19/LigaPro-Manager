@@ -13,6 +13,7 @@ class ArchivedFinance(db.Model):
     income = db.Column(db.Integer, default=0)
     expense = db.Column(db.Integer, default=0)
     profit = db.Column(db.Integer, default=0)
+    details_json = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):

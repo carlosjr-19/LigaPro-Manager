@@ -140,7 +140,8 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN enable_player_limit BOOLEAN DEFAULT FALSE",
                     "ALTER TABLE leagues ADD COLUMN max_players_per_team INTEGER",
                     "ALTER TABLE users ADD COLUMN player_registry_template VARCHAR(20) DEFAULT 'registro1'",
-                    "ALTER TABLE leagues ADD COLUMN display_order INTEGER DEFAULT 0"
+                    "ALTER TABLE leagues ADD COLUMN display_order INTEGER DEFAULT 0",
+                    "ALTER TABLE archived_finances ADD COLUMN details_json TEXT"
                 ]
                 
                 for migration in migrations:

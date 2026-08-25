@@ -1,3 +1,19 @@
+## 1.0.3
+
+Implementación de Desglose y Agrupación de Archivos Financieros (Premium Ultra).
+
+- **Desglose de Partidos**: Se modificó la arquitectura de guardado de los Archivos Financieros. Al eliminar o restablecer una liga (si el usuario es Ultra), el sistema ahora guarda el desglose exacto de cada partido que conforma esa estadística (equipos que se enfrentaron, pagos de cada equipo, y descuento del árbitro).
+- **Agrupación Inteligente (Lotes)**: Para evitar que la sección de "Archivos Financieros" se sature con múltiples filas por cada fecha/cancha en la que hubo partidos, la interfaz ahora agrupa de forma dinámica todos los partidos en un único "Lote" basado en la fecha y hora exacta en que se archivaron.
+- **Borrado Individual y Masivo**: La interfaz agrupada (acordeón) permite desplegar el lote para visualizar todos los partidos, ofreciendo botones independientes y asíncronos (`fetch` API) para borrar un único partido (descontando montos al instante) o el botón principal para borrar permanentemente todo el lote.
+- **Optimización de Almacenamiento**: La base de datos omite el guardado de desgloses JSON extensos si el dueño de la liga posee una cuenta Gratuita o Premium estándar, ahorrando sustancialmente almacenamiento en servidores de producción al mantener solo los totales.
+
+## Modificado
+* `ligapro_manager/models/archived_finance.py`
+* `ligapro_manager/ligapro_manager.py`
+* `ligapro_manager/utils/helpers.py`
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/templates/report/archived_finances.html`
+
 ## 1.0.2
 
 Actualización del Diseño de Credenciales "Registro 2".
