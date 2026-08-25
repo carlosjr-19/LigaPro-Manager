@@ -57,7 +57,8 @@
             <div class="relative group" data-id="{{ league.id }}">
                 {% set is_allowed = league.id in allowed_league_ids %}
                 <a href="{{ url_for('league.league_detail', league_id=league.id) }}"
-                    class="card block transition-all relative overflow-hidden {{ 'hover:border-primary/50' if is_allowed else 'opacity-60 grayscale cursor-not-allowed border-red-500/30' }}">
+                    class="card block transition-all relative overflow-hidden select-none {{ 'hover:border-primary/50' if is_allowed else 'opacity-60 grayscale cursor-not-allowed border-red-500/30' }}"
+                    style="-webkit-touch-callout: none;">
 
                     {% if not is_allowed %}
                     <div
@@ -133,7 +134,8 @@
             Sortable.create(el, {
                 animation: 150,
                 ghostClass: 'opacity-50',
-                delay: 1000, // 1 segundo de retraso para evitar arrastres accidentales
+                delay: 250, // 0.25s para iniciar el arrastre antes de que salga el menú
+                fallbackTolerance: 3, // Permite que el dedo tiemble un poco sin cancelar el arrastre
                 delayOnTouchOnly: true, // Solo aplica el retraso en dispositivos táctiles
                 onEnd: function (evt) {
                     var items = el.querySelectorAll('[data-id]');
