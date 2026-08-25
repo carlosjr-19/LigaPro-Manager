@@ -133,6 +133,8 @@
             Sortable.create(el, {
                 animation: 150,
                 ghostClass: 'opacity-50',
+                delay: 1000, // 1 segundo de retraso para evitar arrastres accidentales
+                delayOnTouchOnly: true, // Solo aplica el retraso en dispositivos táctiles
                 onEnd: function (evt) {
                     var items = el.querySelectorAll('[data-id]');
                     var order = Array.from(items).map(item => item.getAttribute('data-id'));
