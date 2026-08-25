@@ -23,7 +23,7 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   **Premium / Ultra:**
     *   Ligas ilimitadas.
     *   Personalización de reportes avanzada (colores por resultado, fecha y cancha).
-    *   Estadísticas e Informes financieros detallados (Ultra).
+    *   Estadísticas e Informes financieros detallados con **Filtros Múltiples** (selección de múltiples ligas y canchas simultáneamente) (Ultra).
     *   **Prioridad de Privilegios:** Los usuarios Ultra disfrutan de todas las funciones Premium.
 
 ## 🛠️ Tecnologías
@@ -76,12 +76,12 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v1.0.3)
+## 🔄 Últimas Actualizaciones (v1.0.6)
 
-- **Desglose y Agrupación de Archivos Financieros (1.0.3)**: Rediseño completo de la sección de Archivos Financieros (Ultra). Al eliminar o restablecer una liga, los partidos se agrupan en un "Lote" inteligente por fecha y hora, mostrando un único renglón con los montos totales. Esta fila se puede desplegar en un formato de acordeón para visualizar el desglose exacto de todos los partidos archivados. Además, se permite el borrado individual de cada partido (recalculando los totales en tiempo real) o el borrado masivo de todo el lote, optimizando al mismo tiempo el almacenamiento en base de datos para usuarios gratuitos/premium.
-- **Impresión 1:1 Oficial de Credenciales (1.0.2)**: El motor de exportación a PDF ahora bloquea el escalado en impresiones tamaño A4, garantizando que el diseño del "Registro 2" mida exactamente 8.6 cm x 5.4 cm al imprimir, igualando las medidas de una identificación oficial (INE mexicano / ID-1) para facilitar el enmicado y copias traseras.
-- **Historial de Enfrentamientos Previos (1.0.1)**: Al agendar partidos (tanto en formulario clásico como en matriz interactiva), el panel ahora muestra la fecha del último encuentro registrado entre ambos equipos seleccionados, mejorando el contexto de las rivalidades para los administradores.
-- **Buscador y Goleadores por Equipo (1.0.0)**: Buscador dinámico para las listas de Goleadores y Arqueros. Adicionalmente, las vistas de cada equipo ahora muestran su propia tabla interna de máximos anotadores.
+- **Actualización de Estética en Reportes (1.0.6)**: Se incrementó la visibilidad de los nombres de las canchas en los reportes de rol de juegos y se ajustó el esquema de colores de la plantilla "Registro 2" de credenciales.
+- **Filtros Múltiples de Finanzas y UI (1.0.5)**: Selección múltiple e interactiva de ligas y canchas simultáneamente (Ultra), además de optimizaciones de "arrastrar y soltar" (drag-and-drop) de ligas en móviles evitando desorganización accidental.
+- **Preservación de Historial (1.0.4)**: Los partidos archivados se inyectan dinámicamente como 'Solo Lectura' en la Agenda Global y los Reportes de Finanzas (Ultra), manteniendo registros permanentes al borrar ligas.
+- **Desglose de Archivos Financieros (1.0.3)**: Agrupación en 'Lotes' inteligentes de las estadísticas archivadas al reiniciar ligas, permitiendo ver el detalle individual y optimizando almacenamiento.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

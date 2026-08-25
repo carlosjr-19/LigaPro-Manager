@@ -1,3 +1,28 @@
+## 1.0.6
+
+Actualización de Estética en Reportes de Liga y Credenciales "Registro 2".
+
+- **Visibilidad de Canchas**: Se incrementó el tamaño de fuente y mejoró la visibilidad de los nombres de las canchas en los reportes de rol de juegos compartidos (Share Report), facilitando la lectura rápida.
+- **Color de Credenciales "Registro 2"**: Se actualizó el esquema de colores de la plantilla de credenciales "Registro 2" para coincidir de manera precisa con los colores de marca personalizados extraídos de referencias visuales.
+
+## Modificado
+* `ligapro_manager/templates/share_report.html`
+* `ligapro_manager/templates/credentials.html`
+
+## 1.0.5
+
+Filtros Múltiples de Finanzas (Ligas y Canchas) y Arrastrar/Soltar en Dispositivos Móviles.
+
+- **Filtros Múltiples**: Se implementó la selección múltiple interactiva en los módulos de Resumen, Finanzas e Historial. Los dueños de ligas ahora pueden seleccionar varias ligas y/o varias canchas simultáneamente (a través de la librería `Choices.js`) para consolidar la visualización y descarga (Excel/PDF) de datos precisos combinando filtros múltiples (mediante consultas optimizadas `SQL IN` y agrupaciones).
+- **Arrastrar y Soltar**: Se optimizó la interfaz de arrastrar y soltar las ligas para dispositivos móviles (SortableJS). Ahora se requiere presionar prolongadamente (delay de 300 ms) sobre una liga en un teléfono móvil para comenzar a ordenarla, evitando que se desplace accidentalmente al hacer scroll hacia abajo en la pantalla.
+
+## Modificado
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/templates/report/summary.html`
+* `ligapro_manager/templates/report/financials.html`
+* `ligapro_manager/templates/report/history.html`
+* `ligapro_manager/templates/league/index.html`
+
 ## 1.0.4
 
 Preservación de Historial en Agenda Global y Resumen.

@@ -531,22 +531,15 @@ def global_schedule_history():
         return redirect(url_for('report.index'))
 
     # Filters
-    league_id = request.args.get('league_id')
+    league_ids = request.args.getlist('league_id')
+    league_ids = [lid for lid in league_ids if lid]
     
     query = Match.query.join(League).filter(League.user_id == current_user.id)
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
     
-    if league_id:
-        query = query.filter(Match.league_id == league_id)
+    query, archive_query = apply_multi_filters(query, archive_query, league_ids, [])
         
     matches = query.order_by(Match.match_date.desc()).all()
-    
-    # Inject Archived Matches
-    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
-    if league_id:
-        league_obj = League.query.get(league_id)
-        if league_obj:
-            archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
-            
     archived = archive_query.all()
     import json
     for arc in archived:
@@ -657,7 +650,7 @@ def global_schedule_history():
     return render_template('report/history.html', 
                          events=history_events, 
                          leagues=leagues, 
-                         selected_league=league_id,
+                         selected_league_ids=league_ids,
                          show_hidden=show_hidden)
 
 @report_bp.route('/global-schedule/history/toggle_hide', methods=['POST'])
@@ -999,6 +992,29 @@ def ignore_discrepancy():
     return jsonify({'success': True})
 
 
+def apply_multi_filters(query, archive_query, league_ids, cancha_names):
+    if league_ids:
+        query = query.filter(Match.league_id.in_(league_ids))
+        league_objs = League.query.filter(League.id.in_(league_ids)).all()
+        league_names = [l.name for l in league_objs]
+        if league_names:
+            archive_query = archive_query.filter(ArchivedFinance.league_name.in_(league_names))
+            
+    if cancha_names:
+        if "Sin Cancha" in cancha_names:
+            other_canchas = [c for c in cancha_names if c != "Sin Cancha"]
+            if other_canchas:
+                query = query.filter(db.or_(Match.court_id == None, Court.name.in_(other_canchas)))
+                archive_query = archive_query.filter(db.or_(ArchivedFinance.court_name == "Sin Cancha", ArchivedFinance.court_name.in_(other_canchas)))
+            else:
+                query = query.filter(Match.court_id == None)
+                archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
+        else:
+            query = query.filter(Court.name.in_(cancha_names))
+            archive_query = archive_query.filter(ArchivedFinance.court_name.in_(cancha_names))
+            
+    return query, archive_query
+
 @report_bp.route('/global-schedule/summary')
 @login_required
 def global_schedule_summary():
@@ -1007,33 +1023,18 @@ def global_schedule_summary():
         return redirect(url_for('report.index'))
 
     # Filters
-    league_id = request.args.get('league_id')
-    cancha_name = request.args.get('cancha')
+    league_ids = request.args.getlist('league_id')
+    league_ids = [lid for lid in league_ids if lid] # remove empty strings
+    
+    cancha_names = request.args.getlist('cancha')
+    cancha_names = [c for c in cancha_names if c]
     
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
-    if league_id:
-        query = query.filter(Match.league_id == league_id)
-        
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            query = query.filter(Match.court_id == None)
-        else:
-            query = query.filter(Court.name == cancha_name)
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    
+    query, archive_query = apply_multi_filters(query, archive_query, league_ids, cancha_names)
             
     matches = query.all()
-    
-    # Inject Archived Matches
-    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
-    if league_id:
-        league_obj = League.query.get(league_id)
-        if league_obj:
-            archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
-        else:
-            archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
-            
     archived = archive_query.all()
     import json
     for arc in archived:
@@ -1058,9 +1059,10 @@ def global_schedule_summary():
         if item['entity_type'] == 'Team':
             key = (item['league'], item['entity_name'])
             teams_summary[key] = teams_summary.get(key, 0) + item['balance']
-        elif item['entity_type'] == 'Referee':
-            key = item['league']
-            referee_summary[key] = referee_summary.get(key, 0) + item['balance']
+            
+            # The referee balance is now the sum of all team balances for that league
+            league_key = item['league']
+            referee_summary[league_key] = referee_summary.get(league_key, 0) + item['balance']
             
     # Convert to list for display, add hash ID
     teams_list = []
@@ -1093,10 +1095,9 @@ def global_schedule_summary():
                          teams_summary=teams_list,
                          referee_summary=referee_list,
                          leagues=leagues, 
-                         selected_league_id=league_id,
-                         selected_league=league_id,
+                         selected_league_ids=league_ids,
                          canchas=canchas,
-                         selected_cancha=cancha_name)
+                         selected_canchas=cancha_names)
 
 @report_bp.route('/global-schedule/summary/share')
 @login_required
@@ -1106,33 +1107,18 @@ def share_global_schedule_summary():
         return redirect(url_for('report.index'))
 
     # Filters
-    league_id = request.args.get('league_id')
-    cancha_name = request.args.get('cancha')
+    league_ids = request.args.getlist('league_id')
+    league_ids = [lid for lid in league_ids if lid] # remove empty strings
+    
+    cancha_names = request.args.getlist('cancha')
+    cancha_names = [c for c in cancha_names if c]
     
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
-    if league_id:
-        query = query.filter(Match.league_id == league_id)
-        
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            query = query.filter(Match.court_id == None)
-        else:
-            query = query.filter(Court.name == cancha_name)
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    
+    query, archive_query = apply_multi_filters(query, archive_query, league_ids, cancha_names)
             
     matches = query.all()
-    
-    # Inject Archived Matches
-    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
-    if league_id:
-        league_obj = League.query.get(league_id)
-        if league_obj:
-            archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
-        else:
-            archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
-            
     archived = archive_query.all()
     import json
     for arc in archived:
@@ -1157,9 +1143,10 @@ def share_global_schedule_summary():
         if item['entity_type'] == 'Team':
             key = (item['league'], item['entity_name'])
             teams_summary[key] = teams_summary.get(key, 0) + item['balance']
-        elif item['entity_type'] == 'Referee':
-            key = item['league']
-            referee_summary[key] = referee_summary.get(key, 0) + item['balance']
+            
+            # The referee balance is now the sum of all team balances for that league
+            league_key = item['league']
+            referee_summary[league_key] = referee_summary.get(league_key, 0) + item['balance']
             
     # Convert to list for display, add hash ID
     teams_list = []
@@ -1183,13 +1170,26 @@ def share_global_schedule_summary():
         referee_list = [r for r in referee_list if r['id'] not in excluded_ids]
     
     leagues = League.query.filter_by(user_id=current_user.id).all()
-    selected_league_name = next((l.name for l in leagues if str(l.id) == league_id), None)
+    
+    if not league_ids:
+        selected_league_name = 'Todas las Ligas'
+    elif len(league_ids) == 1:
+        selected_league_name = next((l.name for l in leagues if str(l.id) == league_ids[0]), 'Liga Seleccionada')
+    else:
+        selected_league_name = 'Varias Ligas'
+        
+    if not cancha_names:
+        selected_cancha_display = 'Todas las Canchas'
+    elif len(cancha_names) == 1:
+        selected_cancha_display = cancha_names[0]
+    else:
+        selected_cancha_display = 'Varias Canchas'
 
     return render_template('report/share_summary.html', 
                          teams_summary=teams_list,
                          referee_summary=referee_list,
                          selected_league=selected_league_name,
-                         selected_cancha=cancha_name,
+                         selected_cancha=selected_cancha_display,
                          today=datetime.now().strftime('%d/%m/%Y'))
 
 @report_bp.route('/global-schedule/summary/export')
@@ -1200,33 +1200,18 @@ def export_global_summary():
         return redirect(url_for('report.index'))
 
     # Filters
-    league_id = request.args.get('league_id')
-    cancha_name = request.args.get('cancha')
+    league_ids = request.args.getlist('league_id')
+    league_ids = [lid for lid in league_ids if lid] # remove empty strings
+    
+    cancha_names = request.args.getlist('cancha')
+    cancha_names = [c for c in cancha_names if c]
     
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
-    if league_id:
-        query = query.filter(Match.league_id == league_id)
-        
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            query = query.filter(Match.court_id == None)
-        else:
-            query = query.filter(Court.name == cancha_name)
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    
+    query, archive_query = apply_multi_filters(query, archive_query, league_ids, cancha_names)
             
     matches = query.all()
-    
-    # Inject Archived Matches
-    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
-    if league_id:
-        league_obj = League.query.get(league_id)
-        if league_obj:
-            archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
-        else:
-            archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
-            
     archived = archive_query.all()
     import json
     for arc in archived:
@@ -1317,19 +1302,16 @@ def global_schedule_financials():
                 court_names.add(court.name.strip())
     court_names = sorted(list(court_names))
 
-    cancha_name = request.args.get('cancha')
-    selected_league_id = request.args.get('league_id')
+    cancha_names = request.args.getlist('cancha')
+    cancha_names = [c for c in cancha_names if c]
+    
+    league_ids = request.args.getlist('league_id')
+    league_ids = [lid for lid in league_ids if lid]
 
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
     
-    if selected_league_id:
-        query = query.filter(Match.league_id == selected_league_id)
-
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            query = query.filter(Match.court_id == None)
-        else:
-            query = query.filter(Court.name == cancha_name)
+    query, archive_query = apply_multi_filters(query, archive_query, league_ids, cancha_names)
     
     # Store applied filters to pass to template
     selected_month = None
@@ -1453,14 +1435,6 @@ def global_schedule_financials():
         court_totals[court_name]['dates'][date_key]['profit'] += profit
 
     # Process Archives
-    from models import ArchivedFinance
-    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
-    if selected_league_id:
-        league_obj = League.query.get(selected_league_id)
-        if league_obj: archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
-    if cancha_name:
-        if cancha_name == "Sin Cancha": archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
-        else: archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
     
     if report_type == 'date_range' and date_from_str and date_to_str:
         try:
@@ -1508,9 +1482,9 @@ def global_schedule_financials():
                          months=months_es,
                          years=years,
                          court_names=court_names,
-                         selected_cancha=cancha_name,
+                         selected_canchas=cancha_names,
                          leagues=leagues,
-                         selected_league_id=selected_league_id,
+                         selected_league_ids=league_ids,
                          filename_suffix=filename_suffix,
                          court_totals=court_totals,
                          group_by=group_by)
@@ -1523,19 +1497,17 @@ def export_global_financials():
         return redirect(url_for('report.index'))
 
     report_type = getattr(current_user, 'financial_report_type', 'period')
-    cancha_name = request.args.get('cancha')
-    league_id = request.args.get('league_id')
+    cancha_names = request.args.getlist('cancha')
+    cancha_names = [c for c in cancha_names if c]
+    
+    league_ids = request.args.getlist('league_id')
+    league_ids = [lid for lid in league_ids if lid]
+    
     group_by = request.args.get('group_by', 'day')
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
     
-    if league_id:
-        query = query.filter(Match.league_id == league_id)
-
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            query = query.filter(Match.court_id == None)
-        else:
-            query = query.filter(Court.name == cancha_name)
+    query, archive_query = apply_multi_filters(query, archive_query, league_ids, cancha_names)
             
     filename_suffix = ""
 
@@ -1562,8 +1534,12 @@ def export_global_financials():
         filename_suffix = f"{month}_{year}"
         
     leagues = League.query.filter_by(user_id=current_user.id).all()
-    selected_league_name = next((l.name for l in leagues if str(l.id) == league_id), None)
-        
+    if not league_ids:
+        selected_league_name = 'Todas las Ligas'
+    elif len(league_ids) == 1:
+        selected_league_name = next((l.name for l in leagues if str(l.id) == league_ids[0]), 'Liga Seleccionada')
+    else:
+        selected_league_name = 'Varias Ligas'
     matches = query.order_by(Match.match_date).all()
 
     financial_data = {}
@@ -1632,14 +1608,6 @@ def export_global_financials():
         court_totals[court_name]['dates'][date_key]['profit'] += profit
 
     # Process Archives
-    from models import ArchivedFinance
-    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
-    if league_id:
-        league_obj = League.query.get(league_id)
-        if league_obj: archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
-    if cancha_name:
-        if cancha_name == "Sin Cancha": archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
-        else: archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
     
     if report_type == 'date_range' and 'date_from_str' in locals() and 'date_to_str' in locals() and date_from_str:
         try:
@@ -1657,6 +1625,14 @@ def export_global_financials():
     process_archives(archived_finances, group_by, financial_data, court_totals)
 
     sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
+    
+    leagues = League.query.filter_by(user_id=current_user.id).all()
+    if not league_ids:
+        selected_league_name = 'Todas las Ligas'
+    elif len(league_ids) == 1:
+        selected_league_name = next((l.name for l in leagues if str(l.id) == league_ids[0]), 'Liga Seleccionada')
+    else:
+        selected_league_name = 'Varias Ligas'
 
     # Excel
     wb = openpyxl.Workbook()
@@ -1775,19 +1751,17 @@ def share_global_financials():
         return redirect(url_for('report.index'))
 
     report_type = getattr(current_user, 'financial_report_type', 'period')
-    cancha_name = request.args.get('cancha')
-    league_id = request.args.get('league_id')
+    cancha_names = request.args.getlist('cancha')
+    cancha_names = [c for c in cancha_names if c]
+    
+    league_ids = request.args.getlist('league_id')
+    league_ids = [lid for lid in league_ids if lid]
+    
     group_by = request.args.get('group_by', 'day')
     query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == current_user.id)
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
     
-    if league_id:
-        query = query.filter(Match.league_id == league_id)
-
-    if cancha_name:
-        if cancha_name == "Sin Cancha":
-            query = query.filter(Match.court_id == None)
-        else:
-            query = query.filter(Court.name == cancha_name)
+    query, archive_query = apply_multi_filters(query, archive_query, league_ids, cancha_names)
             
     header_title = ""
 
@@ -1894,14 +1868,6 @@ def share_global_financials():
         total_profit += profit
 
     # Process Archives
-    from models import ArchivedFinance
-    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
-    if league_id:
-        league_obj = League.query.get(league_id)
-        if league_obj: archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
-    if cancha_name:
-        if cancha_name == "Sin Cancha": archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
-        else: archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
     
     if report_type == 'date_range' and 'date_from_str' in locals() and 'date_to_str' in locals() and date_from_str:
         try:
@@ -1927,12 +1893,24 @@ def share_global_financials():
     sorted_data = sorted(financial_data.values(), key=lambda x: x['date_obj'])
 
     leagues = League.query.filter_by(user_id=current_user.id).all()
-    selected_league_name = next((l.name for l in leagues if str(l.id) == league_id), None)
+    if not league_ids:
+        selected_league_name = 'Todas las Ligas'
+    elif len(league_ids) == 1:
+        selected_league_name = next((l.name for l in leagues if str(l.id) == league_ids[0]), 'Liga Seleccionada')
+    else:
+        selected_league_name = 'Varias Ligas'
+
+    if not cancha_names:
+        selected_cancha_name = 'TODAS LAS CANCHAS'
+    elif len(cancha_names) == 1:
+        selected_cancha_name = cancha_names[0].upper()
+    else:
+        selected_cancha_name = 'VARIAS CANCHAS'
 
     return render_template('report/share_financials.html', 
                          financial_data=sorted_data,
                          header_title=header_title,
-                         cancha_name=cancha_name,
+                         selected_cancha_name=selected_cancha_name,
                          selected_league_name=selected_league_name,
                          total_income=total_income,
                          total_expense=total_expense,
