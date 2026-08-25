@@ -84,6 +84,64 @@ def process_archives(archived_finances, group_by, financial_data, court_totals, 
             court_totals[court_name]['dates'][date_key]['profit'] += profit
 
     return total_month_profit
+    
+class FakeTeam:
+    def __init__(self, name):
+        self.name = name
+
+class FakeCourt:
+    def __init__(self, name):
+        self.name = name
+        self.color = None
+
+class FakeLeague:
+    def __init__(self, name, price):
+        self.name = name
+        self.id = 0
+        self.custom_color_active = False
+        self.custom_name_color = None
+        self.price_per_match = price
+        self.price_referee = 0
+
+class FakeMatch:
+    def __init__(self, m_data, league_name, date_str):
+        import datetime as dt
+        self.id = f"arc_{m_data.get('arc_id')}_{m_data.get('match_idx', 0)}"
+        self.home_team = FakeTeam(m_data.get('home', 'Local'))
+        self.away_team = FakeTeam(m_data.get('away', 'Visita'))
+        self.court = FakeCourt(m_data.get('court_name', 'Sin Cancha'))
+        self.league = FakeLeague(league_name, m_data.get('expected_price', 0))
+        
+        # Determine match_date
+        raw_date = m_data.get('match_date_raw')
+        if raw_date:
+            try:
+                self.match_date = dt.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+            except:
+                self.match_date = dt.datetime.strptime(date_str, '%Y-%m-%d')
+        else:
+            time_str = m_data.get('time', '')
+            if time_str:
+                try:
+                    self.match_date = dt.datetime.strptime(f"{date_str} {time_str}", '%Y-%m-%d %I:%M %p')
+                except:
+                    try:
+                        self.match_date = dt.datetime.strptime(f"{date_str} {time_str}", '%Y-%m-%d %H:%M')
+                    except:
+                        self.match_date = dt.datetime.strptime(date_str, '%Y-%m-%d')
+            else:
+                self.match_date = dt.datetime.strptime(date_str, '%Y-%m-%d')
+                
+        self.referee_cost_home = str(m_data.get('referee_cost_home_raw', m_data.get('home_paid', 0)))
+        self.referee_cost_away = str(m_data.get('referee_cost_away_raw', m_data.get('away_paid', 0)))
+        self.referee_cost = str(m_data.get('referee_cost_raw', m_data.get('ref_paid', 0)))
+        
+        self.home_score = m_data.get('home_score')
+        self.away_score = m_data.get('away_score')
+        self.is_practice = m_data.get('is_practice', False)
+        self.is_archived = True
+        self.home_team_id = None
+        self.away_team_id = None
 
 report_bp = Blueprint('report', __name__)
 
@@ -134,6 +192,25 @@ def global_schedule():
         League.user_id == current_user.id,
         func.date(Match.match_date) == selected_date
     ).order_by(Match.match_date).all()
+    
+    # Inject Archived Matches
+    archived = ArchivedFinance.query.filter(
+        ArchivedFinance.user_id == current_user.id,
+        ArchivedFinance.date == selected_date
+    ).all()
+    import json
+    for arc in archived:
+        if arc.details_json:
+            try:
+                arc_data = json.loads(arc.details_json)
+                for m_data in arc_data:
+                    fake_m = FakeMatch(m_data, arc.league_name, selected_date.strftime('%Y-%m-%d'))
+                    matches.append(fake_m)
+            except:
+                pass
+                
+    # Sort again just in case
+    matches.sort(key=lambda x: x.match_date if x.match_date else datetime.max)
 
     # Apply time filter in Python (compatible with SQLite & PostgreSQL)
     if time_from or time_to:
@@ -250,6 +327,25 @@ def share_global_schedule():
         League.user_id == current_user.id,
         func.date(Match.match_date) == selected_date
     ).order_by(Match.match_date).all()
+    
+    # Inject Archived Matches
+    archived = ArchivedFinance.query.filter(
+        ArchivedFinance.user_id == current_user.id,
+        ArchivedFinance.date == selected_date
+    ).all()
+    import json
+    for arc in archived:
+        if arc.details_json:
+            try:
+                arc_data = json.loads(arc.details_json)
+                for m_data in arc_data:
+                    fake_m = FakeMatch(m_data, arc.league_name, selected_date.strftime('%Y-%m-%d'))
+                    matches.append(fake_m)
+            except:
+                pass
+                
+    # Sort again just in case
+    matches.sort(key=lambda x: x.match_date if x.match_date else datetime.max)
 
     # Apply time filter in Python
     if time_from or time_to:
@@ -444,6 +540,30 @@ def global_schedule_history():
         
     matches = query.order_by(Match.match_date.desc()).all()
     
+    # Inject Archived Matches
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    if league_id:
+        league_obj = League.query.get(league_id)
+        if league_obj:
+            archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
+            
+    archived = archive_query.all()
+    import json
+    for arc in archived:
+        if arc.details_json:
+            try:
+                arc_data = json.loads(arc.details_json)
+                for m_data in arc_data:
+                    fake_m = FakeMatch(m_data, arc.league_name, arc.date.strftime('%Y-%m-%d'))
+                    # Set defaults for fake league so it bypasses charge_start_date logic safely
+                    fake_m.league.charge_from_start = True
+                    fake_m.league.charge_start_date = None
+                    matches.append(fake_m)
+            except:
+                pass
+                
+    matches.sort(key=lambda x: x.match_date if x.match_date else datetime.max, reverse=True)
+    
     show_hidden = request.args.get('show_hidden', '0') == '1'
     from models import IgnoredDiscrepancy
     ignored_records = {x.hash_id for x in IgnoredDiscrepancy.query.filter_by(user_id=current_user.id).all()}
@@ -627,6 +747,24 @@ def export_global_schedule():
                 continue
             filtered.append(m)
         matches = filtered
+        
+    # Inject Archived Matches
+    archived = ArchivedFinance.query.filter(
+        ArchivedFinance.user_id == current_user.id,
+        ArchivedFinance.date == selected_date
+    ).all()
+    import json
+    for arc in archived:
+        if arc.details_json:
+            try:
+                arc_data = json.loads(arc.details_json)
+                for m_data in arc_data:
+                    fake_m = FakeMatch(m_data, arc.league_name, selected_date.strftime('%Y-%m-%d'))
+                    matches.append(fake_m)
+            except:
+                pass
+                
+    matches.sort(key=lambda x: x.match_date if x.match_date else datetime.max)
 
     # Group by Court
     grouped_schedule = {}
@@ -884,6 +1022,32 @@ def global_schedule_summary():
             
     matches = query.all()
     
+    # Inject Archived Matches
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    if league_id:
+        league_obj = League.query.get(league_id)
+        if league_obj:
+            archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
+        else:
+            archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
+            
+    archived = archive_query.all()
+    import json
+    for arc in archived:
+        if arc.details_json:
+            try:
+                arc_data = json.loads(arc.details_json)
+                for m_data in arc_data:
+                    fake_m = FakeMatch(m_data, arc.league_name, arc.date.strftime('%Y-%m-%d'))
+                    fake_m.league.charge_from_start = True
+                    fake_m.league.charge_start_date = None
+                    matches.append(fake_m)
+            except:
+                pass
+    
     discrepancies = calculate_discrepancies(matches)
     
     # Aggregate
@@ -957,6 +1121,32 @@ def share_global_schedule_summary():
             
     matches = query.all()
     
+    # Inject Archived Matches
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    if league_id:
+        league_obj = League.query.get(league_id)
+        if league_obj:
+            archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
+        else:
+            archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
+            
+    archived = archive_query.all()
+    import json
+    for arc in archived:
+        if arc.details_json:
+            try:
+                arc_data = json.loads(arc.details_json)
+                for m_data in arc_data:
+                    fake_m = FakeMatch(m_data, arc.league_name, arc.date.strftime('%Y-%m-%d'))
+                    fake_m.league.charge_from_start = True
+                    fake_m.league.charge_start_date = None
+                    matches.append(fake_m)
+            except:
+                pass
+    
     discrepancies = calculate_discrepancies(matches)
     
     # Aggregate
@@ -1024,6 +1214,33 @@ def export_global_summary():
             query = query.filter(Court.name == cancha_name)
             
     matches = query.all()
+    
+    # Inject Archived Matches
+    archive_query = ArchivedFinance.query.filter_by(user_id=current_user.id)
+    if league_id:
+        league_obj = League.query.get(league_id)
+        if league_obj:
+            archive_query = archive_query.filter(ArchivedFinance.league_name == league_obj.name)
+    if cancha_name:
+        if cancha_name == "Sin Cancha":
+            archive_query = archive_query.filter(ArchivedFinance.court_name == "Sin Cancha")
+        else:
+            archive_query = archive_query.filter(ArchivedFinance.court_name == cancha_name)
+            
+    archived = archive_query.all()
+    import json
+    for arc in archived:
+        if arc.details_json:
+            try:
+                arc_data = json.loads(arc.details_json)
+                for m_data in arc_data:
+                    fake_m = FakeMatch(m_data, arc.league_name, arc.date.strftime('%Y-%m-%d'))
+                    fake_m.league.charge_from_start = True
+                    fake_m.league.charge_start_date = None
+                    matches.append(fake_m)
+            except:
+                pass
+                
     discrepancies = calculate_discrepancies(matches)
     
     # Aggregate

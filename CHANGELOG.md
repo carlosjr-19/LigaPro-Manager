@@ -1,3 +1,15 @@
+## 1.0.4
+
+Preservación de Historial en Agenda Global y Resumen.
+
+- **Inyección en Agenda Global**: Al restablecer o eliminar una liga (exclusivo para usuarios Ultra), los datos financieros y de marcadores guardados en el archivo (vía JSON) se inyectan dinámicamente en la vista de Agenda Global y Compartir Agenda como "Partidos Archivados" de solo lectura, permitiendo visualizar los registros inmutables.
+- **Resumen e Historial**: Los partidos archivados también forman parte ahora de la lógica en la sección de Resumen Financiero y en el Historial de Ligas (incluyendo los reportes en Excel). De este modo, los dueños de liga pueden iniciar nuevas temporadas (borrando la liga) pero manteniendo intacta toda la rentabilidad y estadística pasada sin afectar el rendimiento ni el almacenamiento de Railway.
+- **Inmutabilidad en UI**: Se deshabilitaron los botones de edición y entradas de pago en la Agenda Global para partidos detectados como archivados (`is_archived`), evitando modificaciones accidentales sobre ligas que ya no existen en la base de datos de operaciones.
+
+## Modificado
+* `ligapro_manager/routes/report.py`
+* `ligapro_manager/templates/report/global_schedule.html`
+
 ## 1.0.3
 
 Implementación de Desglose y Agrupación de Archivos Financieros (Premium Ultra).

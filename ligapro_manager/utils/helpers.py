@@ -195,7 +195,15 @@ def archive_league_finances(league):
                 'home_paid': income_home,
                 'away_paid': income_away,
                 'ref_paid': expense_ref,
-                'time': match.match_date.strftime('%H:%M') if match.match_date else ''
+                'time': match.match_date.strftime('%H:%M') if match.match_date else '',
+                'home_score': match.home_score,
+                'away_score': match.away_score,
+                'is_practice': getattr(match, 'is_practice', False),
+                'expected_price': match.league.price_per_match or 0,
+                'match_date_raw': match.match_date.strftime('%Y-%m-%d %H:%M:%S') if match.match_date else '',
+                'referee_cost_home_raw': match.referee_cost_home,
+                'referee_cost_away_raw': match.referee_cost_away,
+                'referee_cost_raw': match.referee_cost
             })
         
     for (date_key, court_name), totals in archives.items():
