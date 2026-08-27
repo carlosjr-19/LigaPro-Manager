@@ -504,6 +504,117 @@ def generate_playoffs(league_id):
     return redirect(url_for('league.league_detail', league_id=league_id, _anchor='playoff'))
 
 
+@match_bp.route('/leagues/<league_id>/playoffs/generate_manual', methods=['POST'])
+@login_required
+@owner_required
+def generate_playoffs_manual(league_id):
+    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    stage = request.form.get('stage')
+    playoff_type = request.form.get('playoff_type', 'single')
+    home_team_ids = request.form.getlist('home_team_id[]')
+    away_team_ids = request.form.getlist('away_team_id[]')
+    
+    if not stage or not home_team_ids or not away_team_ids or len(home_team_ids) != len(away_team_ids):
+        flash('Datos incompletos para la generación manual.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='playoff'))
+
+    # Premium check for double leg
+    if playoff_type == 'double' and not current_user.is_active_premium:
+        flash('La modalidad Ida y Vuelta es exclusiva para Premium.', 'warning')
+        return redirect(url_for('premium.premium'))
+        
+    # Get default court
+    default_court = Court.query.filter_by(league_id=league_id).order_by(Court.created_at.asc()).first()
+    default_court_id = default_court.id if default_court else None
+    
+    # Check if this is the first manual generation (no playoffs yet)
+    has_playoffs = Match.query.filter(
+        Match.league_id == league_id,
+        Match.stage.in_(['repechaje', 'round_of_16', 'quarterfinal', 'semifinal', 'tercer_lugar', 'final'])
+    ).first() is not None
+    
+    if not has_playoffs:
+        # Clear playoff state if it was somehow set
+        league.playoff_mode = 'manual'
+        league.playoff_type = playoff_type
+        league.playoff_bye_teams = None
+        
+    # We don't delete existing matches for manual mode unless they click "Regenerar".
+    # This allows building round by round.
+    
+    teams_dict = {t.id: t for t in Team.query.filter_by(league_id=league_id).all()}
+    
+    stage_names = {
+        'repechaje': 'Repechaje',
+        'round_of_16': 'Octavos',
+        'quarterfinal': 'Cuartos',
+        'semifinal': 'Semifinal',
+        'tercer_lugar': 'Tercer Lugar',
+        'final': 'Final'
+    }
+    stage_label = stage_names.get(stage, stage.capitalize())
+    
+    created_count = 0
+    for i in range(len(home_team_ids)):
+        home_id = home_team_ids[i]
+        away_id = away_team_ids[i]
+        
+        if not home_id or not away_id or home_id == away_id:
+            continue
+            
+        home_team = teams_dict.get(home_id)
+        away_team = teams_dict.get(away_id)
+        
+        if not home_team or not away_team:
+            continue
+            
+        # Match 1 (Ida or Single)
+        match1 = Match(
+            league_id=league_id,
+            home_team_id=home_id,
+            away_team_id=away_id,
+            court_id=default_court_id,
+            match_date=datetime.now(timezone.utc),
+            stage=stage,
+            match_name=f"{stage_label}: {home_team.name} vs {away_team.name}" + (" (Ida)" if playoff_type == 'double' and stage != 'final' else "")
+        )
+        if league.auto_fill_prices:
+            match1.referee_cost_home = str(league.price_per_match)
+            match1.referee_cost_away = str(league.price_per_match)
+            match1.referee_cost = str(league.price_referee)
+        db.session.add(match1)
+        created_count += 1
+        
+        # Match 2 (Vuelta) if double leg AND NOT FINAL
+        if playoff_type == 'double' and stage != 'final':
+            match2 = Match(
+                league_id=league_id,
+                home_team_id=away_id,
+                away_team_id=home_id,
+                court_id=default_court_id,
+                match_date=datetime.now(timezone.utc),
+                stage=stage,
+                match_name=f"{stage_label}: {away_team.name} vs {home_team.name} (Vuelta)"
+            )
+            if league.auto_fill_prices:
+                match2.referee_cost_home = str(league.price_per_match)
+                match2.referee_cost_away = str(league.price_per_match)
+                match2.referee_cost = str(league.price_referee)
+            db.session.add(match2)
+            created_count += 1
+            
+    db.session.commit()
+    
+    if created_count > 0:
+        flash(f'Liguilla manual generada ({stage_label}). {created_count} partidos creados.', 'success')
+    else:
+        flash('No se crearon partidos. Revisa las selecciones.', 'warning')
+        
+    return redirect(url_for('league.league_detail', league_id=league_id, _anchor='playoff'))
+
+
+
 @match_bp.route('/leagues/<league_id>/playoffs/advance', methods=['POST'])
 @login_required
 @owner_required

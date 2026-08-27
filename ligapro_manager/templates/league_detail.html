@@ -983,17 +983,23 @@
                 <h2 class="text-2xl font-bold">Liguilla / Playoffs</h2>
                 <div class="flex gap-2">
                     {% if has_playoffs %}
+                    <button type="button" onclick="openManualPlayoffModal()" 
+                        class="flex items-center justify-center px-4 py-2 rounded text-sm font-bold transition-colors h-10 whitespace-nowrap bg-gray-600 hover:bg-gray-500 text-white" 
+                        title="Añadir más partidos manualmente">
+                        <i class="fas fa-plus mr-2"></i>Añadir Ronda Manual
+                    </button>
                     <form method="POST" action="{{ url_for('match.reset_playoffs', league_id=league.id) }}"
-                        class="inline"
+                        class="inline flex"
                         onsubmit="return confirm('⚠️ ¿Estás seguro de BORRAR toda la liguilla? Se perderán todos los partidos de eliminatoria.')">
                         <button type="submit"
-                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors">
+                            class="flex items-center justify-center px-4 py-2 rounded text-sm font-bold transition-colors h-10 whitespace-nowrap bg-red-600 hover:bg-red-500 text-white w-full">
                             <i class="fas fa-trash mr-2"></i>Borrar Liguilla
                         </button>
                     </form>
                     <form method="POST" action="{{ url_for('match.advance_playoff_round', league_id=league.id) }}"
-                        class="inline">
-                        <button type="submit" class="btn-secondary">
+                        class="inline flex">
+                        <button type="submit" 
+                            class="flex items-center justify-center px-4 py-2 rounded text-sm font-bold transition-colors h-10 whitespace-nowrap bg-blue-600 hover:bg-blue-500 text-white w-full">
                             <i class="fas fa-forward mr-2"></i>Avanzar Ronda
                         </button>
                     </form>
@@ -1056,6 +1062,11 @@
                                 <i class="fas fa-random mr-2"></i>Con Repechaje
                             </button>
                             {% endif %}
+                        </div>
+                        <div class="flex justify-center mt-4 border-t border-white/10 pt-4 w-full">
+                            <button type="button" onclick="openManualPlayoffModal()" class="btn-secondary w-full sm:w-auto hover:bg-white/10 border-white/20">
+                                <i class="fas fa-hand-pointer mr-2"></i>Generación Manual
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -2311,6 +2322,123 @@
                                         document.getElementById('modificarPuntajesModal').classList.add('hidden');
                                     document.getElementById('modificarPuntajesModal').classList.remove('flex');
         }
+        
+        function openManualPlayoffModal() {
+            document.getElementById('manualPlayoffModal').classList.remove('hidden');
+            document.getElementById('manualPlayoffModal').classList.add('flex');
+        }
+        
+        function closeManualPlayoffModal() {
+            document.getElementById('manualPlayoffModal').classList.add('hidden');
+            document.getElementById('manualPlayoffModal').classList.remove('flex');
+        }
+        
+        function addManualMatchRow() {
+            const container = document.getElementById('manual-matches-container');
+            const rowCount = container.children.length + 1;
+            
+            // Get the options from the first select to copy them
+            const firstHomeSelect = container.querySelector('select[name="home_team_id[]"]');
+            const optionsHtml = firstHomeSelect ? firstHomeSelect.innerHTML : '';
+            
+            const rowHtml = `
+                <div class="flex flex-col sm:flex-row gap-2 items-center mb-3 manual-match-row">
+                    <span class="text-white/40 font-bold hidden sm:inline">#${rowCount}</span>
+                    <select name="home_team_id[]" class="input-field text-sm w-full sm:w-auto flex-1" required>
+                        ${optionsHtml}
+                    </select>
+                    <span class="text-white/40 font-bold">VS</span>
+                    <select name="away_team_id[]" class="input-field text-sm w-full sm:w-auto flex-1" required>
+                        ${optionsHtml}
+                    </select>
+                    <button type="button" onclick="this.closest('.manual-match-row').remove()" class="text-red-400 hover:text-red-300 p-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', rowHtml);
+        }
     </script>
+    
+    <!-- Manual Playoff Modal -->
+    <div id="manualPlayoffModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[100] p-4">
+        <div class="bg-[#1a1a1a] border border-white/10 rounded-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center p-6 border-b border-white/10 bg-[#1a1a1a] rounded-t-xl shrink-0">
+                <h3 class="text-xl font-bold"><i class="fas fa-hand-pointer text-primary mr-2"></i>Generación Manual de Liguilla</h3>
+                <button onclick="closeManualPlayoffModal()" class="text-white/40 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <form method="POST" action="{{ url_for('match.generate_playoffs_manual', league_id=league.id) }}" class="flex flex-col overflow-hidden h-full">
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Fase</label>
+                            <select name="stage" class="input-field" required>
+                                <option value="repechaje">Repechaje</option>
+                                <option value="round_of_16">Octavos de Final</option>
+                                <option value="quarterfinal">Cuartos de Final</option>
+                                <option value="semifinal">Semifinales</option>
+                                <option value="final">Final</option>
+                                <option value="tercer_lugar">Tercer Lugar</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-white/60 mb-2 uppercase tracking-wide">Formato</label>
+                            <select name="playoff_type" class="input-field" required>
+                                <option value="single">Partido Único</option>
+                                {% if current_user.is_active_premium %}
+                                <option value="double">Ida y Vuelta (Premium)</option>
+                                {% else %}
+                                <option value="double" disabled>Ida y Vuelta (Requiere Premium)</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-white/10 pt-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-bold text-lg">Cruces / Partidos</h4>
+                            <button type="button" onclick="addManualMatchRow()" class="text-sm bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition-colors font-bold text-white">
+                                <i class="fas fa-plus mr-1"></i>Añadir Fila
+                            </button>
+                        </div>
+                        
+                        <div id="manual-matches-container" class="space-y-3">
+                            <!-- Initial Row -->
+                            <div class="flex flex-col sm:flex-row gap-2 items-center mb-3 manual-match-row bg-black/20 p-3 rounded-lg border border-white/5">
+                                <span class="text-white/40 font-bold hidden sm:inline w-6 text-center">#1</span>
+                                <select name="home_team_id[]" class="input-field text-sm w-full sm:w-auto flex-1" required>
+                                    <option value="">Local...</option>
+                                    {% for team in teams %}
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="text-white/40 font-bold px-2">VS</span>
+                                <select name="away_team_id[]" class="input-field text-sm w-full sm:w-auto flex-1" required>
+                                    <option value="">Visitante...</option>
+                                    {% for team in teams %}
+                                    <option value="{{ team.id }}">{{ team.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" onclick="if(document.querySelectorAll('.manual-match-row').length > 1) this.closest('.manual-match-row').remove()" class="text-red-400 hover:text-red-300 p-2 opacity-50 hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-white/40 mt-4 bg-primary/10 text-primary/80 p-3 rounded-lg border border-primary/20">
+                            <i class="fas fa-info-circle mr-1"></i>Puedes agregar tantos partidos como necesites para esta fase. Si eliges "Ida y Vuelta", el sistema generará ambos automáticamente (excepto para la final).
+                        </p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-4 border-t border-white/10 p-6 bg-[#1a1a1a] rounded-b-xl shrink-0">
+                    <button type="button" onclick="closeManualPlayoffModal()" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Generar Partidos</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     {% endif %}
     {% endblock %}
