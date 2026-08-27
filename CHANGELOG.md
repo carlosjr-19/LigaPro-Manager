@@ -1,3 +1,17 @@
+## 1.0.7
+
+Generación Manual de Liguilla y Mejoras en el Footer de Contacto.
+
+- **Generación Manual de Liguilla**: Se implementó una nueva función que permite a los presidentes de liga crear manualmente los cruces de Liguilla (Repechaje, Cuartos, Semis, etc.) asignando equipos uno por uno. Esto permite mayor flexibilidad para torneos con reglas especiales.
+- **Botones de Liguilla Estéticos**: Se rediseñaron los botones de acciones de liguilla (Generación Manual, Añadir Ronda, Borrar Liguilla, Avanzar Ronda) para mantener consistencia visual en tamaño y estilos diferenciados por color.
+- **Sección de Contacto (Footer)**: Se agregaron íconos oficiales (WhatsApp, Facebook, Correo) en el pie de página de la aplicación, haciéndolo visible globalmente para que los usuarios puedan contactar al administrador del sistema directamente.
+
+## Modificado
+* `ligapro_manager/routes/match.py`
+* `ligapro_manager/templates/league_detail.html`
+* `ligapro_manager/templates/base.html`
+* `VERSION`
+
 ## 1.0.6
 
 Actualización de Estética en Reportes de Liga y Credenciales "Registro 2".
