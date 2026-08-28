@@ -850,3 +850,115 @@ def advance_playoff_round(league_id):
     db.session.commit()
     flash(f'Ronda generada: {next_stage} ({created_count} partidos).', 'success')
     return redirect(url_for('league.league_detail', league_id=league_id, _anchor='playoff'))
+
+@match_bp.route('/leagues/<league_id>/auto_schedule', methods=['POST'])
+@login_required
+@owner_required
+def auto_schedule_round(league_id):
+    from datetime import timedelta
+    import random
+    
+    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    start_date_str = request.form.get('start_date')
+    start_time_str = request.form.get('start_time')
+    interval_minutes = int(request.form.get('interval', 40))
+    court_id = request.form.get('court_id')
+    if not court_id:
+        # Default court
+        default_court = Court.query.filter_by(league_id=league_id).order_by(Court.created_at.asc()).first()
+        court_id = default_court.id if default_court else None
+    
+    if not start_date_str or not start_time_str:
+        flash('Fecha y hora son obligatorias.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    try:
+        current_dt = datetime.strptime(f"{start_date_str} {start_time_str}", "%Y-%m-%d %H:%M")
+    except Exception as e:
+        flash('Formato de fecha u hora inválido.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    # Get active teams
+    active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
+    if len(active_teams) < 2:
+        flash('No hay suficientes equipos activos para programar partidos.', 'warning')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    # Get max round for regular stage
+    from sqlalchemy import func
+    max_round = db.session.query(func.max(Match.match_round)).filter_by(league_id=league_id, stage='regular').scalar()
+    next_round = (max_round or 0) + 1
+    
+    # Get past matches to build history
+    past_matches = Match.query.filter_by(league_id=league_id, stage='regular').all()
+    played_pairs = set()
+    for m in past_matches:
+        played_pairs.add(tuple(sorted([m.home_team_id, m.away_team_id])))
+        
+    # Matching algorithm (backtracking)
+    team_ids = [t.id for t in active_teams]
+    random.shuffle(team_ids) # Shuffle to avoid always same order of rests or matchups
+    
+    def find_matching(teams_left, current_matching):
+        if len(teams_left) < 2:
+            return current_matching
+            
+        t1 = teams_left[0]
+        for i in range(1, len(teams_left)):
+            t2 = teams_left[i]
+            pair = tuple(sorted([t1, t2]))
+            if pair not in played_pairs:
+                # Try this match
+                new_matching = current_matching + [(t1, t2)]
+                new_teams_left = teams_left[1:i] + teams_left[i+1:]
+                result = find_matching(new_teams_left, new_matching)
+                if result is not None:
+                    return result
+        # Backtrack
+        return None
+        
+    matching = find_matching(team_ids, [])
+    
+    if not matching:
+        # Fallback greedy if backtracking fails to find a perfect non-repeating matching
+        matching = []
+        teams_left = list(team_ids)
+        while len(teams_left) >= 2:
+            t1 = teams_left.pop(0)
+            found = False
+            for i, t2 in enumerate(teams_left):
+                if tuple(sorted([t1, t2])) not in played_pairs:
+                    matching.append((t1, t2))
+                    teams_left.pop(i)
+                    found = True
+                    break
+            if not found:
+                # Forced repeat if no other option
+                t2 = teams_left.pop(0)
+                matching.append((t1, t2))
+    
+    created_count = 0
+    for home_id, away_id in matching:
+        match = Match(
+            league_id=league_id,
+            home_team_id=home_id,
+            away_team_id=away_id,
+            court_id=court_id,
+            match_date=current_dt,
+            match_round=next_round,
+            stage='regular',
+            match_name=f'Jornada {next_round}'
+        )
+        if league.auto_fill_prices:
+            match.referee_cost_home = str(league.price_per_match)
+            match.referee_cost_away = str(league.price_per_match)
+            match.referee_cost = str(league.price_referee)
+            
+        db.session.add(match)
+        created_count += 1
+        current_dt += timedelta(minutes=interval_minutes)
+        
+    db.session.commit()
+    flash(f'Se generaron {created_count} partidos para la Jornada {next_round} automáticamente.', 'success')
+    return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))

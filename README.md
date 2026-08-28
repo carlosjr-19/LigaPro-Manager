@@ -76,12 +76,12 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v1.0.6)
+## 🔄 Últimas Actualizaciones (v1.0.8)
 
+- **Generación Automática de Jornadas (1.0.8)**: Sistema inteligente con Backtracking para emparejamiento automático de jornadas regulares con intervalos de tiempo programables y auto-rellenado de Títulos en reportes.
+- **Liguilla Manual (1.0.7)**: Posibilidad de que los dueños asignen equipos de forma 1 a 1 para los cruces de Liguilla.
 - **Actualización de Estética en Reportes (1.0.6)**: Se incrementó la visibilidad de los nombres de las canchas en los reportes de rol de juegos y se ajustó el esquema de colores de la plantilla "Registro 2" de credenciales.
 - **Filtros Múltiples de Finanzas y UI (1.0.5)**: Selección múltiple e interactiva de ligas y canchas simultáneamente (Ultra), además de optimizaciones de "arrastrar y soltar" (drag-and-drop) de ligas en móviles evitando desorganización accidental.
-- **Preservación de Historial (1.0.4)**: Los partidos archivados se inyectan dinámicamente como 'Solo Lectura' en la Agenda Global y los Reportes de Finanzas (Ultra), manteniendo registros permanentes al borrar ligas.
-- **Desglose de Archivos Financieros (1.0.3)**: Agrupación en 'Lotes' inteligentes de las estadísticas archivadas al reiniciar ligas, permitiendo ver el detalle individual y optimizando almacenamiento.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager
