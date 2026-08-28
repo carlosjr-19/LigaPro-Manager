@@ -305,12 +305,19 @@ def league_detail(league_id):
         teams_history[m.away_team_id][m.home_team_id]['last_time'] = time_str
         teams_history[m.away_team_id][m.home_team_id]['last_court_name'] = court_name
     
+    from sqlalchemy import func
+    current_match_round = db.session.query(func.max(Match.match_round)).filter(
+        Match.league_id == league_id,
+        or_(Match.stage == 'regular', Match.stage == None, Match.stage == '')
+    ).scalar() or 0
+
     return render_template('league_detail.html', 
                           league=league, 
                           teams=active_teams,
                           courts=league.courts[:1] if not league.owner.is_active_premium else league.courts,
                           standings=standings,
                           matches=matches,
+                          current_match_round=current_match_round,
                           round_matrices=round_matrices,
                           num_vueltas=num_vueltas,
                           playoff_matches=playoff_matches,

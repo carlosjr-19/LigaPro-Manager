@@ -1,3 +1,16 @@
+## 1.0.8
+
+Generación Automática de Jornadas y Auto-completado de Título.
+
+- **Generación Automática de Jornadas**: Implementación de un botón interactivo y modal en la vista de liga que permite la generación secuencial y automática de una jornada entera. El sistema inteligente busca equipos activos, revisa su historial de partidos previos (evitando repetirlos), maneja descansos si son impares, y escala los horarios basándose en un intervalo configurado (30, 40, 50 mins, etc.).
+- **Auto-completado Inteligente en Reportes**: Al intentar compartir el Rol de Juegos (Generar Reporte), el sistema detecta de forma automática cuál fue la jornada más alta registrada y pre-llena la entrada del "Título de Jornada", minimizando la introducción manual de texto.
+
+## Modificado
+* `ligapro_manager/routes/match.py`
+* `ligapro_manager/routes/league.py`
+* `ligapro_manager/templates/league_detail.html`
+* `VERSION`
+
 ## 1.0.7
 
 Generación Manual de Liguilla y Mejoras en el Footer de Contacto.
