@@ -566,24 +566,48 @@
                 {% if matches_by_date %}
                 {% for date, day_matches in matches_by_date.items() %}
                 <div class="border border-white/10 rounded-xl overflow-hidden bg-white/5">
-                    <button onclick="toggleDateCollapse('date-{{ loop.index }}')"
-                        class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="bg-primary/20 text-primary w-10 h-10 rounded-lg flex flex-col items-center justify-center font-bold">
-                                <span class="text-xs uppercase leading-none">{{ spanish_months_short[date.month]
-                                    }}</span>
+                    <div class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
+                        <button onclick="toggleDateCollapse('date-{{ loop.index }}')" class="flex-1 flex items-center gap-3 text-left">
+                            <div class="bg-primary/20 text-primary w-10 h-10 rounded-lg flex flex-col items-center justify-center font-bold shrink-0">
+                                <span class="text-xs uppercase leading-none">{{ spanish_months_short[date.month] }}</span>
                                 <span class="text-lg leading-none">{{ date.day }}</span>
                             </div>
                             <div>
-                                <h4 class="font-bold text-lg">{{ date.day }} de {{ spanish_months[date.month] }} de {{
-                                    date.year }}</h4>
+                                <h4 class="font-bold text-lg">{{ date.day }} de {{ spanish_months[date.month] }} de {{ date.year }}</h4>
                                 <p class="text-white/40 text-sm italic">{{ day_matches|length }} partidos</p>
                             </div>
+                        </button>
+                        
+                        <div class="flex items-center gap-3 ml-4 shrink-0">
+                            {% set has_completed_matches = namespace(value=false) %}
+                            {% set played_teams = [] %}
+                            {% for m in day_matches %}
+                                {% if m.is_completed %}
+                                    {% set has_completed_matches.value = true %}
+                                {% endif %}
+                                {% set _ = played_teams.append(m.home_team_id) %}
+                                {% set _ = played_teams.append(m.away_team_id) %}
+                            {% endfor %}
+                            
+                            {% if current_user.id == league.user_id and not has_completed_matches.value %}
+                            <form method="POST" action="{{ url_for('match.regenerate_date', league_id=league.id, date_str=date.strftime('%Y-%m-%d')) }}"
+                                class="inline m-0" onsubmit="return confirm('¿Estás seguro de regenerar los partidos de esta fecha? Se asignarán nuevos enfrentamientos respetando la hora e intervalos actuales.');">
+                                <button type="submit" class="text-white/40 hover:text-amber-500 transition-colors p-2" title="Regenerar Jornada">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('match.delete_date', league_id=league.id, date_str=date.strftime('%Y-%m-%d')) }}"
+                                class="inline m-0" onsubmit="return confirm('¿Estás seguro de eliminar TODOS los partidos de esta fecha?');">
+                                <button type="submit" class="text-white/40 hover:text-red-500 transition-colors p-2" title="Borrar Jornada">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            <button onclick="toggleDateCollapse('date-{{ loop.index }}')" class="p-2 ml-2">
+                                <i id="icon-date-{{ loop.index }}" class="fas fa-chevron-down text-white/40 transition-transform"></i>
+                            </button>
                         </div>
-                        <i id="icon-date-{{ loop.index }}"
-                            class="fas fa-chevron-down text-white/40 transition-transform"></i>
-                    </button>
+                    </div>
                     <div id="date-{{ loop.index }}" class="hidden border-t border-white/5 bg-black/20 p-4 space-y-3">
                         {% for match in day_matches %}
                         <div
@@ -662,6 +686,31 @@
                             </div>
                         </div>
                         {% endfor %}
+                        
+                        {% if teams|length % 2 != 0 %}
+                            {% set rested_team_id = namespace(value=None) %}
+                            {% for t in teams %}
+                                {% if t.id not in played_teams %}
+                                    {% set rested_team_id.value = t.id %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if rested_team_id.value %}
+                            <div class="mt-4 p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-between text-sm">
+                                <span class="text-white/60">Equipo que descansa:</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-bold text-white">{{ teams_dict[rested_team_id.value].name }}</span>
+                                    {% if teams_dict[rested_team_id.value].shield_url %}
+                                    <img src="{{ teams_dict[rested_team_id.value].shield_url }}" class="w-5 h-5 rounded object-cover">
+                                    {% else %}
+                                    <div class="w-5 h-5 rounded flex-shrink-0 bg-white/10 flex items-center justify-center text-[8px]">
+                                        <i class="fas fa-shield-alt text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
