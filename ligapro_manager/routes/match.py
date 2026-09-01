@@ -962,3 +962,155 @@ def auto_schedule_round(league_id):
     db.session.commit()
     flash(f'Se generaron {created_count} partidos para la Jornada {next_round} automáticamente.', 'success')
     return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+
+@match_bp.route('/leagues/<league_id>/delete_date/<date_str>', methods=['POST'])
+@login_required
+@owner_required
+def delete_date(league_id, date_str):
+    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        flash('Formato de fecha inválido.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    # We want to match only matches on that date
+    from sqlalchemy import func
+    matches_to_delete = Match.query.filter(
+        Match.league_id == league_id,
+        func.date(Match.match_date) == target_date
+    ).all()
+    
+    if any(m.is_completed for m in matches_to_delete):
+        flash('No se pueden borrar jornadas que tengan partidos con resultados ya registrados.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+    
+    deleted_count = 0
+    for match in matches_to_delete:
+        db.session.delete(match)
+        deleted_count += 1
+        
+    db.session.commit()
+    flash(f'Se eliminaron {deleted_count} partidos de la fecha {date_str}.', 'success')
+    return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+
+@match_bp.route('/leagues/<league_id>/regenerate_date/<date_str>', methods=['POST'])
+@login_required
+@owner_required
+def regenerate_date(league_id, date_str):
+    from datetime import timedelta
+    import random
+    from sqlalchemy import func
+    
+    league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
+    
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        flash('Formato de fecha inválido.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    matches_on_date = Match.query.filter(
+        Match.league_id == league_id,
+        func.date(Match.match_date) == target_date
+    ).order_by(Match.match_date.asc()).all()
+    
+    if not matches_on_date:
+        flash('No se encontraron partidos en esa fecha.', 'warning')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    if any(m.is_completed for m in matches_on_date):
+        flash('No se puede regenerar una jornada que ya tiene partidos con resultados registrados.', 'danger')
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    # Analyze existing match parameters
+    first_match = matches_on_date[0]
+    start_dt = first_match.match_date
+    court_id = first_match.court_id
+    match_round = first_match.match_round
+    stage = first_match.stage
+    match_name = first_match.match_name
+    
+    interval_minutes = 40
+    if len(matches_on_date) > 1:
+        diff = matches_on_date[1].match_date - matches_on_date[0].match_date
+        interval_minutes = int(diff.total_seconds() / 60)
+        
+    # Delete them
+    for m in matches_on_date:
+        db.session.delete(m)
+    db.session.flush() # flush so they don't count in past_matches
+    
+    active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
+    if len(active_teams) < 2:
+        flash('No hay suficientes equipos activos.', 'warning')
+        db.session.rollback()
+        return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    past_matches = Match.query.filter_by(league_id=league_id, stage='regular').all()
+    played_pairs = set()
+    for m in past_matches:
+        played_pairs.add(tuple(sorted([m.home_team_id, m.away_team_id])))
+        
+    team_ids = [t.id for t in active_teams]
+    random.shuffle(team_ids)
+    
+    def find_matching(teams_left, current_matching):
+        if len(teams_left) < 2:
+            return current_matching
+            
+        t1 = teams_left[0]
+        for i in range(1, len(teams_left)):
+            t2 = teams_left[i]
+            pair = tuple(sorted([t1, t2]))
+            if pair not in played_pairs:
+                new_matching = current_matching + [(t1, t2)]
+                new_teams_left = teams_left[1:i] + teams_left[i+1:]
+                result = find_matching(new_teams_left, new_matching)
+                if result is not None:
+                    return result
+        return None
+        
+    matching = find_matching(team_ids, [])
+    if not matching:
+        matching = []
+        teams_left = list(team_ids)
+        while len(teams_left) >= 2:
+            t1 = teams_left.pop(0)
+            found = False
+            for i, t2 in enumerate(teams_left):
+                if tuple(sorted([t1, t2])) not in played_pairs:
+                    matching.append((t1, t2))
+                    teams_left.pop(i)
+                    found = True
+                    break
+            if not found:
+                t2 = teams_left.pop(0)
+                matching.append((t1, t2))
+                
+    created_count = 0
+    current_dt = start_dt
+    for home_id, away_id in matching:
+        match = Match(
+            league_id=league_id,
+            home_team_id=home_id,
+            away_team_id=away_id,
+            court_id=court_id,
+            match_date=current_dt,
+            match_round=match_round,
+            stage=stage,
+            match_name=match_name
+        )
+        if league.auto_fill_prices:
+            match.referee_cost_home = str(league.price_per_match)
+            match.referee_cost_away = str(league.price_per_match)
+            match.referee_cost = str(league.price_referee)
+            
+        db.session.add(match)
+        created_count += 1
+        current_dt += timedelta(minutes=interval_minutes)
+        
+    db.session.commit()
+    flash(f'Jornada del {date_str} regenerada ({created_count} partidos).', 'success')
+    return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
