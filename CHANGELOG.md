@@ -1,3 +1,20 @@
+## 1.0.9
+
+Gestión de Adeudos y Borrado de Jornadas Automáticas.
+
+- **Borrado de Jornadas Automáticas**: Implementación de la opción para borrar por completo una jornada autogenerada, siempre y cuando ninguno de sus partidos haya finalizado (tenga resultado). También se incluyó la capacidad de regenerar los enfrentamientos de la jornada usando equipos distintos.
+- **Identificación de Deudores en Agenda Global**: En la vista web de la agenda global, al compartir (PNG) y en el Excel exportado, los equipos que presenten adeudos (balance negativo) aparecerán con su nombre resaltado en color rojo, mejorando la visibilidad para el administrador y los dueños.
+- **Ocultamiento de Saldos en Cero**: En el Resumen General Financiero y sus respectivas exportaciones, los equipos y árbitros cuyo balance llegue exactamente a  dejarán de mostrarse en la tabla de deudores, limpiando el reporte de información innecesaria.
+- **Información de Descansos**: Al generar automáticamente una jornada en ligas con cantidad impar de equipos, el sistema ahora indica visualmente qué equipo fue asignado para descansar esa fecha.
+- **Resaltado de Enfrentamientos Previos**: En el modal de agendar partidos manuales, el último enfrentamiento contra cada equipo se resalta en color rojo para una identificación visual rápida de los cruces previos.
+
+## Modificado
+* ligapro_manager/routes/match.py
+* ligapro_manager/routes/report.py
+* ligapro_manager/templates/league/matches_by_date.html
+* ligapro_manager/templates/report/global_schedule.html
+* ligapro_manager/templates/report/share_global_schedule.html
+* VERSION
 ## 1.0.8
 
 GeneraciÃ³n AutomÃ¡tica de Jornadas y Auto-completado de TÃ­tulo.
@@ -705,6 +722,7 @@ Se agrando la tabla de posiciones en el reporte de partidos
 
 * Script check_db_schema.py
 * Script migrate_color_root.py
+
 
 
 
