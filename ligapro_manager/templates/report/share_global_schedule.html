@@ -100,8 +100,7 @@
                                 <!-- Home Team -->
                                 <td class="py-3 px-2 text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <span class="font-bold text-white text-[13px] uppercase">{{ match.home_team.name
-                                            }}</span>
+                                        <span class="font-bold {% if (match.league.name, match.home_team.name) in debtor_teams %}text-red-500{% else %}text-white{% endif %} text-[13px] uppercase">{{ match.home_team.name }}</span>
                                         {% if match.league.show_team_logos and teams_dict[match.home_team_id].shield_url
                                         %}
                                         <img src="{{ teams_dict[match.home_team_id].shield_url }}"
@@ -140,8 +139,7 @@
                                         <img src="{{ teams_dict[match.away_team_id].shield_url }}"
                                             class="w-5 h-5 object-contain opacity-90">
                                         {% endif %}
-                                        <span class="font-bold text-white text-[13px] uppercase">{{ match.away_team.name
-                                            }}</span>
+                                        <span class="font-bold {% if (match.league.name, match.away_team.name) in debtor_teams %}text-red-500{% else %}text-white{% endif %} text-[13px] uppercase">{{ match.away_team.name }}</span>
                                     </div>
                                 </td>
                                 <!-- Referee Cost (Total) -->

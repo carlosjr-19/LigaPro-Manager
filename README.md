@@ -76,8 +76,9 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
 *   `CHANGELOG.md`: Registro de cambios y versiones.
 *   `VERSION`: Archivo de control de versión actual.
 
-## 🔄 Últimas Actualizaciones (v1.0.8)
+## 🔄 Últimas Actualizaciones (v1.0.9)
 
+- **Gestión Financiera de Adeudos (1.0.9)**: Ocultamiento automático de equipos sin deuda en el resumen, resaltado visual de deudores en la Agenda Global y capacidad de borrar jornadas automáticas completas.
 - **Generación Automática de Jornadas (1.0.8)**: Sistema inteligente con Backtracking para emparejamiento automático de jornadas regulares con intervalos de tiempo programables y auto-rellenado de Títulos en reportes.
 - **Liguilla Manual (1.0.7)**: Posibilidad de que los dueños asignen equipos de forma 1 a 1 para los cruces de Liguilla.
 - **Actualización de Estética en Reportes (1.0.6)**: Se incrementó la visibilidad de los nombres de las canchas en los reportes de rol de juegos y se ajustó el esquema de colores de la plantilla "Registro 2" de credenciales.

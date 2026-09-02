@@ -281,12 +281,15 @@ def global_schedule():
     # Sort groups by name
     sorted_schedule = dict(sorted(grouped_schedule.items()))
 
+    debtor_teams = get_debtor_teams(current_user.id)
+
     return render_template('report/global_schedule.html', 
                          schedule=sorted_schedule, 
                          selected_date=selected_date,
                          conflicting_match_ids=conflicting_match_ids,
                          time_from=time_from_str,
-                         time_to=time_to_str)
+                         time_to=time_to_str,
+                         debtor_teams=debtor_teams)
 
 @report_bp.route('/global-schedule/share')
 @login_required
@@ -421,6 +424,8 @@ def share_global_schedule():
         if match.away_team_id not in teams_dict:
             teams_dict[match.away_team_id] = Team.query.get(match.away_team_id)
 
+    debtor_teams = get_debtor_teams(current_user.id)
+
     return render_template('report/share_global_schedule.html', 
                          schedule=sorted_schedule, 
                          selected_date=selected_date,
@@ -428,7 +433,8 @@ def share_global_schedule():
                          teams_dict=teams_dict,
                          time_from=time_from_str,
                          time_to=time_to_str,
-                         today=datetime.now().strftime('%d/%m/%Y'))
+                         today=datetime.now().strftime('%d/%m/%Y'),
+                         debtor_teams=debtor_teams)
 
 @report_bp.route('/api/match/update_costs', methods=['POST'])
 @login_required
@@ -772,6 +778,8 @@ def export_global_schedule():
     # Fetch Owner Court Settings
     owner_settings = {setting.court_name: setting.color for setting in OwnerCourtSetting.query.filter_by(user_id=current_user.id).all()}
 
+    debtor_teams = get_debtor_teams(current_user.id)
+
     # Create Excel
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -836,7 +844,10 @@ def export_global_schedule():
                 league_color_hex = match.league.custom_name_color.lstrip('#').upper()
                 league_cell.font = Font(bold=True, color=league_color_hex)
                 
-            ws.cell(row=current_row, column=4, value=match.home_team.name).alignment = Alignment(horizontal='right')
+            home_cell = ws.cell(row=current_row, column=4, value=match.home_team.name)
+            home_cell.alignment = Alignment(horizontal='right')
+            if (match.league.name, match.home_team.name) in debtor_teams:
+                home_cell.font = Font(color="FF0000", bold=True)
             
             c_home = parse_cost(match.referee_cost_home)
             ws.cell(row=current_row, column=5, value=c_home)
@@ -848,7 +859,9 @@ def export_global_schedule():
             ws.cell(row=current_row, column=7, value=c_away)
             total_away += c_away
             
-            ws.cell(row=current_row, column=8, value=match.away_team.name)
+            away_cell = ws.cell(row=current_row, column=8, value=match.away_team.name)
+            if (match.league.name, match.away_team.name) in debtor_teams:
+                away_cell.font = Font(color="FF0000", bold=True)
             
             c_ref = parse_cost(match.referee_cost)
             ws.cell(row=current_row, column=9, value=c_ref)
@@ -908,6 +921,48 @@ def is_waived(val):
         return True
 
 # Helper for calculating discrepancies
+
+def get_debtor_teams(user_id):
+    query = Match.query.join(League).outerjoin(Court, Match.court_id == Court.id).filter(League.user_id == user_id)
+    archive_query = ArchivedFinance.query.filter_by(user_id=user_id)
+    matches = query.all()
+    archived = archive_query.all()
+    import json
+    import hashlib
+    from models import IgnoredDiscrepancy
+    
+    for arc in archived:
+        if arc.details_json:
+            try:
+                arc_data = json.loads(arc.details_json)
+                for m_data in arc_data:
+                    fake_m = FakeMatch(m_data, arc.league_name, arc.date.strftime('%Y-%m-%d'))
+                    fake_m.league.charge_from_start = True
+                    fake_m.league.charge_start_date = None
+                    matches.append(fake_m)
+            except:
+                pass
+
+    discrepancies = calculate_discrepancies(matches)
+    
+    teams_summary = {}
+    for item in discrepancies:
+        if item['entity_type'] == 'Team':
+            key = (item['league'], item['entity_name'])
+            teams_summary[key] = teams_summary.get(key, 0) + item['balance']
+            
+    ignored_records = IgnoredDiscrepancy.query.filter_by(user_id=user_id).all()
+    excluded_ids = {record.hash_id for record in ignored_records}
+    
+    debtor_teams = set()
+    for k, v in teams_summary.items():
+        if v < 0:
+            id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{v}".encode('utf-8')).hexdigest()
+            if id_str not in excluded_ids:
+                debtor_teams.add(k)
+                
+    return debtor_teams
+
 def calculate_discrepancies(matches):
     events = []
     
@@ -1067,14 +1122,16 @@ def global_schedule_summary():
     # Convert to list for display, add hash ID
     teams_list = []
     for k, v in teams_summary.items():
-        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}".encode('utf-8')).hexdigest()
-        teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
+        if v != 0:
+            id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{v}".encode('utf-8')).hexdigest()
+            teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
     teams_list.sort(key=lambda x: (x['league'], x['name']))
     
     referee_list = []
     for k, v in referee_summary.items():
-        id_str = hashlib.md5(f"ref_{k}".encode('utf-8')).hexdigest()
-        referee_list.append({'league': k, 'balance': v, 'id': id_str})
+        if v != 0:
+            id_str = hashlib.md5(f"ref_{k}_{v}".encode('utf-8')).hexdigest()
+            referee_list.append({'league': k, 'balance': v, 'id': id_str})
     referee_list.sort(key=lambda x: x['league'])
     
     # Filter out excluded rows permanently from DB
@@ -1151,14 +1208,16 @@ def share_global_schedule_summary():
     # Convert to list for display, add hash ID
     teams_list = []
     for k, v in teams_summary.items():
-        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}".encode('utf-8')).hexdigest()
-        teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
+        if v != 0:
+            id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{v}".encode('utf-8')).hexdigest()
+            teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
     teams_list.sort(key=lambda x: (x['league'], x['name']))
     
     referee_list = []
     for k, v in referee_summary.items():
-        id_str = hashlib.md5(f"ref_{k}".encode('utf-8')).hexdigest()
-        referee_list.append({'league': k, 'balance': v, 'id': id_str})
+        if v != 0:
+            id_str = hashlib.md5(f"ref_{k}_{v}".encode('utf-8')).hexdigest()
+            referee_list.append({'league': k, 'balance': v, 'id': id_str})
     referee_list.sort(key=lambda x: x['league'])
     
     # Filter out excluded rows permanently from DB
@@ -1243,14 +1302,16 @@ def export_global_summary():
     # Convert to list for display, add hash ID
     teams_list = []
     for k, v in teams_summary.items():
-        id_str = hashlib.md5(f"team_{k[0]}_{k[1]}".encode('utf-8')).hexdigest()
-        teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
+        if v != 0:
+            id_str = hashlib.md5(f"team_{k[0]}_{k[1]}_{v}".encode('utf-8')).hexdigest()
+            teams_list.append({'league': k[0], 'name': k[1], 'balance': v, 'id': id_str})
     teams_list.sort(key=lambda x: (x['league'], x['name']))
     
     referee_list = []
     for k, v in referee_summary.items():
-        id_str = hashlib.md5(f"ref_{k}".encode('utf-8')).hexdigest()
-        referee_list.append({'league': k, 'balance': v, 'id': id_str})
+        if v != 0:
+            id_str = hashlib.md5(f"ref_{k}_{v}".encode('utf-8')).hexdigest()
+            referee_list.append({'league': k, 'balance': v, 'id': id_str})
     referee_list.sort(key=lambda x: x['league'])
     
     # Filter out excluded rows permanently from DB

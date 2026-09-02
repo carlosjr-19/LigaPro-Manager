@@ -184,9 +184,10 @@
                                     <span class="ml-1 text-yellow-400 text-[9px] font-bold tracking-widest print:hidden" title="Partido de práctica - no cuenta en la tabla">PRÁCT.</span>
                                     {% endif %}
                                 </td>
-                                <td
-                                    class="py-1 px-2 md:px-4 text-right font-bold text-white print:text-black leading-tight">
-                                    {{ match.home_team.name }}
+                                <td class="py-1 px-2 md:px-4 text-right font-bold leading-tight">
+                                    <span class="{% if (match.league.name, match.home_team.name) in debtor_teams %}text-red-500{% else %}text-white print:text-black{% endif %}">
+                                        {{ match.home_team.name }}
+                                    </span>
                                 </td>
                                 <td class="py-1 px-1 text-center">
                                     {% set expected_price = match.league.price_per_match or 0 %}
@@ -230,9 +231,10 @@
                                         {% if match.is_archived %}disabled{% endif %}
                                         onchange="updateMatchCost('{{ match.id }}', 'referee_cost_away', this.value, '{{ court_name|replace(' ', '_') }}', this)">
                                 </td>
-                                <td
-                                    class="py-1 px-2 md:px-4 text-left font-bold text-white print:text-black leading-tight">
-                                    {{ match.away_team.name }}
+                                <td class="py-1 px-2 md:px-4 font-bold leading-tight text-left">
+                                    <span class="{% if (match.league.name, match.away_team.name) in debtor_teams %}text-red-500{% else %}text-white print:text-black{% endif %}">
+                                        {{ match.away_team.name }}
+                                    </span>
                                 </td>
                                 <td class="py-1 px-1 text-center">
                                     <input type="text"
