@@ -134,7 +134,9 @@
                                 Cancelar
                             </button>
                             <form action="{{ url_for('match.delete_match', match_id=match.id) }}" method="POST"
-                                class="flex-1">
+                                class="flex-1"
+                                onsubmit="event.preventDefault(); openCustomDeleteModal(this, {{ 'true' if current_user.is_ultra else 'false' }});">
+                                <input type="hidden" name="keep_in_ai_report" value="0" class="keep-ai-input">
                                 <input type="hidden" name="next_action" value="{{ next_action }}">
                                 <input type="hidden" name="selected_date" value="{{ selected_date }}">
                                 <button type="submit"

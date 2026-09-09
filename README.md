@@ -1,39 +1,39 @@
 # LigaPro Manager
 
-Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Flask. Diseñado para simplificar la administración de torneos, desde la creación de equipos hasta la generación de reportes y credenciales.
+Sistema profesional de gestiÃ³n de ligas de fÃºtbol desarrollado con Python y Flask. DiseÃ±ado para simplificar la administraciÃ³n de torneos, desde la creaciÃ³n de equipos hasta la generaciÃ³n de reportes y credenciales.
 
-## 🚀 Características Principales
+## ð CaracterÃ­sticas Principales
 
-### 🏆 Gestión Deportiva
-*   **Ligas y Torneos:** Crea y administra múltiples ligas con configuraciones personalizadas.
-*   **Equipos y Jugadores:** Registro completo con fotos, estadísticas y perfiles detallados.
-*   **Canchas:** Asignación de canchas específicas para los encuentros.
+### ð GestiÃ³n Deportiva
+*   **Ligas y Torneos:** Crea y administra mÃºltiples ligas con configuraciones personalizadas.
+*   **Equipos y Jugadores:** Registro completo con fotos, estadÃ­sticas y perfiles detallados.
+*   **Canchas:** AsignaciÃ³n de canchas especÃ­ficas para los encuentros.
 
-### 📅 Competencia
-*   **Calendario Inteligente:** Vista de matriz y nueva agrupación **Por Fechas** para programación rápida.
-*   **Resultados en Vivo:** Actualización de marcadores con colores dinámicos por resultado.
-*   **Liguilla (Playoffs):** Generación automática de cruces interactivos en formato de **Llaves (Brackets)**, con soporte para Repechajes, Cuartos y ahora **Octavos de Final**.
+### ð Competencia
+*   **Calendario Inteligente:** Vista de matriz y nueva agrupaciÃ³n **Por Fechas** para programaciÃ³n rÃ¡pida.
+*   **Resultados en Vivo:** ActualizaciÃ³n de marcadores con colores dinÃ¡micos por resultado.
+*   **Liguilla (Playoffs):** GeneraciÃ³n automÃ¡tica de cruces interactivos en formato de **Llaves (Brackets)**, con soporte para Repechajes, Cuartos y ahora **Octavos de Final**.
 
-### 📊 Reportes y Credenciales
-*   **Reportes de Resumen:** Visualización e imágenes de tabla, próximos partidos y resultados recientes con personalización premium (colores, tamaños).
-*   **Credenciales de Jugador:** Generación de credenciales imprimibles con fotos y logos de liga.
+### ð Reportes y Credenciales
+*   **Reportes de Resumen:** VisualizaciÃ³n e imÃ¡genes de tabla, prÃ³ximos partidos y resultados recientes con personalizaciÃ³n premium (colores, tamaÃ±os).
+*   **Credenciales de Jugador:** GeneraciÃ³n de credenciales imprimibles con fotos y logos de liga.
 
-### 👥 Roles de Usuario
-*   **Gratuito:** Gestión básica de ligas.
+### ð¥ Roles de Usuario
+*   **Gratuito:** GestiÃ³n bÃ¡sica de ligas.
 *   **Premium / Ultra:**
     *   Ligas ilimitadas.
-    *   Personalización de reportes avanzada (colores por resultado, fecha y cancha).
-    *   Estadísticas e Informes financieros detallados con **Filtros Múltiples** (selección de múltiples ligas y canchas simultáneamente) (Ultra).
+    *   PersonalizaciÃ³n de reportes avanzada (colores por resultado, fecha y cancha).
+    *   EstadÃ­sticas e Informes financieros detallados con **Filtros MÃºltiples** (selecciÃ³n de mÃºltiples ligas y canchas simultÃ¡neamente) (Ultra).
     *   **Prioridad de Privilegios:** Los usuarios Ultra disfrutan de todas las funciones Premium.
 
-## 🛠️ Tecnologías
+## ð ï¸ TecnologÃ­as
 
 *   **Backend:** Python 3, Flask, SQLAlchemy.
-*   **Frontend:** HTML5, Jinja2, Tailwind CSS (Diseño moderno "Glassmorphism").
-*   **Herramientas:** `html2canvas` y `html2pdf.js` (Exportaciones PDF/PNG asíncronas de escritorio y móvil), `requests` (Proxy).
-*   **Base de Datos:** SQLite (Desarrollo), PostgreSQL (Producción).
+*   **Frontend:** HTML5, Jinja2, Tailwind CSS (DiseÃ±o moderno "Glassmorphism").
+*   **Herramientas:** `html2canvas` y `html2pdf.js` (Exportaciones PDF/PNG asÃ­ncronas de escritorio y mÃ³vil), `requests` (Proxy).
+*   **Base de Datos:** SQLite (Desarrollo), PostgreSQL (ProducciÃ³n).
 
-## ⚙️ Instalación y Ejecución
+## âï¸ InstalaciÃ³n y EjecuciÃ³n
 
 1.  **Clonar el repositorio:**
     ```bash
@@ -55,7 +55,7 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
     pip install -r ligapro_manager/requirements.txt
     ```
 
-4.  **Iniciar la aplicación:**
+4.  **Iniciar la aplicaciÃ³n:**
     ```bash
     python ligapro_manager/ligapro_manager.py
     ```
@@ -64,25 +64,26 @@ Sistema profesional de gestión de ligas de fútbol desarrollado con Python y Fl
     *   Abre tu navegador en `http://localhost:8001`
     *   Usuario Admin por defecto (si se inicializa): `delegado@ligapro.com` / `password123`
 
-## 📂 Estructura del Proyecto
+## ð Estructura del Proyecto
 
-*   `ligapro_manager/`: Paquete principal de la aplicación.
+*   `ligapro_manager/`: Paquete principal de la aplicaciÃ³n.
     *   `ligapro_manager.py`: Punto de entrada del servidor.
     *   `models/`: Modelos de base de datos (League, Team, Match, User).
-    *   `routes/`: Lógica de las rutas (Blueprint).
+    *   `routes/`: LÃ³gica de las rutas (Blueprint).
     *   `templates/`: Archivos HTML con Jinja2.
-    *   `static/`: Archivos CSS, JS e imágenes.
+    *   `static/`: Archivos CSS, JS e imÃ¡genes.
     *   `instance/`: Base de datos SQLite local.
 *   `CHANGELOG.md`: Registro de cambios y versiones.
-*   `VERSION`: Archivo de control de versión actual.
+*   `VERSION`: Archivo de control de versiÃ³n actual.
 
-## 🔄 Últimas Actualizaciones (v1.0.9)
+## ð Ãltimas Actualizaciones (v1.0.9)
 
-- **Gestión Financiera de Adeudos (1.0.9)**: Ocultamiento automático de equipos sin deuda en el resumen, resaltado visual de deudores en la Agenda Global y capacidad de borrar jornadas automáticas completas.
-- **Generación Automática de Jornadas (1.0.8)**: Sistema inteligente con Backtracking para emparejamiento automático de jornadas regulares con intervalos de tiempo programables y auto-rellenado de Títulos en reportes.
-- **Liguilla Manual (1.0.7)**: Posibilidad de que los dueños asignen equipos de forma 1 a 1 para los cruces de Liguilla.
-- **Actualización de Estética en Reportes (1.0.6)**: Se incrementó la visibilidad de los nombres de las canchas en los reportes de rol de juegos y se ajustó el esquema de colores de la plantilla "Registro 2" de credenciales.
-- **Filtros Múltiples de Finanzas y UI (1.0.5)**: Selección múltiple e interactiva de ligas y canchas simultáneamente (Ultra), además de optimizaciones de "arrastrar y soltar" (drag-and-drop) de ligas en móviles evitando desorganización accidental.
+- **Mejoras UI y Modal de Eliminación (1.0.10)**: Modales personalizados y mejorados para la eliminación de partidos respetando la trazabilidad de las canchas y arreglos visuales a equipos en descanso.
+- **GestiÃ³n Financiera de Adeudos (1.0.9)**: Ocultamiento automÃ¡tico de equipos sin deuda en el resumen, resaltado visual de deudores en la Agenda Global y capacidad de borrar jornadas automÃ¡ticas completas.
+- **GeneraciÃ³n AutomÃ¡tica de Jornadas (1.0.8)**: Sistema inteligente con Backtracking para emparejamiento automÃ¡tico de jornadas regulares con intervalos de tiempo programables y auto-rellenado de TÃ­tulos en reportes.
+- **Liguilla Manual (1.0.7)**: Posibilidad de que los dueÃ±os asignen equipos de forma 1 a 1 para los cruces de Liguilla.
+- **ActualizaciÃ³n de EstÃ©tica en Reportes (1.0.6)**: Se incrementÃ³ la visibilidad de los nombres de las canchas en los reportes de rol de juegos y se ajustÃ³ el esquema de colores de la plantilla "Registro 2" de credenciales.
+- **Filtros MÃºltiples de Finanzas y UI (1.0.5)**: SelecciÃ³n mÃºltiple e interactiva de ligas y canchas simultÃ¡neamente (Ultra), ademÃ¡s de optimizaciones de "arrastrar y soltar" (drag-and-drop) de ligas en mÃ³viles evitando desorganizaciÃ³n accidental.
 
 ---
 Desarrollado por **CarlosJr19** | &copy; 2026 LigaPro Manager

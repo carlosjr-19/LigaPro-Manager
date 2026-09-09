@@ -168,6 +168,84 @@ def delete_match(match_id):
         
     next_action = request.form.get('next_action')
     selected_date = request.form.get('selected_date')
+    
+    keep_in_ai = request.form.get('keep_in_ai_report')
+    if keep_in_ai == '1' and getattr(current_user, 'is_ultra', False):
+        from models import ArchivedFinance
+        import json
+        
+        def parse_cost(val):
+            if not val: return 0
+            if isinstance(val, str) and not val.isdigit(): return 0 
+            try: return int(val)
+            except: return 0
+            
+        def is_waived(val):
+            if isinstance(val, str) and val.upper() in ['NSP', 'GIFT']: 
+                return True
+            return False
+
+        date_key = match.match_date.date() if match.match_date else None
+        if date_key:
+            court_name = match.court.name if match.court else "Sin Cancha"
+            
+            income_home = parse_cost(match.referee_cost_home) if not is_waived(match.referee_cost_home) else 0
+            income_away = parse_cost(match.referee_cost_away) if not is_waived(match.referee_cost_away) else 0
+            expense_ref = parse_cost(match.referee_cost) if not is_waived(match.referee_cost) else 0
+            
+            income = income_home + income_away
+            expense = expense_ref
+            
+            match_data = {
+                'home': match.home_team.name if match.home_team else 'Local',
+                'away': match.away_team.name if match.away_team else 'Visita',
+                'home_paid': income_home,
+                'away_paid': income_away,
+                'ref_paid': expense_ref,
+                'time': match.match_date.strftime('%H:%M') if match.match_date else '',
+                'home_score': match.home_score,
+                'away_score': match.away_score,
+                'is_practice': getattr(match, 'is_practice', False),
+                'expected_price': match.league.price_per_match or 0,
+                'match_date_raw': match.match_date.strftime('%Y-%m-%d %H:%M:%S') if match.match_date else '',
+                'referee_cost_home_raw': match.referee_cost_home if match.referee_cost_home is not None else "",
+                'referee_cost_away_raw': match.referee_cost_away if match.referee_cost_away is not None else "",
+                'referee_cost_raw': match.referee_cost if match.referee_cost is not None else "",
+                'court_name': court_name
+            }
+            
+            archive = ArchivedFinance.query.filter_by(
+                user_id=match.league.user_id,
+                league_name=match.league.name,
+                court_name=court_name,
+                date=date_key
+            ).first()
+            
+            if archive:
+                archive.income += income
+                archive.expense += expense
+                archive.profit += (income - expense)
+                if archive.details_json:
+                    try:
+                        details = json.loads(archive.details_json)
+                    except:
+                        details = []
+                else:
+                    details = []
+                details.append(match_data)
+                archive.details_json = json.dumps(details)
+            else:
+                archive = ArchivedFinance(
+                    user_id=match.league.user_id,
+                    league_name=match.league.name,
+                    court_name=court_name,
+                    date=date_key,
+                    income=income,
+                    expense=expense,
+                    profit=income - expense,
+                    details_json=json.dumps([match_data])
+                )
+                db.session.add(archive)
         
     db.session.delete(match)
     db.session.commit()
@@ -879,10 +957,16 @@ def auto_schedule_round(league_id):
         flash('Formato de fecha u hora inválido.', 'danger')
         return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
         
+    # Get resting teams
+    resting_team_ids_str = request.form.getlist('resting_teams')
+    resting_team_ids = [tid.strip() for tid in resting_team_ids_str if tid.strip()]
+    
     # Get active teams
-    active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
+    all_active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
+    active_teams = [t for t in all_active_teams if t.id not in resting_team_ids]
+    
     if len(active_teams) < 2:
-        flash('No hay suficientes equipos activos para programar partidos.', 'warning')
+        flash('No hay suficientes equipos para programar partidos (mínimo 2).', 'warning')
         return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
         
     # Get max round for regular stage
@@ -985,6 +1069,86 @@ def delete_date(league_id, date_str):
     if any(m.is_completed for m in matches_to_delete):
         flash('No se pueden borrar jornadas que tengan partidos con resultados ya registrados.', 'danger')
         return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
+        
+    keep_in_ai = request.form.get('keep_in_ai_report')
+    if keep_in_ai == '1' and getattr(current_user, 'is_ultra', False):
+        from models import ArchivedFinance
+        import json
+        
+        def parse_cost(val):
+            if not val: return 0
+            if isinstance(val, str) and not val.isdigit(): return 0 
+            try: return int(val)
+            except: return 0
+            
+        def is_waived(val):
+            if isinstance(val, str) and val.upper() in ['NSP', 'GIFT']: 
+                return True
+            return False
+            
+        for match in matches_to_delete:
+            date_key = match.match_date.date() if match.match_date else None
+            if not date_key:
+                continue
+            court_name = match.court.name if match.court else "Sin Cancha"
+            
+            income_home = parse_cost(match.referee_cost_home) if not is_waived(match.referee_cost_home) else 0
+            income_away = parse_cost(match.referee_cost_away) if not is_waived(match.referee_cost_away) else 0
+            expense_ref = parse_cost(match.referee_cost) if not is_waived(match.referee_cost) else 0
+            
+            income = income_home + income_away
+            expense = expense_ref
+            
+            match_data = {
+                'home': match.home_team.name if match.home_team else 'Local',
+                'away': match.away_team.name if match.away_team else 'Visita',
+                'home_paid': income_home,
+                'away_paid': income_away,
+                'ref_paid': expense_ref,
+                'time': match.match_date.strftime('%H:%M') if match.match_date else '',
+                'home_score': match.home_score,
+                'away_score': match.away_score,
+                'is_practice': getattr(match, 'is_practice', False),
+                'expected_price': match.league.price_per_match or 0,
+                'match_date_raw': match.match_date.strftime('%Y-%m-%d %H:%M:%S') if match.match_date else '',
+                'referee_cost_home_raw': match.referee_cost_home if match.referee_cost_home is not None else "",
+                'referee_cost_away_raw': match.referee_cost_away if match.referee_cost_away is not None else "",
+                'referee_cost_raw': match.referee_cost if match.referee_cost is not None else "",
+                'court_name': court_name
+            }
+            
+            archive = ArchivedFinance.query.filter_by(
+                user_id=match.league.user_id,
+                league_name=match.league.name,
+                court_name=court_name,
+                date=date_key
+            ).first()
+            
+            if archive:
+                archive.income += income
+                archive.expense += expense
+                archive.profit += (income - expense)
+                if archive.details_json:
+                    try:
+                        details = json.loads(archive.details_json)
+                    except:
+                        details = []
+                else:
+                    details = []
+                details.append(match_data)
+                archive.details_json = json.dumps(details)
+            else:
+                archive = ArchivedFinance(
+                    user_id=match.league.user_id,
+                    league_name=match.league.name,
+                    court_name=court_name,
+                    date=date_key,
+                    income=income,
+                    expense=expense,
+                    profit=income - expense,
+                    details_json=json.dumps([match_data])
+                )
+                db.session.add(archive)
     
     deleted_count = 0
     for match in matches_to_delete:

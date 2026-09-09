@@ -126,6 +126,120 @@
 
     {% block content %}{% endblock %}
 
+    <!-- Custom Delete Modal -->
+    <div id="customDeleteModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity opacity-0" id="customDeleteBackdrop"></div>
+        
+        <!-- Modal Content -->
+        <div class="bg-[#111] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md relative z-10 transform scale-95 opacity-0 transition-all duration-300" id="customDeleteContent">
+            <div class="p-6">
+                <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4 text-xl">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2" id="customDeleteTitle">Eliminar Partido</h3>
+                <p class="text-white/60 text-sm mb-4" id="customDeleteMessage">
+                    Eliminar este partido lo borrará del torneo y de todos sus registros. Esta acción no se puede deshacer.
+                </p>
+                
+                <div id="customDeleteUltraSection" class="hidden mt-4 p-4 bg-white/5 border border-white/10 rounded-lg">
+                    <p class="text-sm text-white/80 font-medium mb-1"><i class="fas fa-robot text-primary mr-2"></i>Reporte IA / Financiero</p>
+                    <p class="text-xs text-white/50 mb-3">¿Deseas que se borren también las estadísticas financieras asociadas a este registro en tu reporte?</p>
+                    <div class="flex flex-col gap-2">
+                        <button type="button" id="btnDeleteEverything" class="w-full py-2 px-4 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 transition-colors text-sm font-bold flex items-center justify-center gap-2">
+                            <i class="fas fa-trash-alt"></i> Borrar de Todo
+                        </button>
+                        <button type="button" id="btnDeleteTournamentOnly" class="w-full py-2 px-4 rounded-lg bg-white/5 text-white/80 hover:bg-white/10 border border-white/10 transition-colors text-sm font-bold flex items-center justify-center gap-2">
+                            <i class="fas fa-archive"></i> Solo Torneo (Conservar finanzas)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-white/10 p-4 bg-[#1a1a1a] rounded-b-2xl flex justify-end gap-3" id="customDeleteStandardActions">
+                <button type="button" onclick="closeCustomDeleteModal()" class="px-4 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm font-bold">
+                    Cancelar
+                </button>
+                <button type="button" id="btnDeleteStandard" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-bold flex items-center gap-2">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDeleteForm = null;
+
+        function openCustomDeleteModal(form, isUltra, type) {
+            currentDeleteForm = form;
+            const modal = document.getElementById('customDeleteModal');
+            const backdrop = document.getElementById('customDeleteBackdrop');
+            const content = document.getElementById('customDeleteContent');
+            const ultraSection = document.getElementById('customDeleteUltraSection');
+            const standardActions = document.getElementById('customDeleteStandardActions');
+            const title = document.getElementById('customDeleteTitle');
+            const message = document.getElementById('customDeleteMessage');
+
+            if (type === 'date') {
+                title.textContent = 'Eliminar Jornada';
+                message.textContent = '¿Estás seguro de eliminar TODOS los partidos de esta fecha? Esta acción no se puede deshacer.';
+            } else {
+                title.textContent = 'Eliminar Partido';
+                message.textContent = 'Eliminar este partido lo borrará del torneo y de todos sus registros. Esta acción no se puede deshacer.';
+            }
+
+            if (isUltra) {
+                ultraSection.classList.remove('hidden');
+                standardActions.querySelector('#btnDeleteStandard').classList.add('hidden');
+            } else {
+                ultraSection.classList.add('hidden');
+                standardActions.querySelector('#btnDeleteStandard').classList.remove('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            requestAnimationFrame(() => {
+                backdrop.classList.remove('opacity-0');
+                content.classList.remove('opacity-0', 'scale-95');
+            });
+        }
+
+        function closeCustomDeleteModal() {
+            const modal = document.getElementById('customDeleteModal');
+            const backdrop = document.getElementById('customDeleteBackdrop');
+            const content = document.getElementById('customDeleteContent');
+            
+            backdrop.classList.add('opacity-0');
+            content.classList.add('opacity-0', 'scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                currentDeleteForm = null;
+            }, 300);
+        }
+
+        document.getElementById('btnDeleteStandard').addEventListener('click', () => {
+            if (currentDeleteForm) currentDeleteForm.submit();
+        });
+
+        document.getElementById('btnDeleteEverything').addEventListener('click', () => {
+            if (currentDeleteForm) {
+                const keepAiInput = currentDeleteForm.querySelector('.keep-ai-input');
+                if (keepAiInput) keepAiInput.value = '0';
+                currentDeleteForm.submit();
+            }
+        });
+
+        document.getElementById('btnDeleteTournamentOnly').addEventListener('click', () => {
+            if (currentDeleteForm) {
+                const keepAiInput = currentDeleteForm.querySelector('.keep-ai-input');
+                if (keepAiInput) keepAiInput.value = '1';
+                currentDeleteForm.submit();
+            }
+        });
+    </script>
     <footer class="mt-auto border-t border-white/5 bg-black/20 pt-6 pb-6">
         <div class="max-w-7xl mx-auto px-4 md:px-6 flex flex-col items-center">
             <p class="text-white/60 text-sm font-semibold mb-3">¿Necesitas ayuda o tienes sugerencias? Contáctanos:</p>

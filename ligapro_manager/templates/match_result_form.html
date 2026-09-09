@@ -1,5 +1,21 @@
 {% extends "base.html" %}
-{% block title %}Registrar Resultado - LigaPro Manager{% endblock %}
+{% block title %}Registrar Resultado - LigaPro Manager
+<script>
+function confirmDeleteMatch(form, isUltra) {
+    if (!confirm('¿Estás seguro de eliminar este partido?')) {
+        return false;
+    }
+    if (isUltra) {
+        if (confirm('¿Deseas eliminar también el registro de este partido en el Reporte IA?\n\n(Aceptar: Se eliminará por completo. Cancelar: Se mantendrá en tu Reporte Financiero/IA)')) {
+            form.querySelector('.keep-ai-input').value = '0';
+        } else {
+            form.querySelector('.keep-ai-input').value = '1';
+        }
+    }
+    return true;
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="min-h-screen">
@@ -162,7 +178,7 @@
                         <i class="fas fa-check mr-2"></i>Guardar Cambios
                     </button>
 
-                    <button type="button" onclick="confirmDelete()"
+                    <button type="button" onclick="openCustomDeleteModal(document.getElementById('deleteMatchForm'), {{ 'true' if current_user.is_ultra else 'false' }}, 'match')"
                         class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded font-bold transition-colors">
                         <i class="fas fa-trash mr-2"></i>Eliminar
                     </button>
@@ -174,6 +190,7 @@
 
             <form id="deleteMatchForm" action="{{ url_for('match.delete_match', match_id=match.id) }}" method="POST"
                 class="hidden">
+                <input type="hidden" name="keep_in_ai_report" value="0" class="keep-ai-input">
             </form>
 
             <script src="{{ url_for('static', filename='js/match_result_form.js') }}"></script>
