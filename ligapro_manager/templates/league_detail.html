@@ -505,7 +505,8 @@
                                 </a>
                                 <form method="POST" action="{{ url_for('match.delete_match', match_id=match.id) }}"
                                     class="inline"
-                                    onsubmit="return confirm('¿Estás seguro de eliminar este partido?');">
+                                    onsubmit="event.preventDefault(); openCustomDeleteModal(this, {{ 'true' if current_user.is_ultra else 'false' }}, 'match');">
+                                    <input type="hidden" name="keep_in_ai_report" value="0" class="keep-ai-input">
                                     <button type="submit" class="text-white/40 hover:text-red-500 transition-colors p-2"
                                         title="Eliminar Partido">
                                         <i class="fas fa-trash"></i>
@@ -597,7 +598,8 @@
                                 </button>
                             </form>
                             <form method="POST" action="{{ url_for('match.delete_date', league_id=league.id, date_str=date.strftime('%Y-%m-%d')) }}"
-                                class="inline m-0" onsubmit="return confirm('¿Estás seguro de eliminar TODOS los partidos de esta fecha?');">
+                                class="inline m-0" onsubmit="event.preventDefault(); openCustomDeleteModal(this, {{ 'true' if current_user.is_ultra else 'false' }}, 'date');">
+                                <input type="hidden" name="keep_in_ai_report" value="0" class="keep-ai-input">
                                 <button type="submit" class="text-white/40 hover:text-red-500 transition-colors p-2" title="Borrar Jornada">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -687,29 +689,33 @@
                         </div>
                         {% endfor %}
                         
-                        {% if scheduling_teams|length % 2 != 0 %}
-                            {% set rested_team_id = namespace(value=None) %}
-                            {% for t in scheduling_teams %}
-                                {% if t.id not in played_teams %}
-                                    {% set rested_team_id.value = t.id %}
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% if rested_team_id.value %}
-                            <div class="mt-4 p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-between text-sm">
-                                <span class="text-white/60">Equipo que descansa:</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-bold text-white">{{ teams_dict[rested_team_id.value].name }}</span>
-                                    {% if teams_dict[rested_team_id.value].shield_url %}
-                                    <img src="{{ teams_dict[rested_team_id.value].shield_url }}" class="w-5 h-5 rounded object-cover">
+                        {% set rested_teams = [] %}
+                        {% for t in scheduling_teams %}
+                            {% if t.id not in played_teams %}
+                                {% set _ = rested_teams.append(t) %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if rested_teams|length > 0 %}
+                        <div class="mt-4 p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-between text-sm">
+                            <span class="text-white/60">
+                                {% if rested_teams|length == 1 %}Equipo que descansa:{% else %}Equipos que descansan:{% endif %}
+                            </span>
+                            <div class="flex flex-wrap items-center gap-3">
+                                {% for rested_t in rested_teams %}
+                                <div class="flex items-center gap-2 bg-black/20 px-2 py-1 rounded">
+                                    <span class="font-bold text-white text-xs">{{ rested_t.name }}</span>
+                                    {% if rested_t.shield_url %}
+                                    <img src="{{ rested_t.shield_url }}" class="w-4 h-4 rounded object-cover">
                                     {% else %}
-                                    <div class="w-5 h-5 rounded flex-shrink-0 bg-white/10 flex items-center justify-center text-[8px]">
+                                    <div class="w-4 h-4 rounded flex-shrink-0 bg-white/10 flex items-center justify-center text-[8px]">
                                         <i class="fas fa-shield-alt text-white/40"></i>
                                     </div>
                                     {% endif %}
                                 </div>
+                                {% endfor %}
                             </div>
-                            {% endif %}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -2542,6 +2548,32 @@
                             {% endfor %}
                         </select>
                     </div>
+                    
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm font-bold text-white/60 cursor-pointer">
+                            <input type="checkbox" id="has_resting_teams" class="rounded border-white/20 bg-white/5 text-primary focus:ring-primary" onchange="toggleRestingTeams()">
+                            ¿Hay equipos que descansarán en esta jornada?
+                        </label>
+                        
+                        <div id="resting_teams_container" class="hidden mt-3 p-4 bg-white/5 border border-white/10 rounded-lg max-h-48 overflow-y-auto space-y-2">
+                            <p class="text-xs text-white/40 mb-2">Selecciona los equipos que NO jugarán en esta jornada:</p>
+                            {% for team in teams %}
+                                {% if not team.is_hidden %}
+                                <label class="flex items-center gap-3 p-2 hover:bg-white/5 rounded cursor-pointer transition-colors">
+                                    <input type="checkbox" name="resting_teams" value="{{ team.id }}" class="rounded border-white/20 bg-black/50 text-amber-500 focus:ring-amber-500">
+                                    {% if team.shield_url %}
+                                    <img src="{{ team.shield_url }}" class="w-6 h-6 rounded object-cover">
+                                    {% else %}
+                                    <div class="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-[10px]">
+                                        <i class="fas fa-shield-alt text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="text-sm font-medium">{{ team.name }}</span>
+                                </label>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
                 <div class="flex justify-end gap-4 border-t border-white/10 p-6 bg-[#1a1a1a] rounded-b-xl shrink-0">
                     <button type="button" onclick="closeAutoScheduleModal()" class="btn-secondary">Cancelar</button>
@@ -2570,6 +2602,47 @@
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 300);
+    }
+    
+    function toggleRestingTeams() {
+        const container = document.getElementById('resting_teams_container');
+        const checkbox = document.getElementById('has_resting_teams');
+        if (checkbox.checked) {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+            // Uncheck all resting teams if disabled
+            const restingCheckboxes = container.querySelectorAll('input[type="checkbox"]');
+            restingCheckboxes.forEach(cb => cb.checked = false);
+        }
+    }
+    
+    function confirmDeleteDate(form, isUltra) {
+        if (!confirm('¿Eliminar todos los partidos de esta fecha?')) {
+            return false;
+        }
+        if (isUltra) {
+            if (confirm('¿Deseas eliminar también los registros de estos partidos en el Reporte IA?\n\n(Aceptar: Se eliminarán por completo. Cancelar: Se mantendrán en tu Reporte Financiero/IA)')) {
+                form.querySelector('.keep-ai-input').value = '0';
+            } else {
+                form.querySelector('.keep-ai-input').value = '1';
+            }
+        }
+        return true;
+    }
+
+    function confirmDeleteMatch(form, isUltra) {
+        if (!confirm('¿Estás seguro de eliminar este partido?')) {
+            return false;
+        }
+        if (isUltra) {
+            if (confirm('¿Deseas eliminar también el registro de este partido en el Reporte IA?\n\n(Aceptar: Se eliminará por completo. Cancelar: Se mantendrá en tu Reporte Financiero/IA)')) {
+                form.querySelector('.keep-ai-input').value = '0';
+            } else {
+                form.querySelector('.keep-ai-input').value = '1';
+            }
+        }
+        return true;
     }
     </script>
     

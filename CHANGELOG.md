@@ -1,12 +1,30 @@
+## 1.0.10
+
+Mejoras en UI de Equipos que Descansan y Modales de Eliminacin.
+
+- **Equipos que Descansan**: Correccin de un error visual donde solo se mostraba a un equipo descansando en la interfaz, ahora se listan dinmicamente todos los equipos que descansaron en la jornada.
+- **CorrecciÃ³n de GeneraciÃ³n Automtica**: Solucionado un problema en el backend donde la autogeneracin de partidos ignoraba a los equipos seleccionados para descansar (UUIDs).
+- **Nuevo Modal de EliminaciÃ³n**: Reemplazo de las alertas nativas del navegador por un modal elegante y personalizado para eliminar partidos. Para usuarios ULTRA, este modal permite elegir entre un borrado total o un borrado conservando el registro financiero en el Reporte IA.
+- **ConservaciÃ³n de Cancha**: Al eliminar un partido y mantener su registro financiero, el sistema ahora guarda correctamente el nombre de la cancha donde se jug para su visualizacin en la Agenda Global.
+
+## Modificado
+* ligapro_manager/routes/match.py
+* ligapro_manager/routes/match_matrix.py
+* ligapro_manager/templates/base.html
+* ligapro_manager/templates/league_detail.html
+* ligapro_manager/templates/match_form.html
+* ligapro_manager/templates/match_result_form.html
+* VERSION
+
 ## 1.0.9
 
-Gestión de Adeudos y Borrado de Jornadas Automáticas.
+Gestiï¿½n de Adeudos y Borrado de Jornadas Automï¿½ticas.
 
-- **Borrado de Jornadas Automáticas**: Implementación de la opción para borrar por completo una jornada autogenerada, siempre y cuando ninguno de sus partidos haya finalizado (tenga resultado). También se incluyó la capacidad de regenerar los enfrentamientos de la jornada usando equipos distintos.
-- **Identificación de Deudores en Agenda Global**: En la vista web de la agenda global, al compartir (PNG) y en el Excel exportado, los equipos que presenten adeudos (balance negativo) aparecerán con su nombre resaltado en color rojo, mejorando la visibilidad para el administrador y los dueños.
-- **Ocultamiento de Saldos en Cero**: En el Resumen General Financiero y sus respectivas exportaciones, los equipos y árbitros cuyo balance llegue exactamente a  dejarán de mostrarse en la tabla de deudores, limpiando el reporte de información innecesaria.
-- **Información de Descansos**: Al generar automáticamente una jornada en ligas con cantidad impar de equipos, el sistema ahora indica visualmente qué equipo fue asignado para descansar esa fecha.
-- **Resaltado de Enfrentamientos Previos**: En el modal de agendar partidos manuales, el último enfrentamiento contra cada equipo se resalta en color rojo para una identificación visual rápida de los cruces previos.
+- **Borrado de Jornadas Automï¿½ticas**: Implementaciï¿½n de la opciï¿½n para borrar por completo una jornada autogenerada, siempre y cuando ninguno de sus partidos haya finalizado (tenga resultado). Tambiï¿½n se incluyï¿½ la capacidad de regenerar los enfrentamientos de la jornada usando equipos distintos.
+- **Identificaciï¿½n de Deudores en Agenda Global**: En la vista web de la agenda global, al compartir (PNG) y en el Excel exportado, los equipos que presenten adeudos (balance negativo) aparecerï¿½n con su nombre resaltado en color rojo, mejorando la visibilidad para el administrador y los dueï¿½os.
+- **Ocultamiento de Saldos en Cero**: En el Resumen General Financiero y sus respectivas exportaciones, los equipos y ï¿½rbitros cuyo balance llegue exactamente a  dejarï¿½n de mostrarse en la tabla de deudores, limpiando el reporte de informaciï¿½n innecesaria.
+- **Informaciï¿½n de Descansos**: Al generar automï¿½ticamente una jornada en ligas con cantidad impar de equipos, el sistema ahora indica visualmente quï¿½ equipo fue asignado para descansar esa fecha.
+- **Resaltado de Enfrentamientos Previos**: En el modal de agendar partidos manuales, el ï¿½ltimo enfrentamiento contra cada equipo se resalta en color rojo para una identificaciï¿½n visual rï¿½pida de los cruces previos.
 
 ## Modificado
 * ligapro_manager/routes/match.py
