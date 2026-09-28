@@ -76,6 +76,16 @@ function confirmDeleteMatch(form, isUltra) {
             <form method="POST" class="space-y-6">
                 {{ form.hidden_tag() }}
 
+                <div id="last_match_alert" class="hidden bg-blue-500/20 border border-blue-500/30 rounded-xl p-4 flex items-center gap-4 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                        <i class="fas fa-history text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-blue-400 font-bold uppercase tracking-wide">Último enfrentamiento</p>
+                        <p id="last_match_date" class="text-sm text-white font-medium mt-0.5"></p>
+                    </div>
+                </div>
+
                 <!-- Details Section (New) -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white/5 p-4 rounded-lg border border-white/5 mb-6">
                     <div>
@@ -89,10 +99,12 @@ function confirmDeleteMatch(form, isUltra) {
                     <div>
                         <label class="block text-sm text-white/60 mb-2">Equipo Local</label>
                         {{ form.home_team_id(class="input-field") }}
+                        <div id="home_history" class="text-xs text-white/40 mt-2 font-mono"></div>
                     </div>
                     <div>
                         <label class="block text-sm text-white/60 mb-2">Equipo Visitante</label>
                         {{ form.away_team_id(class="input-field") }}
+                        <div id="away_history" class="text-xs text-white/40 mt-2 font-mono"></div>
                     </div>
                 </div>
 
@@ -193,6 +205,11 @@ function confirmDeleteMatch(form, isUltra) {
                 <input type="hidden" name="keep_in_ai_report" value="0" class="keep-ai-input">
             </form>
 
+            <script>
+                window.teamsHistory = {{ teams_history | tojson }};
+                window.teamsMap = {{ teams_map | tojson }};
+            </script>
+            <script src="{{ url_for('static', filename='js/match_form.js') }}"></script>
             <script src="{{ url_for('static', filename='js/match_result_form.js') }}"></script>
         </div>
     </main>

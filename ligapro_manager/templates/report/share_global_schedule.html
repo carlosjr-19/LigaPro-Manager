@@ -21,7 +21,7 @@
         </a>
         <button onclick="downloadImages()"
             class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded-full font-bold transition-colors shadow-lg shadow-green-600/20">
-            <i class="fas fa-download mr-2"></i>Descargar {{ schedule|length }} Imágenes
+            <i class="fas fa-download mr-2"></i>Descargar {{ schedule|length }} {% if schedule|length == 1 %}Imagen{% else %}Imágenes{% endif %}
         </button>
     </div>
 
@@ -96,6 +96,18 @@
                                     %}style="color: {{ match.league.custom_name_color }};" {% else
                                     %}class="text-white/50" {% endif %}>
                                     {{ match.league.name }}
+                                    {% set stage_label = '' %}
+                                    {% if match.is_practice %}{% set stage_label = 'PRÁCT.' %}
+                                    {% elif match.stage == 'repechaje' %}{% set stage_label = 'REPECHAJE' %}
+                                    {% elif match.stage == 'round_of_16' %}{% set stage_label = '8VOS' %}
+                                    {% elif match.stage == 'quarterfinal' %}{% set stage_label = '4TOS' %}
+                                    {% elif match.stage == 'semifinal' %}{% set stage_label = 'SEMIS' %}
+                                    {% elif match.stage == 'tercer_lugar' %}{% set stage_label = '3ER' %}
+                                    {% elif match.stage == 'final' %}{% set stage_label = 'FINAL' %}
+                                    {% endif %}
+                                    {% if stage_label %}
+                                    <span class="ml-1 text-yellow-400 text-[9px] font-bold tracking-widest">{{ stage_label }}</span>
+                                    {% endif %}
                                 </td>
                                 <!-- Home Team -->
                                 <td class="py-3 px-2 text-right">

@@ -60,6 +60,30 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Team Filter Dropdown -->
+                <div class="w-full md:w-auto relative" id="dropdown-team">
+                    <button type="button" class="bg-gray-800 border border-white/10 rounded px-4 py-2 text-white flex justify-between items-center w-full min-w-[200px] h-[42px] focus:outline-none focus:border-blue-500" onclick="toggleDropdown('team')">
+                        <span id="team-text" class="truncate pr-2">Todos los Equipos</span>
+                        <i class="fas fa-chevron-down text-xs text-white/50"></i>
+                    </button>
+                    <div id="team-menu" class="hidden absolute z-50 mt-1 w-full bg-gray-800 border border-white/10 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                        <div class="p-2">
+                            <label class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded cursor-pointer transition-colors">
+                                <input type="checkbox" id="team-toggle-all" class="form-checkbox bg-black/20 text-blue-500 rounded border-white/10" onchange="toggleAll('team', this)">
+                                <span class="text-white text-sm font-bold">Seleccionar Todo</span>
+                            </label>
+                            <hr class="border-white/10 my-1">
+                            {% for team in teams %}
+                            <label class="flex items-center space-x-3 p-2 hover:bg-white/5 rounded cursor-pointer transition-colors team-label" data-league-id="{{ team.league_id }}">
+                                <input type="checkbox" name="team_id" value="{{ team.id }}" class="form-checkbox bg-black/20 text-blue-500 rounded border-white/10 team-checkbox" {% if team.id|string in selected_team_ids %}checked{% endif %} onchange="updateDropdownText('team', 'Equipos')">
+                                <span class="text-white text-sm">{{ team.name }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
                 <input type="hidden" name="show_hidden" value="{{ '1' if show_hidden else '0' }}">
                 <button type="submit"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 rounded border border-blue-500 transition-colors h-[42px] flex items-center justify-center">
@@ -189,33 +213,81 @@ function toggleHide(hashId, btn) {
 
     function updateDropdownText(type, defaultText) {
         const checkboxes = document.querySelectorAll(`.${type}-checkbox`);
-        const checked = Array.from(checkboxes).filter(c => c.checked);
+        // If type is team, only count visible ones for the text, or count all checked?
+        // Let's count visible checked
+        let checked = [];
+        if (type === 'team') {
+            checked = Array.from(checkboxes).filter(c => c.checked && c.closest('.team-label').style.display !== 'none');
+        } else {
+            checked = Array.from(checkboxes).filter(c => c.checked);
+        }
+        
         const textSpan = document.getElementById(`${type}-text`);
         const toggleAllCheckbox = document.getElementById(`${type}-toggle-all`);
         
+        // For 'all' checkbox logic, we check against visible checkboxes
+        let visibleCheckboxes = Array.from(checkboxes);
+        if (type === 'team') {
+            visibleCheckboxes = Array.from(checkboxes).filter(c => c.closest('.team-label').style.display !== 'none');
+        }
+
         if (checked.length === 0) {
             textSpan.textContent = `Todas las ${defaultText}`;
             if(toggleAllCheckbox) toggleAllCheckbox.checked = false;
         } else if (checked.length === 1) {
             textSpan.textContent = checked[0].nextElementSibling.textContent.trim();
             if(toggleAllCheckbox) toggleAllCheckbox.checked = false;
-        } else if (checked.length === checkboxes.length) {
+        } else if (checked.length === visibleCheckboxes.length && visibleCheckboxes.length > 0) {
             textSpan.textContent = `Todas las ${defaultText}`;
             if(toggleAllCheckbox) toggleAllCheckbox.checked = true;
         } else {
             textSpan.textContent = `${checked.length} Seleccionadas`;
             if(toggleAllCheckbox) toggleAllCheckbox.checked = false;
         }
+
+        if (type === 'league') {
+            updateTeamVisibility();
+        }
     }
 
     function toggleAll(type, checkbox) {
         const checkboxes = document.querySelectorAll(`.${type}-checkbox`);
-        checkboxes.forEach(c => c.checked = checkbox.checked);
-        updateDropdownText(type, type === 'league' ? 'Ligas' : 'Canchas');
+        checkboxes.forEach(c => {
+            if (type === 'team' && c.closest('.team-label').style.display === 'none') {
+                return; // don't toggle hidden teams
+            }
+            c.checked = checkbox.checked;
+        });
+        let defaultText = 'Ligas';
+        if (type === 'cancha') defaultText = 'Canchas';
+        if (type === 'team') defaultText = 'Equipos';
+        updateDropdownText(type, defaultText);
+    }
+
+    function updateTeamVisibility() {
+        const leagueCheckboxes = document.querySelectorAll('.league-checkbox');
+        const selectedLeagues = Array.from(leagueCheckboxes).filter(c => c.checked).map(c => c.value);
+        
+        const teamLabels = document.querySelectorAll('.team-label');
+        let anyVisible = false;
+        teamLabels.forEach(label => {
+            const teamLeagueId = label.getAttribute('data-league-id');
+            const checkbox = label.querySelector('.team-checkbox');
+            if (selectedLeagues.length === 0 || selectedLeagues.includes(teamLeagueId)) {
+                label.style.display = 'flex';
+                anyVisible = true;
+            } else {
+                label.style.display = 'none';
+                checkbox.checked = false; // uncheck hidden teams
+            }
+        });
+        
+        // Update the text for teams
+        updateDropdownText('team', 'Equipos');
     }
 
     document.addEventListener('click', function(event) {
-        const dropdowns = ['league', 'cancha'];
+        const dropdowns = ['league', 'cancha', 'team'];
         dropdowns.forEach(type => {
             const container = document.getElementById(`dropdown-${type}`);
             if (container && !container.contains(event.target)) {
@@ -228,7 +300,10 @@ function toggleHide(hashId, btn) {
     });
 
     document.addEventListener('DOMContentLoaded', () => {
-        if(document.getElementById('dropdown-league')) updateDropdownText('league', 'Ligas');
+        if(document.getElementById('dropdown-league')) {
+            updateDropdownText('league', 'Ligas');
+            updateTeamVisibility(); // Initial filter based on loaded selection
+        }
         if(document.getElementById('dropdown-cancha')) updateDropdownText('cancha', 'Canchas');
     });
 </script>
