@@ -6,6 +6,7 @@ Flask-WTF==1.2.2
 WTForms==3.2.1
 email-validator==2.3.0
 psycopg2-binary==2.9.11
+psycopg[binary]==3.2.1
 python-dotenv==1.2.1
 gunicorn
 stripe==8.1.0
