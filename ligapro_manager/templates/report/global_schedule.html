@@ -75,12 +75,6 @@
 
                     <!-- Action buttons pushed to the right -->
                     <div class="flex gap-2 ml-auto">
-                        <a href="{{ url_for('report.share_global_schedule', date=selected_date.strftime('%Y-%m-%d'), time_from=time_from, time_to=time_to) }}"
-                            title="Generar Imagen" target="_self"
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded border border-white/20 transition-colors flex items-center gap-2 text-sm">
-                            <i class="fas fa-image"></i>
-                            <span class="hidden sm:inline">PNG</span>
-                        </a>
                         <button type="button" onclick="triggerMobilePrint()"
                             class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded border border-white/20 transition-colors flex items-center gap-2 text-sm">
                             <i class="fas fa-print"></i>
@@ -126,9 +120,17 @@
             {% for court_name, data in schedule.items() %}
             <div class="break-inside-avoid {% if not loop.first %}print:break-before-page{% endif %}">
                 <!-- Court Header -->
-                <div class="py-2 px-4 text-center font-bold text-xl uppercase tracking-wider text-white print:border-y-2 print:border-black"
+                <div class="py-2 px-4 relative flex items-center text-white print:border-y-2 print:border-black"
                     style="{% if data.court_color and data.court_color != '#000000' %}background-color: {{ data.court_color }};{% else %}background: linear-gradient(to right, #16a34a, #15803d);{% endif %} -webkit-print-color-adjust: exact; print-color-adjust: exact;">
-                    CANCHA: {{ court_name }}
+                    <div class="flex-1 text-center font-bold text-xl uppercase tracking-wider">CANCHA: {{ court_name }}</div>
+                    <div class="absolute right-2 print:hidden">
+                        <a href="{{ url_for('report.share_global_schedule', date=selected_date.strftime('%Y-%m-%d'), time_from=time_from, time_to=time_to, court_name=court_name) }}"
+                            title="Generar Imagen de esta Cancha" target="_self"
+                            class="bg-black/20 hover:bg-black/40 text-white px-2 py-1 rounded border border-white/20 transition-colors flex items-center gap-2 text-sm shadow-sm backdrop-blur-sm">
+                            <i class="fas fa-image"></i>
+                            <span class="hidden sm:inline">PNG</span>
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Matches Table -->
@@ -180,8 +182,17 @@
                                     <a href="{{ url_for('league.league_detail', league_id=match.league.id) }}#matches" class="hover:underline transition-all" title="Ver partidos de {{ match.league.name }}">
                                         {{ match.league.name }}
                                     </a>
-                                    {% if match.is_practice %}
-                                    <span class="ml-1 text-yellow-400 text-[9px] font-bold tracking-widest print:hidden" title="Partido de práctica - no cuenta en la tabla">PRÁCT.</span>
+                                    {% set stage_label = '' %}
+                                    {% if match.is_practice %}{% set stage_label = 'PRÁCT.' %}
+                                    {% elif match.stage == 'repechaje' %}{% set stage_label = 'REPECHAJE' %}
+                                    {% elif match.stage == 'round_of_16' %}{% set stage_label = '8VOS' %}
+                                    {% elif match.stage == 'quarterfinal' %}{% set stage_label = '4TOS' %}
+                                    {% elif match.stage == 'semifinal' %}{% set stage_label = 'SEMIS' %}
+                                    {% elif match.stage == 'tercer_lugar' %}{% set stage_label = '3ER' %}
+                                    {% elif match.stage == 'final' %}{% set stage_label = 'FINAL' %}
+                                    {% endif %}
+                                    {% if stage_label %}
+                                    <span class="ml-1 text-yellow-400 text-[9px] font-bold tracking-widest print:inline-block" title="Etapa">{{ stage_label }}</span>
                                     {% endif %}
                                 </td>
                                 <td class="py-1 px-2 md:px-4 text-right font-bold leading-tight">

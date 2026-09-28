@@ -148,11 +148,50 @@ def update_match_result(match_id):
         anchor = 'playoff' if match.stage not in ['regular', None] else 'matches'
         return redirect(url_for('league.league_detail', league_id=league.id, _anchor=anchor))
     
+    # Calculate match history for frontend display
+    completed_matches = Match.query.filter_by(league_id=league.id, is_completed=True).order_by(Match.match_date.asc()).all()
+    teams_history = {t.id: {} for t in active_teams}
+    
+    months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+    
+    for m in completed_matches:
+        if m.home_team_id in teams_history and m.away_team_id in teams_history:
+            date_str = f"{m.match_date.day} {months[m.match_date.month - 1]} {m.match_date.year}" if m.match_date else None
+            time_str = m.match_date.strftime('%I:%M %p') if m.match_date else None
+            court_name = m.court.name if m.court else '-- Sin Cancha --'
+            
+            if m.away_team_id not in teams_history[m.home_team_id]:
+                teams_history[m.home_team_id][m.away_team_id] = {'count': 0, 'last_date': None, 'last_time': None, 'last_court_name': None}
+            teams_history[m.home_team_id][m.away_team_id]['count'] += 1
+            if date_str:
+                teams_history[m.home_team_id][m.away_team_id]['last_date'] = date_str
+                teams_history[m.home_team_id][m.away_team_id]['last_time'] = time_str
+                teams_history[m.home_team_id][m.away_team_id]['last_court_name'] = court_name
+                
+            if m.home_team_id not in teams_history[m.away_team_id]:
+                teams_history[m.away_team_id][m.home_team_id] = {'count': 0, 'last_date': None, 'last_time': None, 'last_court_name': None}
+            teams_history[m.away_team_id][m.home_team_id]['count'] += 1
+            if date_str:
+                teams_history[m.away_team_id][m.home_team_id]['last_date'] = date_str
+                teams_history[m.away_team_id][m.home_team_id]['last_time'] = time_str
+                teams_history[m.away_team_id][m.home_team_id]['last_court_name'] = court_name
+            
+    # Create a mapping of id -> name for easy JS lookup
+    # Make sure to use all teams we added to choices, not just active ones
+    all_teams_in_choices = Team.query.filter(Team.id.in_([c[0] for c in form.home_team_id.choices])).all()
+    teams_map = {t.id: t.name for t in all_teams_in_choices}
+    
+    # Add deleted teams to teams_history if they're in choices but missing
+    for t_id in [c[0] for c in form.home_team_id.choices]:
+        if t_id not in teams_history:
+            teams_history[t_id] = {}
+
     home_team = Team.query.get(match.home_team_id)
     away_team = Team.query.get(match.away_team_id)
     
     return render_template('match_result_form.html', form=form, match=match, 
-                          home_team=home_team, away_team=away_team, league=league)
+                          home_team=home_team, away_team=away_team, league=league,
+                          teams_history=teams_history, teams_map=teams_map)
 
 
 @match_bp.route('/matches/<match_id>/delete', methods=['POST'])

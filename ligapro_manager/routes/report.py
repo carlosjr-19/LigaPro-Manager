@@ -139,6 +139,7 @@ class FakeMatch:
         self.home_score = m_data.get('home_score')
         self.away_score = m_data.get('away_score')
         self.is_practice = m_data.get('is_practice', False)
+        self.stage = m_data.get('stage', 'regular')
         self.is_archived = True
         self.home_team_id = None
         self.away_team_id = None
@@ -324,6 +325,8 @@ def share_global_schedule():
             time_to = datetime.strptime(time_to_str, '%H:%M').time()
     except ValueError:
         pass
+        
+    target_court_name = request.args.get('court_name')
 
     # Query Matches for ALL leagues owned by current_user on selected_date
     matches = Match.query.join(League).filter(
@@ -415,6 +418,9 @@ def share_global_schedule():
                 conflicting_match_ids.add(match.id)
 
     sorted_schedule = dict(sorted(grouped_schedule.items()))
+    
+    if target_court_name and target_court_name in sorted_schedule:
+        sorted_schedule = {target_court_name: sorted_schedule[target_court_name]}
 
     # Build teams dict for easy shield retrieval in template
     teams_dict = {}
@@ -575,6 +581,15 @@ def global_schedule_history():
         try: return int(val)
         except: return 0
 
+    team_ids = request.args.getlist('team_id')
+    team_ids = [tid for tid in team_ids if tid]
+    
+    selected_team_names = []
+    if team_ids:
+        from models import Team
+        selected_teams = Team.query.filter(Team.id.in_(team_ids)).all()
+        selected_team_names = [t.name for t in selected_teams]
+
     for match in matches:
         if not match.league: continue
         
@@ -588,75 +603,82 @@ def global_schedule_history():
         default_ref_price = match.league.price_referee or 0
         
         # Check Home Team Debt – skip if waived (gifted)
-        hash_home = f"{match.id}_home"
-        if not is_waived(match.referee_cost_home):
-            paid_home = parse_cost(match.referee_cost_home)
-            diff_home = paid_home - default_team_price
-            if diff_home != 0:
-                is_hidden = hash_home in ignored_records
-                if show_hidden or not is_hidden:
-                    history_events.append({
-                        'hash_id': hash_home,
-                        'is_hidden': is_hidden,
-                        'date': match.match_date,
-                        'league': match.league.name,
-                        'match': f"{match.home_team.name} vs {match.away_team.name}",
-                        'entity': f"Local: {match.home_team.name}",
-                        'expected': default_team_price,
-                        'paid': paid_home,
-                        'balance': diff_home
-                    })
+        if not team_ids or (str(match.home_team_id) in team_ids) or (getattr(match, 'is_archived', False) and match.home_team.name in selected_team_names):
+            hash_home = f"{match.id}_home"
+            if not is_waived(match.referee_cost_home):
+                paid_home = parse_cost(match.referee_cost_home)
+                diff_home = paid_home - default_team_price
+                if diff_home != 0:
+                    is_hidden = hash_home in ignored_records
+                    if show_hidden or not is_hidden:
+                        history_events.append({
+                            'hash_id': hash_home,
+                            'is_hidden': is_hidden,
+                            'date': match.match_date,
+                            'league': match.league.name,
+                            'match': f"{match.home_team.name} vs {match.away_team.name}",
+                            'entity': f"Local: {match.home_team.name}",
+                            'expected': default_team_price,
+                            'paid': paid_home,
+                            'balance': diff_home
+                        })
             
         # Check Away Team Debt – skip if waived (gifted)
-        hash_away = f"{match.id}_away"
-        if not is_waived(match.referee_cost_away):
-            paid_away = parse_cost(match.referee_cost_away)
-            diff_away = paid_away - default_team_price
-            if diff_away != 0:
-                is_hidden = hash_away in ignored_records
-                if show_hidden or not is_hidden:
-                    history_events.append({
-                        'hash_id': hash_away,
-                        'is_hidden': is_hidden,
-                        'date': match.match_date,
-                        'league': match.league.name,
-                        'match': f"{match.home_team.name} vs {match.away_team.name}",
-                        'entity': f"Visita: {match.away_team.name}",
-                        'expected': default_team_price,
-                        'paid': paid_away,
-                        'balance': diff_away
-                    })
+        if not team_ids or (str(match.away_team_id) in team_ids) or (getattr(match, 'is_archived', False) and match.away_team.name in selected_team_names):
+            hash_away = f"{match.id}_away"
+            if not is_waived(match.referee_cost_away):
+                paid_away = parse_cost(match.referee_cost_away)
+                diff_away = paid_away - default_team_price
+                if diff_away != 0:
+                    is_hidden = hash_away in ignored_records
+                    if show_hidden or not is_hidden:
+                        history_events.append({
+                            'hash_id': hash_away,
+                            'is_hidden': is_hidden,
+                            'date': match.match_date,
+                            'league': match.league.name,
+                            'match': f"{match.home_team.name} vs {match.away_team.name}",
+                            'entity': f"Visita: {match.away_team.name}",
+                            'expected': default_team_price,
+                            'paid': paid_away,
+                            'balance': diff_away
+                        })
 
         # Check Referee Balance – skip if waived
-        hash_ref = f"{match.id}_ref"
-        if not is_waived(match.referee_cost):
-            paid_ref = parse_cost(match.referee_cost)
-            diff_ref = paid_ref - default_ref_price
-            if diff_ref != 0:
-                is_hidden = hash_ref in ignored_records
-                if show_hidden or not is_hidden:
-                    history_events.append({
-                        'hash_id': hash_ref,
-                        'is_hidden': is_hidden,
-                        'date': match.match_date,
-                        'league': match.league.name,
-                        'match': f"{match.home_team.name} vs {match.away_team.name}",
-                        'entity': "Arbitro",
-                        'expected': default_ref_price,
-                        'paid': paid_ref,
-                        'balance': diff_ref
-                    })
+        if not team_ids:
+            hash_ref = f"{match.id}_ref"
+            if not is_waived(match.referee_cost):
+                paid_ref = parse_cost(match.referee_cost)
+                diff_ref = paid_ref - default_ref_price
+                if diff_ref != 0:
+                    is_hidden = hash_ref in ignored_records
+                    if show_hidden or not is_hidden:
+                        history_events.append({
+                            'hash_id': hash_ref,
+                            'is_hidden': is_hidden,
+                            'date': match.match_date,
+                            'league': match.league.name,
+                            'match': f"{match.home_team.name} vs {match.away_team.name}",
+                            'entity': "Arbitro",
+                            'expected': default_ref_price,
+                            'paid': paid_ref,
+                            'balance': diff_ref
+                        })
 
             
     # Sort events by date desc
     history_events.sort(key=lambda x: x['date'], reverse=True)
     
     leagues = League.query.filter_by(user_id=current_user.id).all()
+    from models import Team
+    teams = Team.query.join(League).filter(League.user_id == current_user.id, Team.is_deleted == False).order_by(Team.name).all()
     
     return render_template('report/history.html', 
                          events=history_events, 
                          leagues=leagues, 
+                         teams=teams,
                          selected_league_ids=league_ids,
+                         selected_team_ids=team_ids,
                          show_hidden=show_hidden)
 
 @report_bp.route('/global-schedule/history/toggle_hide', methods=['POST'])
@@ -839,7 +861,23 @@ def export_global_schedule():
             ws.cell(row=current_row, column=1, value=match_index).alignment = Alignment(horizontal='center')
             ws.cell(row=current_row, column=2, value=match.match_date.strftime('%I:%M %p'))
             
-            league_cell = ws.cell(row=current_row, column=3, value=match.league.name)
+            stage_label = ""
+            if getattr(match, 'is_practice', False):
+                stage_label = " PRÁCT."
+            elif getattr(match, 'stage', 'regular') == 'repechaje':
+                stage_label = " REPECHAJE"
+            elif getattr(match, 'stage', 'regular') == 'round_of_16':
+                stage_label = " 8VOS"
+            elif getattr(match, 'stage', 'regular') == 'quarterfinal':
+                stage_label = " 4TOS"
+            elif getattr(match, 'stage', 'regular') == 'semifinal':
+                stage_label = " SEMIS"
+            elif getattr(match, 'stage', 'regular') == 'tercer_lugar':
+                stage_label = " 3ER"
+            elif getattr(match, 'stage', 'regular') == 'final':
+                stage_label = " FINAL"
+                
+            league_cell = ws.cell(row=current_row, column=3, value=match.league.name + stage_label)
             if match.league.custom_color_active and match.league.custom_name_color:
                 league_color_hex = match.league.custom_name_color.lstrip('#').upper()
                 league_cell.font = Font(bold=True, color=league_color_hex)

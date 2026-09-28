@@ -16,6 +16,7 @@ Sistema profesional de gestiÃ³n de ligas de fÃºtbol desarrollado con Python 
 
 ### ð Reportes y Credenciales
 *   **Reportes de Resumen:** VisualizaciÃ³n e imÃ¡genes de tabla, prÃ³ximos partidos y resultados recientes con personalizaciÃ³n premium (colores, tamaÃ±os).
+*   **Agenda Global y ExportaciÃ³n:** ExportaciÃ³n de calendario a Excel, generaciÃ³n de imÃ¡genes por cancha separada e identificaciÃ³n de etapas de liguilla.
 *   **Credenciales de Jugador:** GeneraciÃ³n de credenciales imprimibles con fotos y logos de liga.
 
 ### ð¥ Roles de Usuario
@@ -23,7 +24,7 @@ Sistema profesional de gestiÃ³n de ligas de fÃºtbol desarrollado con Python 
 *   **Premium / Ultra:**
     *   Ligas ilimitadas.
     *   PersonalizaciÃ³n de reportes avanzada (colores por resultado, fecha y cancha).
-    *   EstadÃ­sticas e Informes financieros detallados con **Filtros MÃºltiples** (selecciÃ³n de mÃºltiples ligas y canchas simultÃ¡neamente) (Ultra).
+    *   EstadÃ­sticas e Informes financieros detallados con **Filtros MÃºltiples** (selecciÃ³n de mÃºltiples ligas, canchas y **equipos** simultÃ¡neamente) (Ultra).
     *   **Prioridad de Privilegios:** Los usuarios Ultra disfrutan de todas las funciones Premium.
 
 ## ð ï¸ TecnologÃ­as

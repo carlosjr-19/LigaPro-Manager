@@ -1,3 +1,21 @@
+## 1.0.11
+
+Mejoras en Reportes Financieros, Exportación y Edición de Partidos.
+
+- **Indicadores de Liguilla**: Se añadió el indicador visual de la etapa de liguilla (4TOS, SEMIS, FINAL, etc.) a los partidos dentro de la Agenda Global, en la exportación PNG y en la exportación a Excel.
+- **Descarga PNG por Cancha**: Se rediseñó la Agenda Global, reemplazando el botón global de descarga PNG por botones individuales en el encabezado de cada cancha, permitiendo descargar imágenes separadas fácilmente en dispositivos móviles.
+- **Historial de Cruces en Resultados**: El formulario de "Registrar/Editar Resultado" (al que se accede desde Fechas) ahora muestra de manera automática el historial de "Último enfrentamiento" y los equipos contra los que ya jugó el local o visitante seleccionado.
+- **Filtro de Equipos en Historial Financiero**: Se incorporó un nuevo filtro por equipos en la sección de "Historial y Deudas". Este filtro se actualiza de manera dinámica (en tiempo real) mostrando únicamente los equipos pertenecientes a las ligas que el usuario haya seleccionado en el filtro de ligas.
+
+## Modificado
+* ligapro_manager/routes/match.py
+* ligapro_manager/routes/report.py
+* ligapro_manager/templates/match_result_form.html
+* ligapro_manager/templates/report/global_schedule.html
+* ligapro_manager/templates/report/share_global_schedule.html
+* ligapro_manager/templates/report/history.html
+* VERSION
+
 ## 1.0.10
 
 Mejoras en UI de Equipos que Descansan y Modales de Eliminacin.
