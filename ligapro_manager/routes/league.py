@@ -4,8 +4,8 @@ from extensions import db
 from models import League, Team, Match, Player, Court, SeasonStat
 from forms import LeagueForm, StatForm, MatchForm
 from utils.decorators import owner_required, premium_required
-from utils.helpers import calculate_standings, normalize_name
-from sqlalchemy import or_
+from utils.helpers import calculate_standings, normalize_name, calculate_team_rests
+from sqlalchemy import or_, func
 from datetime import datetime
 import json
 import requests
@@ -311,9 +311,12 @@ def league_detail(league_id):
         or_(Match.stage == 'regular', Match.stage == None, Match.stage == '')
     ).scalar() or 0
 
+    teams_rests = calculate_team_rests(league_id)
+
     return render_template('league_detail.html', 
                           league=league, 
                           teams=active_teams,
+                          teams_rests=teams_rests,
                           courts=league.courts[:1] if not league.owner.is_active_premium else league.courts,
                           standings=standings,
                           matches=matches,
@@ -629,6 +632,41 @@ def generate_share_report(league_id):
                 matches_by_court[court_name] = []
             matches_by_court[court_name].append(match)
 
+    # Determine resting teams for upcoming matches
+    upcoming_resting_by_date = OrderedDict()
+    if include_upcoming and upcoming_matches:
+        scheduling_teams = [t for t in teams if not t.is_deleted and not t.is_hidden]
+        
+        matches_per_date = OrderedDict()
+        for m in sorted(upcoming_matches, key=lambda x: x.match_date):
+            d = m.match_date.date()
+            if d not in matches_per_date:
+                matches_per_date[d] = []
+            matches_per_date[d].append(m)
+            
+        spanish_days = {
+            0: 'Lunes', 1: 'Martes', 2: 'Miércoles', 3: 'Jueves',
+            4: 'Viernes', 5: 'Sábado', 6: 'Domingo'
+        }
+        spanish_months = {
+            1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+            5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+            9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+        }
+        
+        for d, day_m_list in matches_per_date.items():
+            all_matches_on_d = Match.query.filter(
+                Match.league_id == league_id,
+                func.date(Match.match_date) == d
+            ).all()
+            played_ids = {m.home_team_id for m in all_matches_on_d} | {m.away_team_id for m in all_matches_on_d}
+            rested = [t for t in scheduling_teams if t.id not in played_ids]
+            if rested:
+                day_name = spanish_days.get(d.weekday(), '')
+                month_name = spanish_months.get(d.month, '')
+                date_label = f"{day_name} {d.day} de {month_name}"
+                upcoming_resting_by_date[date_label] = rested
+
     if include_scorers:
         top_scorers = SeasonStat.query.filter_by(league_id=league_id, stat_type='goals').order_by(SeasonStat.value.desc()).limit(5).all()
         for stat in top_scorers:
@@ -667,6 +705,7 @@ def generate_share_report(league_id):
                           recent_matches=recent_matches,
                           upcoming_matches=upcoming_matches,
                           matches_by_court=matches_by_court,
+                          upcoming_resting_by_date=upcoming_resting_by_date,
                           top_scorers=top_scorers,
                           top_goalkeepers=top_goalkeepers,
                           include_standings=include_standings,

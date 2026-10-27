@@ -1,5 +1,6 @@
 from .user import User
 from .league import League
+from .league_group import LeagueGroup
 from .team import Team, TeamNote
 from .player import Player
 from .court import Court

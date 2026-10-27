@@ -224,3 +224,50 @@ def archive_league_finances(league):
         )
         db.session.add(archive)
 
+
+def calculate_team_rests(league_id):
+    """
+    Calculates the number of rests (descansos) each team has had in the regular stage of the league.
+    Returns:
+        dict: {
+            team_id: {
+                'count': int,
+                'dates': [str, ...],
+            }
+        }
+    """
+    from models import Team, Match
+    from sqlalchemy import or_
+
+    all_teams = Team.query.filter_by(league_id=league_id).all()
+    scheduling_teams = [t for t in all_teams if not t.is_deleted and not t.is_hidden]
+
+    team_rests = {t.id: {'count': 0, 'dates': []} for t in all_teams}
+
+    matches = Match.query.filter(
+        Match.league_id == league_id,
+        or_(Match.stage == 'regular', Match.stage == None, Match.stage == ''),
+        Match.match_date != None
+    ).order_by(Match.match_date.asc()).all()
+
+    if not matches:
+        return team_rests
+
+    matches_by_date = {}
+    for m in matches:
+        d = m.match_date.date()
+        if d not in matches_by_date:
+            matches_by_date[d] = []
+        matches_by_date[d].append(m)
+
+    for d, day_matches in sorted(matches_by_date.items()):
+        played_ids = {m.home_team_id for m in day_matches} | {m.away_team_id for m in day_matches}
+        date_str = d.strftime('%d/%m/%Y')
+        for t in scheduling_teams:
+            if t.id not in played_ids:
+                team_rests[t.id]['count'] += 1
+                team_rests[t.id]['dates'].append(date_str)
+
+    return team_rests
+
+

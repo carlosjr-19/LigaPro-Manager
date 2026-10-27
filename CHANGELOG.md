@@ -1,3 +1,63 @@
+## 1.0.14
+
+Agrupación y Organización de Ligas por Carpetas en el Dashboard (por Cancha, Día o Categoría).
+
+- **Botón "Agrupar Ligas"**: Se añadió un nuevo botón junto a "Nueva Liga" en el Dashboard principal que abre un modal intuitivo para crear o gestionar carpetas organizadoras.
+- **Creación y Edición de Carpetas**:
+  - Permite asignar nombre personalizado (ej. "Cancha La Raza", "Liga Lunes", etc.) con botones de sugerencias rápidas.
+  - Selección de paleta de colores para identificar cada carpeta visualmente.
+  - Selector de ligas con buscador en tiempo real, opciones de "Seleccionar todas" / "Ninguna" y conteo dinámico.
+  - Opción de editar el nombre, color y ligas de cualquier carpeta en cualquier momento.
+  - Eliminación segura con confirmación, garantizando que borrar una carpeta no elimina las ligas ni sus datos.
+- **Navegación por Pestañas y Vistas en el Inicio**:
+  - Barra de pestañas interactiva en la parte superior para filtrar al instante por carpeta ("Todas", cada carpeta con su color e insignia de cantidad, y "Sin agrupar").
+  - Conmutador de vista: "Por Carpetas" (secciones independientes para cada carpeta con sus tarjetas y acciones) o "Todas" (cuadrícula completa con etiquetas de carpeta y soporte de reordenamiento Drag & Drop).
+  - Insignias de carpeta en cada tarjeta de liga para visualización rápida de pertenencia.
+
+## Modificado
+* ligapro_manager/templates/dashboard.html
+* ligapro_manager/routes/main.py
+* ligapro_manager/models/league_group.py
+* VERSION
+
+## 1.0.13
+
+Conteo y Visualización de Descansos por Equipo en Formularios de Partidos (`descanso xN`).
+
+- **Visualización de Descansos Acumulados (`descanso xN`)**: En todos los formularios para programar partido (`Programar Partido`), modificar partido (`Editar Partido`) y actualizar resultado (`Registrar Resultado`), se muestra claramente la cantidad de jornadas que cada equipo ha descansado en el torneo (`descanso x1`, `descanso x2`, etc.).
+- **Insignia Debajo de los Selectores**:
+  - Los selectores de equipo conservan exclusivamente el nombre limpio del equipo sin textos adicionales.
+  - Justo debajo de cada selector de equipo, se muestra una insignia destacada con el conteo de descansos acumulados y entre paréntesis las fechas en que descansó (ej. `[descanso x1] (07/09/2026)`), seguida del historial de rivales previos (`Ya jugó contra: ...`).
+- **Soporte en Modal de Matriz y Generador de Jornadas**:
+  - En la vista de matriz (`matrixMatchModal`), los equipos enfrentados muestran su insignia de descansos en el encabezado.
+  - En el modal de Generación Automática de Jornada, la lista de equipos disponibles para descanso muestra cuántos descansos acumulados lleva cada uno.
+
+## Modificado
+* ligapro_manager/utils/helpers.py
+* ligapro_manager/routes/match.py
+* ligapro_manager/routes/league.py
+* ligapro_manager/templates/match_form.html
+* ligapro_manager/templates/match_result_form.html
+* ligapro_manager/templates/league_detail.html
+* ligapro_manager/static/js/match_form.js
+* ligapro_manager/static/js/league_detail.js
+* VERSION
+
+## 1.0.12
+
+Conservación de Descansos al Regenerar Jornadas y Automatización en Rol de Próximos Partidos.
+
+- **Preservación de Equipos que Descansan al Regenerar**: Al regenerar una jornada existente desde la vista de fechas, el sistema ahora detecta qué equipos estaban descansando y los mantiene en descanso, regenerando los cruces únicamente con los equipos que estaban programados para jugar esa fecha. Además, se preservan los horarios y canchas asignados originalmente.
+- **Equipos en Descanso en Próximos Partidos / Rol de Juegos**: Al generar el reporte para compartir de "Próximos Partidos" (tanto en la imagen PNG como en PDF), el sistema ahora detecta e incluye automáticamente qué equipos descansan en la jornada, eliminando la necesidad de añadirlos manualmente en las notas adicionales.
+
+## Modificado
+* ligapro_manager/routes/match.py
+* ligapro_manager/routes/league.py
+* ligapro_manager/templates/share_report.html
+* ligapro_manager/templates/share_modal_fragment.html
+* ligapro_manager/templates/league_detail.html
+* VERSION
+
 ## 1.0.11
 
 Mejoras en Reportes Financieros, Exportación y Edición de Partidos.
