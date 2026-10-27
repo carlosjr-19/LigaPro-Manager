@@ -141,7 +141,9 @@ def run_migrations():
                     "ALTER TABLE leagues ADD COLUMN max_players_per_team INTEGER",
                     "ALTER TABLE users ADD COLUMN player_registry_template VARCHAR(20) DEFAULT 'registro1'",
                     "ALTER TABLE leagues ADD COLUMN display_order INTEGER DEFAULT 0",
-                    "ALTER TABLE archived_finances ADD COLUMN details_json TEXT"
+                    "ALTER TABLE archived_finances ADD COLUMN details_json TEXT",
+                    "CREATE TABLE IF NOT EXISTS league_groups (id VARCHAR(36) PRIMARY KEY, name VARCHAR(100) NOT NULL, user_id VARCHAR(36) NOT NULL, color VARCHAR(20) DEFAULT '#3b82f6', created_at TIMESTAMP)",
+                    "CREATE TABLE IF NOT EXISTS league_group_items (group_id VARCHAR(36) NOT NULL, league_id VARCHAR(36) NOT NULL, PRIMARY KEY (group_id, league_id))"
                 ]
                 
                 for migration in migrations:

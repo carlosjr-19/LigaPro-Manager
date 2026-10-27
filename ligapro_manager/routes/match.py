@@ -6,7 +6,7 @@ from forms import MatchForm, MatchResultForm
 from utils.decorators import owner_required
 import json
 from datetime import datetime, timezone
-from utils.helpers import calculate_standings
+from utils.helpers import calculate_standings, calculate_team_rests
 
 match_bp = Blueprint('match', __name__)
 
@@ -17,6 +17,8 @@ def create_match(league_id):
     league = League.query.filter_by(id=league_id, user_id=current_user.id).first_or_404()
     # Only allow scheduling matches between active teams
     teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
+    
+    teams_rests = calculate_team_rests(league_id)
     
     form = MatchForm()
     form.home_team_id.choices = [(t.id, t.name) for t in teams]
@@ -76,10 +78,11 @@ def create_match(league_id):
                 teams_history[m.away_team_id][m.home_team_id]['last_court_name'] = court_name
             
     # Create a mapping of id -> name for easy JS lookup
-    teams_map = {t.id: t.name for t in teams}
+    all_teams_in_league = Team.query.filter_by(league_id=league_id).all()
+    teams_map = {t.id: t.name for t in all_teams_in_league}
 
     return render_template('match_form.html', form=form, league=league, 
-                         title='Programar Partido', teams_history=teams_history, teams_map=teams_map)
+                         title='Programar Partido', teams_history=teams_history, teams_map=teams_map, teams_rests=teams_rests)
 
 
 @match_bp.route('/matches/<match_id>/result', methods=['GET', 'POST'])
@@ -95,6 +98,8 @@ def update_match_result(match_id):
     
     form = MatchResultForm(obj=match)
     
+    teams_rests = calculate_team_rests(league.id)
+
     # Populate Choice Fields (inherited from MatchForm)
     # Include all teams (even deleted ones if they are already part of the match, or just active ones)
     # Ideally should match create_match logic but maybe allow keeping existing if deleted
@@ -191,7 +196,7 @@ def update_match_result(match_id):
     
     return render_template('match_result_form.html', form=form, match=match, 
                           home_team=home_team, away_team=away_team, league=league,
-                          teams_history=teams_history, teams_map=teams_map)
+                          teams_history=teams_history, teams_map=teams_map, teams_rests=teams_rests)
 
 
 @match_bp.route('/matches/<match_id>/delete', methods=['POST'])
@@ -318,11 +323,22 @@ def edit_match(match_id):
         flash('No se pueden editar los detalles de un partido ya jugado. Solo se puede modificar el resultado.', 'warning')
         return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
         
+    teams_rests = calculate_team_rests(league_id)
     form = MatchForm(obj=match)
     # Populate choices
     teams = Team.query.filter_by(league_id=league_id, is_deleted=False).all()
     form.home_team_id.choices = [(t.id, t.name) for t in teams]
     form.away_team_id.choices = [(t.id, t.name) for t in teams]
+    
+    current_home_in_choices = any(str(t.id) == str(match.home_team_id) for t in teams)
+    if not current_home_in_choices:
+        home_t = Team.query.get(match.home_team_id)
+        if home_t: form.home_team_id.choices.append((home_t.id, home_t.name))
+        
+    current_away_in_choices = any(str(t.id) == str(match.away_team_id) for t in teams)
+    if not current_away_in_choices:
+        away_t = Team.query.get(match.away_team_id)
+        if away_t: form.away_team_id.choices.append((away_t.id, away_t.name))
     
     courts = Court.query.filter_by(league_id=league_id).all()
     form.court_id.choices = [(c.id, c.name) for c in courts]
@@ -383,10 +399,12 @@ def edit_match(match_id):
                 teams_history[m.away_team_id][m.home_team_id]['last_time'] = time_str
                 teams_history[m.away_team_id][m.home_team_id]['last_court_name'] = court_name
             
-    teams_map = {t.id: t.name for t in teams}
+    all_teams_in_league = Team.query.filter_by(league_id=league_id).all()
+    teams_map = {t.id: t.name for t in all_teams_in_league}
     
     return render_template('match_form.html', form=form, league=league, match=match,
-                          title='Editar Partido', teams_history=teams_history, teams_map=teams_map, next_action=next_action, selected_date=selected_date)
+                          title='Editar Partido', teams_history=teams_history, teams_map=teams_map,
+                          teams_rests=teams_rests, next_action=next_action, selected_date=selected_date)
 
 
 @match_bp.route('/leagues/<league_id>/reset_season', methods=['POST'])
@@ -1240,14 +1258,29 @@ def regenerate_date(league_id, date_str):
         diff = matches_on_date[1].match_date - matches_on_date[0].match_date
         interval_minutes = int(diff.total_seconds() / 60)
         
+    # Save original time & court slots so regenerated matches keep the exact same timetable
+    original_slots = [(m.match_date, m.court_id) for m in matches_on_date]
+    
+    # Identify which teams actually participated in matches on this date
+    played_team_ids = set()
+    for m in matches_on_date:
+        played_team_ids.add(m.home_team_id)
+        played_team_ids.add(m.away_team_id)
+        
     # Delete them
     for m in matches_on_date:
         db.session.delete(m)
     db.session.flush() # flush so they don't count in past_matches
     
     active_teams = Team.query.filter_by(league_id=league_id, is_deleted=False, is_hidden=False).all()
-    if len(active_teams) < 2:
-        flash('No hay suficientes equipos activos.', 'warning')
+    
+    # Preserve rested teams: only rematch teams that were scheduled to play on this date
+    teams_to_schedule = [t for t in active_teams if t.id in played_team_ids]
+    if len(teams_to_schedule) < 2:
+        teams_to_schedule = active_teams
+
+    if len(teams_to_schedule) < 2:
+        flash('No hay suficientes equipos activos para regenerar los partidos.', 'warning')
         db.session.rollback()
         return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))
         
@@ -1256,7 +1289,7 @@ def regenerate_date(league_id, date_str):
     for m in past_matches:
         played_pairs.add(tuple(sorted([m.home_team_id, m.away_team_id])))
         
-    team_ids = [t.id for t in active_teams]
+    team_ids = [t.id for t in teams_to_schedule]
     random.shuffle(team_ids)
     
     def find_matching(teams_left, current_matching):
@@ -1294,13 +1327,19 @@ def regenerate_date(league_id, date_str):
                 
     created_count = 0
     current_dt = start_dt
-    for home_id, away_id in matching:
+    for i, (home_id, away_id) in enumerate(matching):
+        if i < len(original_slots):
+            m_dt, m_court = original_slots[i]
+        else:
+            m_dt = current_dt
+            m_court = court_id
+            
         match = Match(
             league_id=league_id,
             home_team_id=home_id,
             away_team_id=away_id,
-            court_id=court_id,
-            match_date=current_dt,
+            court_id=m_court,
+            match_date=m_dt,
             match_round=match_round,
             stage=stage,
             match_name=match_name
@@ -1315,5 +1354,6 @@ def regenerate_date(league_id, date_str):
         current_dt += timedelta(minutes=interval_minutes)
         
     db.session.commit()
-    flash(f'Jornada del {date_str} regenerada ({created_count} partidos).', 'success')
+    match_label = 'partido' if created_count == 1 else 'partidos'
+    flash(f'Jornada del {date_str} regenerada ({created_count} {match_label}).', 'success')
     return redirect(url_for('league.league_detail', league_id=league_id, _anchor='matches'))

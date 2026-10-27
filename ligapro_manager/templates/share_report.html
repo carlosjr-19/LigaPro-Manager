@@ -257,6 +257,38 @@
                         </div>
                         {% endfor %}
                     </div>
+
+                    {% if upcoming_resting_by_date %}
+                    <div class="mt-8 pt-6 border-t border-white/10 space-y-3">
+                        {% for date_label, rested_teams in upcoming_resting_by_date.items() %}
+                        {% if rested_teams %}
+                        <div class="p-3 bg-white/5 border border-white/10 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+                            <span class="text-white/80 font-bold flex items-center gap-2">
+                                <i class="fas fa-bed" style="color: var(--header-partidos);"></i>
+                                {% if rested_teams|length == 1 %}Equipo que descansa:{% else %}Equipos que descansan:{% endif %}
+                                {% if upcoming_resting_by_date|length > 1 %}
+                                <span class="text-xs text-white/50 font-normal">({{ date_label }})</span>
+                                {% endif %}
+                            </span>
+                            <div class="flex flex-wrap items-center gap-2.5">
+                                {% for rested_t in rested_teams %}
+                                <div class="flex items-center gap-2 bg-black/40 border border-white/10 px-3 py-1.5 rounded-lg shadow-sm">
+                                    <span class="font-bold text-white text-xs sm:text-sm">{{ rested_t.name }}</span>
+                                    {% if (not is_premium or league.show_team_logos) and rested_t.shield_url %}
+                                    <img src="{{ rested_t.shield_url }}" class="w-5 h-5 rounded object-cover flex-shrink-0">
+                                    {% elif not is_premium or league.show_team_logos %}
+                                    <div class="w-5 h-5 rounded flex-shrink-0 bg-white/10 flex items-center justify-center text-[8px]">
+                                        <i class="fas fa-shield-alt text-white/40"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
                 {% endif %}
 
@@ -590,6 +622,21 @@
                     </div>
                     {% endfor %}
                 </div>
+                {% if upcoming_resting_by_date %}
+                <div class="mt-2 pt-2 border-t border-slate-300 space-y-1">
+                    {% for date_label, rested_teams in upcoming_resting_by_date.items() %}
+                    {% if rested_teams %}
+                    <div class="text-[8.5px] text-slate-700 flex items-center gap-2">
+                        <strong class="uppercase font-black text-slate-900">
+                            {% if rested_teams|length == 1 %}Descansa:{% else %}Descansan:{% endif %}
+                            {% if upcoming_resting_by_date|length > 1 %}({{ date_label }}):{% endif %}
+                        </strong>
+                        <span class="font-medium text-slate-800">{{ rested_teams|map(attribute='name')|join(', ') }}</span>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
             {% endif %}
 

@@ -2,7 +2,7 @@
 {% block title %}Dashboard - LigaPro Manager{% endblock %}
 
 {% block content %}
-<div class="min-h-screen">
+<div class="min-h-screen pb-16">
     <!-- Header -->
     <header class="bg-card border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 md:px-6 py-4">
@@ -38,61 +38,266 @@
         </div>
     </header>
 
+    <!-- Macro para tarjeta de liga -->
+    {% macro render_league_card(league, is_allowed, show_group_badges=True, extra_classes="") %}
+    <div class="relative group league-card-item {{ extra_classes }}" data-id="{{ league.id }}" data-group-ids="{{ league.groups | map(attribute='id') | join(',') }}" data-name="{{ league.name|lower }}">
+        <a href="{{ url_for('league.league_detail', league_id=league.id) }}"
+            class="card block transition-all relative overflow-hidden select-none {{ 'hover:border-primary/50 hover:shadow-lg' if is_allowed else 'opacity-60 grayscale cursor-not-allowed border-red-500/30' }}"
+            style="-webkit-touch-callout: none;">
+
+            {% if not is_allowed %}
+            <div
+                class="absolute inset-x-0 top-0 bg-red-600/80 text-white text-xs text-center py-1 z-20 font-bold uppercase tracking-wide">
+                <i class="fas fa-lock mr-1"></i> Acceso Restringido
+            </div>
+            {% endif %}
+
+            <div class="flex items-center gap-4 mb-3">
+                {% if league.logo_url %}
+                <img src="{{ league.logo_url }}" alt="Logo {{ league.name }}"
+                    class="w-12 h-12 rounded-lg object-contain bg-white/5 p-1 {{ 'group-hover:bg-white/10' if is_allowed }} transition-colors">
+                {% else %}
+                <div
+                    class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center {{ 'group-hover:bg-primary/30' if is_allowed }} transition-colors">
+                    <i class="fas fa-futbol text-2xl text-primary"></i>
+                </div>
+                {% endif %}
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-xl font-bold truncate" {% if league.custom_color_active and league.custom_name_color
+                        %}style="color: {{ league.custom_name_color }}" {% endif %}>{{ league.name }}</h3>
+                    <p class="text-white/60 text-sm">{{ league.active_teams_count }} / {{ league.max_teams }} equipos</p>
+                </div>
+            </div>
+
+            {% if show_group_badges and league.groups %}
+            <div class="flex flex-wrap gap-1.5 mb-3">
+                {% for g in league.groups %}
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold tracking-wide"
+                    style="background-color: {{ g.color }}20; color: {{ g.color }}; border: 1px solid {{ g.color }}40;">
+                    <i class="fas fa-folder text-[10px]"></i> {{ g.name }}
+                </span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="flex items-center gap-4 text-sm text-white/40">
+                <span><i class="fas fa-calendar mr-1"></i> {{ league.created_at.strftime('%d/%m/%Y') }}</span>
+                <span><i class="fas fa-users mr-1"></i> {{ league.active_teams_count }} equipos</span>
+            </div>
+        </a>
+    </div>
+    {% endmacro %}
+
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        <div
-            class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 md:gap-0 text-center md:text-left">
+        <!-- Dashboard Top Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 text-center sm:text-left">
             <div>
                 <h2 class="text-3xl font-bold">Mis Ligas</h2>
-                <p class="text-white/60">Gestiona tus torneos de fútbol</p>
+                <p class="text-white/60 text-sm sm:text-base">Gestiona tus torneos de fútbol y agrúpalos por cancha o día</p>
             </div>
-            <a href="{{ url_for('league.create_league') }}" class="btn-primary">
-                <i class="fas fa-plus mr-2"></i>Nueva Liga
-            </a>
+            <div class="flex items-center gap-3 flex-wrap justify-center">
+                {% if leagues %}
+                <button type="button" onclick="openCreateGroupModal()" class="btn-secondary flex items-center gap-2 cursor-pointer shadow-sm hover:shadow-primary/10">
+                    <i class="fas fa-folder-plus text-primary"></i>
+                    <span>Agrupar Ligas</span>
+                </button>
+                {% endif %}
+                <a href="{{ url_for('league.create_league') }}" class="btn-primary flex items-center gap-2">
+                    <i class="fas fa-plus"></i>
+                    <span>Nueva Liga</span>
+                </a>
+            </div>
         </div>
 
         {% if leagues %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="leagues-grid">
-            {% for league in leagues %}
-            <div class="relative group" data-id="{{ league.id }}">
-                {% set is_allowed = league.id in allowed_league_ids %}
-                <a href="{{ url_for('league.league_detail', league_id=league.id) }}"
-                    class="card block transition-all relative overflow-hidden select-none {{ 'hover:border-primary/50' if is_allowed else 'opacity-60 grayscale cursor-not-allowed border-red-500/30' }}"
-                    style="-webkit-touch-callout: none;">
+        <!-- Filter Bar & View Toggle -->
+        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <!-- Tabs de Carpetas -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none flex-nowrap min-w-0" id="groupTabsContainer">
+                <!-- Todas Tab -->
+                <button type="button" onclick="selectGroupTab('all')" id="tab-all"
+                    class="group-tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all bg-white/15 text-white border border-white/20 shadow-sm cursor-pointer">
+                    <i class="fas fa-layer-group text-primary"></i>
+                    <span>Todas</span>
+                    <span class="bg-white/20 text-white text-[11px] px-2 py-0.5 rounded-full font-bold">{{ leagues|length }}</span>
+                </button>
 
-                    {% if not is_allowed %}
-                    <div
-                        class="absolute inset-x-0 top-0 bg-red-600/80 text-white text-xs text-center py-1 z-20 font-bold uppercase tracking-wide">
-                        <i class="fas fa-lock mr-1"></i> Acceso Restringido
-                    </div>
-                    {% endif %}
+                <!-- Dynamic Groups Tabs -->
+                {% for group in groups %}
+                <button type="button" onclick="selectGroupTab('{{ group.id }}')" id="tab-{{ group.id }}"
+                    class="group-tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/5 hover:border-white/15 cursor-pointer">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ group.color }};"></span>
+                    <i class="fas fa-folder text-xs" style="color: {{ group.color }};"></i>
+                    <span>{{ group.name }}</span>
+                    <span class="bg-white/10 text-white/80 text-[11px] px-2 py-0.5 rounded-full font-bold">{{ group.leagues|length }}</span>
+                </button>
+                {% endfor %}
 
-                    <div class="flex items-center gap-4 mb-4">
-                        {% if league.logo_url %}
-                        <img src="{{ league.logo_url }}" alt="Logo {{ league.name }}"
-                            class="w-12 h-12 rounded-lg object-contain bg-white/5 p-1 {{ 'group-hover:bg-white/10' if is_allowed }} transition-colors">
-                        {% else %}
-                        <div
-                            class="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center {{ 'group-hover:bg-primary/30' if is_allowed }} transition-colors">
-                            <i class="fas fa-futbol text-2xl text-primary"></i>
+                <!-- Sin Agrupar Tab -->
+                {% if ungrouped_leagues %}
+                <button type="button" onclick="selectGroupTab('ungrouped')" id="tab-ungrouped"
+                    class="group-tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/80 border border-white/5 hover:border-white/15 cursor-pointer">
+                    <i class="fas fa-inbox text-xs text-white/40"></i>
+                    <span>Sin agrupar</span>
+                    <span class="bg-white/10 text-white/60 text-[11px] px-2 py-0.5 rounded-full font-bold">{{ ungrouped_leagues|length }}</span>
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- View Switcher (Only visible when viewing 'all' and user has groups) -->
+            {% if groups %}
+            <div class="flex items-center gap-1.5 shrink-0 self-end md:self-auto bg-black/40 p-1 rounded-xl border border-white/10" id="viewModeContainer">
+                <button type="button" onclick="setViewMode('folders')" id="btnViewFolders"
+                    class="view-mode-btn px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all bg-white/15 text-white shadow-sm cursor-pointer"
+                    title="Ver agrupadas por carpetas">
+                    <i class="fas fa-folder"></i>
+                    <span class="hidden sm:inline">Por Carpetas</span>
+                </button>
+                <button type="button" onclick="setViewMode('grid')" id="btnViewGrid"
+                    class="view-mode-btn px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all text-white/60 hover:text-white cursor-pointer"
+                    title="Ver cuadrícula completa con orden manual">
+                    <i class="fas fa-th-large"></i>
+                    <span class="hidden sm:inline">Todas</span>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Banner de Carpeta Activa (Visible cuando se selecciona una carpeta específica) -->
+        <div id="activeGroupBanner" class="hidden mb-8 bg-card border border-white/10 p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
+            <div class="flex items-center gap-3.5">
+                <div id="activeGroupBannerIcon" class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-inner shrink-0" style="background-color: rgba(59,130,246,0.15); color: #3b82f6;">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2.5 flex-wrap">
+                        <h3 id="activeGroupBannerTitle" class="text-xl sm:text-2xl font-bold text-white"></h3>
+                        <span id="activeGroupBannerCount" class="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-white/80 font-medium"></span>
+                    </div>
+                    <p class="text-white/50 text-xs sm:text-sm mt-0.5" id="activeGroupBannerDesc">Mostrando las ligas pertenecientes a esta carpeta</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 self-end sm:self-auto" id="activeGroupBannerActions">
+                <button type="button" onclick="editCurrentActiveGroup()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer border border-white/10">
+                    <i class="fas fa-edit text-white/70"></i>
+                    <span>Editar Carpeta</span>
+                </button>
+                <button type="button" onclick="deleteCurrentActiveGroup()" class="px-3.5 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Eliminar</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA 1: Secciones por Carpeta (Vista agrupada) -->
+        <div id="foldersSectionView" class="space-y-10">
+            {% for group in groups %}
+            <div class="group-folder-block bg-card/40 border border-white/5 rounded-2xl p-5 sm:p-6" data-group-id="{{ group.id }}">
+                <!-- Header de Sección de Carpeta -->
+                <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10 gap-2">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-sm"
+                            style="background-color: {{ group.color }}20; color: {{ group.color }}; border: 1px solid {{ group.color }}30;">
+                            <i class="fas fa-folder-open"></i>
                         </div>
-                        {% endif %}
-                        <div>
-                            <h3 class="text-xl font-bold" {% if league.custom_color_active and league.custom_name_color
-                                %}style="color: {{ league.custom_name_color }}" {% endif %}>{{ league.name }}</h3>
-                            <p class="text-white/60 text-sm">{{ league.active_teams_count }} / {{ league.max_teams }}
-                                equipos</p>
+                        <div class="min-w-0">
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2.5 truncate">
+                                <span>{{ group.name }}</span>
+                                <span class="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-white/70 font-normal shrink-0">
+                                    {{ group.leagues|length }} {{ 'liga' if group.leagues|length == 1 else 'ligas' }}
+                                </span>
+                            </h3>
                         </div>
                     </div>
-                    <div class="flex items-center gap-4 text-sm text-white/40">
-                        <span><i class="fas fa-calendar mr-1"></i> {{ league.created_at.strftime('%d/%m/%Y') }}</span>
-                        <span><i class="fas fa-users mr-1"></i> {{ league.active_teams_count }} equipos</span>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" onclick="openEditGroupModal('{{ group.id }}')"
+                            class="text-white/60 hover:text-white text-xs sm:text-sm px-2.5 py-1.5 rounded-lg hover:bg-white/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+                            title="Editar carpeta">
+                            <i class="fas fa-edit"></i>
+                            <span class="hidden sm:inline">Editar</span>
+                        </button>
+                        <button type="button" onclick="promptDeleteGroup('{{ group.id }}', '{{ group.name }}')"
+                            class="text-red-400/80 hover:text-red-400 text-xs sm:text-sm px-2.5 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors flex items-center gap-1.5 cursor-pointer"
+                            title="Eliminar carpeta">
+                            <i class="fas fa-trash-alt"></i>
+                            <span class="hidden sm:inline">Eliminar</span>
+                        </button>
                     </div>
-                </a>
+                </div>
+
+                <!-- Ligas de esta carpeta -->
+                {% if group.leagues %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for league in group.leagues %}
+                    {{ render_league_card(league, league.id in allowed_league_ids, show_group_badges=False) }}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 bg-white/[0.02] rounded-xl border border-dashed border-white/10">
+                    <i class="fas fa-folder-open text-3xl text-white/20 mb-2"></i>
+                    <p class="text-white/50 text-sm">Esta carpeta no tiene ligas asignadas aún</p>
+                    <button type="button" onclick="openEditGroupModal('{{ group.id }}')" class="mt-3 text-xs text-primary font-bold hover:underline cursor-pointer">
+                        <i class="fas fa-plus mr-1"></i>Asignar ligas a esta carpeta
+                    </button>
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
+
+            <!-- Sección de Ligas Sin Agrupar (si existen) -->
+            {% if ungrouped_leagues %}
+            <div class="group-folder-block bg-card/20 border border-white/5 rounded-2xl p-5 sm:p-6" data-group-id="ungrouped">
+                <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10 gap-2">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl bg-white/5 text-white/50 flex items-center justify-center text-lg shrink-0 border border-white/10">
+                            <i class="fas fa-inbox"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white flex items-center gap-2.5">
+                                <span>Otras Ligas (Sin agrupar)</span>
+                                <span class="text-xs px-2.5 py-0.5 rounded-full bg-white/10 text-white/60 font-normal">
+                                    {{ ungrouped_leagues|length }} {{ 'liga' if ungrouped_leagues|length == 1 else 'ligas' }}
+                                </span>
+                            </h3>
+                        </div>
+                    </div>
+                    <button type="button" onclick="openCreateGroupModal()" class="text-xs text-white/70 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors flex items-center gap-1.5 cursor-pointer">
+                        <i class="fas fa-folder-plus text-primary"></i>
+                        <span>Agrupar estas ligas</span>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for league in ungrouped_leagues %}
+                    {{ render_league_card(league, league.id in allowed_league_ids, show_group_badges=False) }}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
+
+        <!-- VISTA 2: Cuadrícula Completa / Filtrable con Drag & Drop -->
+        <div id="allLeaguesGridView" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="leagues-grid">
+                {% for league in leagues %}
+                {{ render_league_card(league, league.id in allowed_league_ids, show_group_badges=True) }}
+                {% endfor %}
+            </div>
+
+            <!-- Empty state al filtrar -->
+            <div id="noFilteredLeaguesMessage" class="hidden card text-center py-12">
+                <i class="fas fa-folder-open text-4xl text-white/20 mb-3"></i>
+                <h4 class="text-lg font-bold text-white mb-1">No hay ligas en esta sección</h4>
+                <p class="text-white/60 text-sm mb-4">Puedes asignar ligas editando la carpeta.</p>
+                <button type="button" onclick="editCurrentActiveGroup()" class="btn-primary text-sm inline-flex items-center gap-2">
+                    <i class="fas fa-edit"></i>
+                    <span>Editar Ligas de esta Carpeta</span>
+                </button>
+            </div>
+        </div>
+
         {% else %}
+        <!-- Sin ninguna liga creada -->
         <div class="card text-center py-16">
             <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
                 <i class="fas fa-futbol text-4xl text-white/20"></i>
@@ -105,7 +310,7 @@
         </div>
         {% endif %}
 
-        <!-- Stats -->
+        <!-- Stats Plan Gratuito -->
         {% if not current_user.is_active_premium %}
         <div class="mt-8 card bg-white/5 border-warning/30">
             <div class="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
@@ -125,20 +330,649 @@
     </main>
 </div>
 
+<!-- ========================================== -->
+<!-- MODAL: CREAR / EDITAR CARPETA (AGRUPAR)   -->
+<!-- ========================================== -->
+<div id="groupModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-all duration-300">
+    <div class="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-xl max-h-[92vh] flex flex-col shadow-2xl relative overflow-hidden">
+        <!-- Modal Header -->
+        <div class="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div id="groupModalIconBg" class="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center text-lg shrink-0 transition-colors">
+                    <i id="groupModalIcon" class="fas fa-folder-plus"></i>
+                </div>
+                <div>
+                    <h3 id="groupModalTitle" class="text-lg sm:text-xl font-bold text-white">Agrupar Ligas en Carpeta</h3>
+                    <p id="groupModalSubtitle" class="text-xs text-white/60">Organiza tus torneos por cancha, día o categoría</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeGroupModal()" class="text-white/40 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Modal Form -->
+        <form id="groupForm" method="POST" action="{{ url_for('main.create_group') }}" class="flex flex-col flex-1 overflow-hidden">
+            {% if csrf_token %}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            {% endif %}
+            
+            <div class="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
+                <!-- Group Name -->
+                <div>
+                    <label class="block text-sm font-semibold text-white/80 mb-2">
+                        Nombre de la Carpeta / Agrupación <span class="text-primary">*</span>
+                    </label>
+                    <input type="text" name="name" id="groupNameInput" required maxlength="100"
+                        placeholder="Ej. Cancha La Raza, Ligas Lunes, Torneos Juveniles..."
+                        class="input-field text-base focus:border-primary">
+                    
+                    <!-- Quick Suggestions -->
+                    <div class="mt-2.5 flex flex-wrap gap-1.5 items-center">
+                        <span class="text-[11px] text-white/40 mr-1"><i class="fas fa-lightbulb mr-1"></i>Sugerencias:</span>
+                        <button type="button" onclick="setGroupName('Cancha La Raza')" class="suggestion-pill text-xs px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-colors cursor-pointer">Cancha La Raza</button>
+                        <button type="button" onclick="setGroupName('Liga Lunes')" class="suggestion-pill text-xs px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-colors cursor-pointer">Liga Lunes</button>
+                        <button type="button" onclick="setGroupName('Fin de Semana')" class="suggestion-pill text-xs px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-colors cursor-pointer">Fin de Semana</button>
+                        <button type="button" onclick="setGroupName('Cancha 1')" class="suggestion-pill text-xs px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border border-white/10 transition-colors cursor-pointer">Cancha 1</button>
+                    </div>
+                </div>
+
+                <!-- Group Color -->
+                <div>
+                    <label class="block text-sm font-semibold text-white/80 mb-2">
+                        Color Identificador
+                    </label>
+                    <input type="hidden" name="color" id="groupColorInput" value="#3b82f6">
+                    <div class="flex items-center gap-3 flex-wrap" id="colorPickerContainer">
+                        <!-- Generado por JS -->
+                    </div>
+                </div>
+
+                <!-- League Selection -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-semibold text-white/80">
+                            Seleccionar Ligas para esta carpeta
+                            <span id="selectedLeaguesCount" class="text-xs font-normal text-white/50 ml-1">(0 seleccionadas)</span>
+                        </label>
+                        <div class="flex items-center gap-2 text-xs">
+                            <button type="button" onclick="toggleAllLeagues(true)" class="text-primary hover:underline font-semibold cursor-pointer">
+                                Seleccionar todas
+                            </button>
+                            <span class="text-white/20">|</span>
+                            <button type="button" onclick="toggleAllLeagues(false)" class="text-white/50 hover:underline cursor-pointer">
+                                Ninguna
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search filter in modal -->
+                    <div class="relative mb-3">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-xs"></i>
+                        <input type="text" id="modalLeagueSearch" placeholder="Buscar entre tus ligas..."
+                            class="w-full bg-black/40 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-white/30 focus:border-white/30 outline-none">
+                    </div>
+
+                    <!-- List of Leagues with Checkboxes -->
+                    <div class="space-y-2 max-h-52 overflow-y-auto pr-1" id="modalLeaguesList">
+                        {% for league in leagues %}
+                        <label class="modal-league-item flex items-center justify-between p-3 rounded-xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] cursor-pointer transition-all select-none" data-league-name="{{ league.name|lower }}">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <input type="checkbox" name="league_ids" value="{{ league.id }}" class="league-checkbox w-4 h-4 rounded text-primary focus:ring-primary focus:ring-offset-0 bg-black/50 border-white/20 accent-red-500 cursor-pointer">
+                                {% if league.logo_url %}
+                                <img src="{{ league.logo_url }}" class="w-8 h-8 rounded-lg object-contain bg-white/5 p-0.5 shrink-0" alt="">
+                                {% else %}
+                                <div class="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                                    <i class="fas fa-futbol text-primary text-xs"></i>
+                                </div>
+                                {% endif %}
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-white truncate">{{ league.name }}</p>
+                                    <p class="text-[11px] text-white/50">{{ league.active_teams_count }} equipos</p>
+                                </div>
+                            </div>
+                            <span class="text-xs text-white/40 shrink-0 ml-2">
+                                {{ league.created_at.strftime('%d/%m/%Y') }}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 sm:p-5 border-t border-white/10 bg-[#161616] flex items-center justify-between">
+                <button type="button" id="btnDeleteGroupInModal" onclick="deleteCurrentEditingGroup()" class="hidden text-red-400 hover:text-red-300 text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg hover:bg-red-500/10 transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Eliminar Carpeta</span>
+                </button>
+                <div class="flex items-center gap-3 ml-auto">
+                    <button type="button" onclick="closeGroupModal()" class="px-4 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors text-xs sm:text-sm font-semibold cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="groupModalSubmitBtn" class="btn-primary text-xs sm:text-sm flex items-center gap-2 cursor-pointer">
+                        <i class="fas fa-check"></i>
+                        <span id="groupModalSubmitText">Guardar Carpeta</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- MODAL: CONFIRMAR ELIMINACIÓN DE CARPETA   -->
+<!-- ========================================== -->
+<div id="deleteGroupConfirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-[60] p-4 transition-all duration-300">
+    <div class="bg-[#141414] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+        <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4 text-xl">
+            <i class="fas fa-trash-alt"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">¿Eliminar esta carpeta?</h3>
+        <p class="text-white/60 text-sm mb-4 leading-relaxed">
+            Estás a punto de eliminar la carpeta <span id="deleteGroupNameText" class="font-bold text-white"></span>.
+        </p>
+        <div class="p-3.5 bg-white/5 border border-white/10 rounded-xl mb-6 flex items-start gap-3">
+            <i class="fas fa-info-circle text-primary text-base mt-0.5 shrink-0"></i>
+            <p class="text-xs text-white/80 leading-relaxed">
+                <strong>Tus ligas NO se borrarán</strong>. Esta acción únicamente disuelve la carpeta organizadora; tus torneos, equipos, partidos y estadísticas permanecerán intactos.
+            </p>
+        </div>
+        
+        <form id="deleteGroupForm" method="POST" action="" class="flex justify-end gap-3">
+            {% if csrf_token %}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            {% endif %}
+            <button type="button" onclick="closeDeleteGroupConfirmModal()" class="px-4 py-2 rounded-lg text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm font-semibold cursor-pointer">
+                Cancelar
+            </button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors text-sm font-bold flex items-center gap-2 cursor-pointer shadow-lg shadow-red-500/20">
+                <i class="fas fa-trash-alt"></i>
+                <span>Eliminar Carpeta</span>
+            </button>
+        </form>
+    </div>
+</div>
+
 <!-- SortableJS for Drag and Drop -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
 <script>
+    // Datos de grupos enviados desde el backend
+    const groupsData = {{ groups_data | tojson | safe }};
+    const activeGroupIdInitial = "{{ active_group_id }}";
+    const hasGroups = groupsData.length > 0;
+
+    // Colores disponibles para las carpetas
+    const PRESET_COLORS = [
+        { name: 'Azul', hex: '#3b82f6' },
+        { name: 'Esmeralda', hex: '#10b981' },
+        { name: 'Púrpura', hex: '#8b5cf6' },
+        { name: 'Ámbar', hex: '#f59e0b' },
+        { name: 'Rojo', hex: '#ef4444' },
+        { name: 'Rosa', hex: '#ec4899' },
+        { name: 'Cian', hex: '#06b6d4' },
+        { name: 'Lima', hex: '#84cc16' }
+    ];
+
+    let currentSelectedGroupTab = 'all';
+    let currentViewMode = 'folders'; // 'folders' o 'grid'
+    let currentEditingGroupId = null;
+
     document.addEventListener('DOMContentLoaded', function () {
+        initColorPicker();
+        initModalEvents();
+        initSortable();
+
+        // Restaurar modo de vista o iniciar según grupos
+        const savedView = localStorage.getItem('ligapro_dashboard_view');
+        if (savedView && (savedView === 'folders' || savedView === 'grid')) {
+            currentViewMode = savedView;
+        } else {
+            currentViewMode = hasGroups ? 'folders' : 'grid';
+        }
+
+        // Si se recibe un parámetro de grupo específico en la URL (por ejemplo tras crear/editar)
+        if (activeGroupIdInitial && (groupsData.some(g => g.id === activeGroupIdInitial) || activeGroupIdInitial === 'ungrouped')) {
+            selectGroupTab(activeGroupIdInitial);
+        } else {
+            selectGroupTab('all');
+        }
+    });
+
+    // ==========================================
+    // NAVEGACIÓN Y FILTRADO POR CARPETAS
+    // ==========================================
+    function selectGroupTab(groupId) {
+        currentSelectedGroupTab = groupId;
+
+        // Actualizar aspecto de los botones de pestañas
+        document.querySelectorAll('.group-tab-btn').forEach(btn => {
+            btn.classList.remove('bg-white/20', 'text-white', 'border-white/30', 'shadow-md');
+            btn.classList.add('bg-white/5', 'text-white/70', 'border-white/5');
+        });
+
+        const activeBtn = document.getElementById(`tab-${groupId}`);
+        if (activeBtn) {
+            activeBtn.classList.remove('bg-white/5', 'text-white/70', 'border-white/5');
+            activeBtn.classList.add('bg-white/20', 'text-white', 'border-white/30', 'shadow-md');
+        }
+
+        const banner = document.getElementById('activeGroupBanner');
+        const viewSwitcher = document.getElementById('viewModeContainer');
+        const foldersView = document.getElementById('foldersSectionView');
+        const gridView = document.getElementById('allLeaguesGridView');
+
+        if (groupId === 'all') {
+            // Ocultar banner específico
+            if (banner) banner.classList.add('hidden');
+            if (viewSwitcher) viewSwitcher.classList.remove('hidden');
+
+            // Mostrar según el modo de vista actual
+            applyViewMode();
+        } else if (groupId === 'ungrouped') {
+            // Pestaña 'Sin agrupar'
+            if (viewSwitcher) viewSwitcher.classList.add('hidden');
+            if (foldersView) foldersView.classList.add('hidden');
+            if (gridView) gridView.classList.remove('hidden');
+
+            if (banner) {
+                banner.classList.remove('hidden');
+                document.getElementById('activeGroupBannerIcon').innerHTML = '<i class="fas fa-inbox"></i>';
+                document.getElementById('activeGroupBannerIcon').style.backgroundColor = 'rgba(255,255,255,0.08)';
+                document.getElementById('activeGroupBannerIcon').style.color = '#ffffff';
+                document.getElementById('activeGroupBannerTitle').textContent = 'Ligas Sin Agrupar';
+                document.getElementById('activeGroupBannerDesc').textContent = 'Ligas que aún no pertenecen a ninguna carpeta';
+                
+                const count = document.querySelectorAll('#allLeaguesGridView [data-group-ids=""]').length;
+                document.getElementById('activeGroupBannerCount').textContent = `${count} ${count === 1 ? 'liga' : 'ligas'}`;
+                document.getElementById('activeGroupBannerActions').classList.add('hidden');
+            }
+
+            // Filtrar cuadrícula: solo ligas con data-group-ids vacío
+            let visibleCount = 0;
+            document.querySelectorAll('#allLeaguesGridView .league-card-item').forEach(card => {
+                const groupIds = (card.getAttribute('data-group-ids') || '').trim();
+                if (!groupIds) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const emptyMsg = document.getElementById('noFilteredLeaguesMessage');
+            if (emptyMsg) {
+                emptyMsg.classList.toggle('hidden', visibleCount > 0);
+            }
+        } else {
+            // Carpeta específica seleccionada
+            const group = groupsData.find(g => g.id === groupId);
+            if (!group) return;
+
+            if (viewSwitcher) viewSwitcher.classList.add('hidden');
+            if (foldersView) foldersView.classList.add('hidden');
+            if (gridView) gridView.classList.remove('hidden');
+
+            if (banner) {
+                banner.classList.remove('hidden');
+                document.getElementById('activeGroupBannerIcon').innerHTML = '<i class="fas fa-folder-open"></i>';
+                document.getElementById('activeGroupBannerIcon').style.backgroundColor = `${group.color}25`;
+                document.getElementById('activeGroupBannerIcon').style.color = group.color;
+                document.getElementById('activeGroupBannerTitle').textContent = group.name;
+                document.getElementById('activeGroupBannerDesc').textContent = 'Ligas organizadas en esta carpeta';
+                document.getElementById('activeGroupBannerCount').textContent = `${group.league_ids.length} ${group.league_ids.length === 1 ? 'liga' : 'ligas'}`;
+                document.getElementById('activeGroupBannerActions').classList.remove('hidden');
+            }
+
+            // Filtrar cuadrícula por ID de grupo
+            let visibleCount = 0;
+            document.querySelectorAll('#allLeaguesGridView .league-card-item').forEach(card => {
+                const groupIds = (card.getAttribute('data-group-ids') || '').split(',').map(s => s.trim());
+                if (groupIds.includes(groupId)) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const emptyMsg = document.getElementById('noFilteredLeaguesMessage');
+            if (emptyMsg) {
+                emptyMsg.classList.toggle('hidden', visibleCount > 0);
+            }
+        }
+    }
+
+    function setViewMode(mode) {
+        currentViewMode = mode;
+        localStorage.setItem('ligapro_dashboard_view', mode);
+        applyViewMode();
+    }
+
+    function applyViewMode() {
+        if (currentSelectedGroupTab !== 'all') {
+            return;
+        }
+
+        const foldersView = document.getElementById('foldersSectionView');
+        const gridView = document.getElementById('allLeaguesGridView');
+        const btnFolders = document.getElementById('btnViewFolders');
+        const btnGrid = document.getElementById('btnViewGrid');
+
+        // Si no hay grupos, forzar modo grid
+        if (!hasGroups) {
+            currentViewMode = 'grid';
+        }
+
+        if (currentViewMode === 'folders' && hasGroups) {
+            if (foldersView) foldersView.classList.remove('hidden');
+            if (gridView) gridView.classList.add('hidden');
+
+            if (btnFolders) {
+                btnFolders.classList.add('bg-white/15', 'text-white', 'shadow-sm');
+                btnFolders.classList.remove('text-white/60');
+            }
+            if (btnGrid) {
+                btnGrid.classList.remove('bg-white/15', 'text-white', 'shadow-sm');
+                btnGrid.classList.add('text-white/60');
+            }
+        } else {
+            if (foldersView) foldersView.classList.add('hidden');
+            if (gridView) gridView.classList.remove('hidden');
+
+            // Mostrar todas las tarjetas en la cuadrícula
+            document.querySelectorAll('#allLeaguesGridView .league-card-item').forEach(card => {
+                card.style.display = '';
+            });
+
+            const emptyMsg = document.getElementById('noFilteredLeaguesMessage');
+            if (emptyMsg) emptyMsg.classList.add('hidden');
+
+            if (btnGrid) {
+                btnGrid.classList.add('bg-white/15', 'text-white', 'shadow-sm');
+                btnGrid.classList.remove('text-white/60');
+            }
+            if (btnFolders) {
+                btnFolders.classList.remove('bg-white/15', 'text-white', 'shadow-sm');
+                btnFolders.classList.add('text-white/60');
+            }
+        }
+    }
+
+    // ==========================================
+    // COLOR PICKER
+    // ==========================================
+    function initColorPicker() {
+        const container = document.getElementById('colorPickerContainer');
+        if (!container) return;
+
+        container.innerHTML = '';
+        PRESET_COLORS.forEach((c, idx) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.dataset.color = c.hex;
+            btn.title = c.name;
+            btn.className = `w-7 h-7 rounded-full transition-transform hover:scale-110 flex items-center justify-center cursor-pointer border-2 ${idx === 0 ? 'border-white scale-110 shadow-lg' : 'border-transparent'}`;
+            btn.style.backgroundColor = c.hex;
+            btn.innerHTML = `<i class="fas fa-check text-white text-[10px] ${idx === 0 ? '' : 'hidden'}"></i>`;
+            
+            btn.onclick = function () {
+                selectColor(c.hex);
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    function selectColor(hex) {
+        document.getElementById('groupColorInput').value = hex;
+        
+        // Actualizar aspecto de los botones
+        document.querySelectorAll('#colorPickerContainer button').forEach(btn => {
+            const isMatch = btn.dataset.color.toLowerCase() === hex.toLowerCase();
+            btn.classList.toggle('border-white', isMatch);
+            btn.classList.toggle('scale-110', isMatch);
+            btn.classList.toggle('border-transparent', !isMatch);
+            const icon = btn.querySelector('i');
+            if (icon) icon.classList.toggle('hidden', !isMatch);
+        });
+
+        // Actualizar icono modal
+        const iconBg = document.getElementById('groupModalIconBg');
+        if (iconBg) {
+            iconBg.style.backgroundColor = `${hex}25`;
+            iconBg.style.color = hex;
+        }
+    }
+
+    // ==========================================
+    // MODAL DE CARPETA (CREAR / EDITAR)
+    // ==========================================
+    function openCreateGroupModal() {
+        currentEditingGroupId = null;
+        const form = document.getElementById('groupForm');
+        form.action = "{{ url_for('main.create_group') }}";
+        
+        document.getElementById('groupModalTitle').textContent = "Agrupar Ligas en Carpeta";
+        document.getElementById('groupModalSubtitle').textContent = "Organiza tus torneos por cancha, día o categoría";
+        document.getElementById('groupModalIcon').className = "fas fa-folder-plus";
+        document.getElementById('groupModalSubmitText').textContent = "Crear Carpeta";
+        document.getElementById('btnDeleteGroupInModal').classList.add('hidden');
+        
+        document.getElementById('groupNameInput').value = '';
+        selectColor('#3b82f6');
+        
+        // Desmarcar todas las ligas
+        toggleAllLeagues(false);
+
+        // Limpiar búsqueda
+        const searchInput = document.getElementById('modalLeagueSearch');
+        if (searchInput) {
+            searchInput.value = '';
+            filterModalLeagues('');
+        }
+
+        openModalElement('groupModal');
+        setTimeout(() => document.getElementById('groupNameInput').focus(), 150);
+    }
+
+    function openEditGroupModal(groupId) {
+        currentEditingGroupId = groupId;
+        const group = groupsData.find(g => g.id === groupId);
+        if (!group) return;
+
+        const form = document.getElementById('groupForm');
+        form.action = `/groups/${groupId}/edit`;
+
+        document.getElementById('groupModalTitle').textContent = "Editar Carpeta";
+        document.getElementById('groupModalSubtitle').textContent = `Modifica el nombre, color o las ligas de "${group.name}"`;
+        document.getElementById('groupModalIcon').className = "fas fa-edit";
+        document.getElementById('groupModalSubmitText').textContent = "Guardar Cambios";
+        document.getElementById('btnDeleteGroupInModal').classList.remove('hidden');
+
+        document.getElementById('groupNameInput').value = group.name;
+        selectColor(group.color || '#3b82f6');
+
+        // Marcar las ligas asignadas
+        const leagueIdSet = new Set(group.league_ids || []);
+        document.querySelectorAll('.league-checkbox').forEach(cb => {
+            cb.checked = leagueIdSet.has(cb.value);
+            updateCheckboxRowStyle(cb);
+        });
+        updateSelectedCount();
+
+        // Limpiar búsqueda
+        const searchInput = document.getElementById('modalLeagueSearch');
+        if (searchInput) {
+            searchInput.value = '';
+            filterModalLeagues('');
+        }
+
+        openModalElement('groupModal');
+        setTimeout(() => document.getElementById('groupNameInput').focus(), 150);
+    }
+
+    function editCurrentActiveGroup() {
+        if (currentSelectedGroupTab && currentSelectedGroupTab !== 'all' && currentSelectedGroupTab !== 'ungrouped') {
+            openEditGroupModal(currentSelectedGroupTab);
+        }
+    }
+
+    function closeGroupModal() {
+        closeModalElement('groupModal');
+    }
+
+    function setGroupName(name) {
+        const input = document.getElementById('groupNameInput');
+        input.value = name;
+        input.focus();
+    }
+
+    // ==========================================
+    // SELECCIÓN DE LIGAS EN EL MODAL
+    // ==========================================
+    function toggleAllLeagues(selectAll) {
+        document.querySelectorAll('.league-checkbox').forEach(cb => {
+            const item = cb.closest('.modal-league-item');
+            if (!item || item.style.display !== 'none') {
+                cb.checked = selectAll;
+                updateCheckboxRowStyle(cb);
+            }
+        });
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const totalChecked = document.querySelectorAll('.league-checkbox:checked').length;
+        const counter = document.getElementById('selectedLeaguesCount');
+        if (counter) {
+            counter.textContent = `(${totalChecked} ${totalChecked === 1 ? 'seleccionada' : 'seleccionadas'})`;
+        }
+    }
+
+    function updateCheckboxRowStyle(checkbox) {
+        const item = checkbox.closest('.modal-league-item');
+        if (item) {
+            if (checkbox.checked) {
+                item.classList.add('border-primary/50', 'bg-primary/10');
+                item.classList.remove('border-white/10', 'bg-white/[0.03]');
+            } else {
+                item.classList.remove('border-primary/50', 'bg-primary/10');
+                item.classList.add('border-white/10', 'bg-white/[0.03]');
+            }
+        }
+    }
+
+    function filterModalLeagues(query) {
+        const q = query.trim().toLowerCase();
+        document.querySelectorAll('.modal-league-item').forEach(item => {
+            const name = item.dataset.leagueName || '';
+            item.style.display = (!q || name.includes(q)) ? '' : 'none';
+        });
+    }
+
+    function initModalEvents() {
+        // Toggle fila al hacer clic
+        document.querySelectorAll('.modal-league-item').forEach(item => {
+            item.addEventListener('click', function (e) {
+                if (e.target.tagName.toLowerCase() === 'input') return;
+                const cb = this.querySelector('.league-checkbox');
+                if (cb) {
+                    cb.checked = !cb.checked;
+                    updateCheckboxRowStyle(cb);
+                    updateSelectedCount();
+                }
+            });
+        });
+
+        // Evento de checkboxes
+        document.querySelectorAll('.league-checkbox').forEach(cb => {
+            cb.addEventListener('change', function () {
+                updateCheckboxRowStyle(this);
+                updateSelectedCount();
+            });
+        });
+
+        // Búsqueda en modal
+        const searchInput = document.getElementById('modalLeagueSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                filterModalLeagues(this.value);
+            });
+        }
+    }
+
+    // ==========================================
+    // ELIMINAR CARPETA
+    // ==========================================
+    function promptDeleteGroup(groupId, groupName) {
+        document.getElementById('deleteGroupNameText').textContent = `"${groupName}"`;
+        document.getElementById('deleteGroupForm').action = `/groups/${groupId}/delete`;
+        openModalElement('deleteGroupConfirmModal');
+    }
+
+    function deleteCurrentActiveGroup() {
+        if (currentSelectedGroupTab && currentSelectedGroupTab !== 'all' && currentSelectedGroupTab !== 'ungrouped') {
+            const group = groupsData.find(g => g.id === currentSelectedGroupTab);
+            if (group) {
+                promptDeleteGroup(group.id, group.name);
+            }
+        }
+    }
+
+    function deleteCurrentEditingGroup() {
+        if (currentEditingGroupId) {
+            const group = groupsData.find(g => g.id === currentEditingGroupId);
+            closeGroupModal();
+            promptDeleteGroup(currentEditingGroupId, group ? group.name : 'esta carpeta');
+        }
+    }
+
+    function closeDeleteGroupConfirmModal() {
+        closeModalElement('deleteGroupConfirmModal');
+    }
+
+    // ==========================================
+    // UTILIDADES DE MODALES
+    // ==========================================
+    function openModalElement(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModalElement(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+
+    // Cerrar modales con tecla Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeGroupModal();
+            closeDeleteGroupConfirmModal();
+        }
+    });
+
+    // ==========================================
+    // SORTABLE DRAG & DROP
+    // ==========================================
+    function initSortable() {
         var el = document.getElementById('leagues-grid');
         if (el) {
             Sortable.create(el, {
                 animation: 150,
                 ghostClass: 'opacity-50',
-                delay: 250, // 0.25s para iniciar el arrastre antes de que salga el menú
-                fallbackTolerance: 3, // Permite que el dedo tiemble un poco sin cancelar el arrastre
-                delayOnTouchOnly: true, // Solo aplica el retraso en dispositivos táctiles
+                delay: 250,
+                fallbackTolerance: 3,
+                delayOnTouchOnly: true,
                 onEnd: function (evt) {
-                    var items = el.querySelectorAll('[data-id]');
+                    var items = el.querySelectorAll('.league-card-item[data-id]');
                     var order = Array.from(items).map(item => item.getAttribute('data-id'));
                     
                     fetch('{{ url_for("league.reorder_leagues") }}', {
@@ -158,6 +992,6 @@
                 }
             });
         }
-    });
+    }
 </script>
 {% endblock %}

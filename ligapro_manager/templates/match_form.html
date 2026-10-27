@@ -33,7 +33,7 @@
                     {% for error in form.home_team_id.errors %}
                     <p class="text-red-400 text-sm mt-1">{{ error }}</p>
                     {% endfor %}
-                    <div id="home_history" class="text-xs text-white/40 mt-2 font-mono"></div>
+                    <div id="home_history" class="text-xs mt-2"></div>
                 </div>
 
                 <div>
@@ -44,7 +44,7 @@
                     {% for error in form.away_team_id.errors %}
                     <p class="text-red-400 text-sm mt-1">{{ error }}</p>
                     {% endfor %}
-                    <div id="away_history" class="text-xs text-white/40 mt-2 font-mono"></div>
+                    <div id="away_history" class="text-xs mt-2"></div>
                 </div>
 
                 <div id="last_match_alert" class="hidden bg-blue-500/20 border border-blue-500/30 rounded-xl p-4 flex items-center gap-4">
@@ -156,6 +156,7 @@
 <script>
     window.teamsHistory = {{ teams_history | tojson }};
     window.teamsMap = {{ teams_map | tojson }};
+    window.teamsRests = {{ teams_rests | tojson }};
 </script>
-<script src="{{ url_for('static', filename='js/match_form.js') }}"></script>
+<script src="{{ url_for('static', filename='js/match_form.js') }}?v=1.0.13"></script>
 {% endblock %}

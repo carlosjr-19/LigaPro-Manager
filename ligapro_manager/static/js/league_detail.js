@@ -290,6 +290,25 @@ function openMatrixModal(cellData) {
     document.getElementById('matrix_home_name').textContent = home.name;
     document.getElementById('matrix_away_name').textContent = away.name;
 
+    const homeRestEl = document.getElementById('matrix_home_rest');
+    const awayRestEl = document.getElementById('matrix_away_rest');
+    const renderMatrixRest = (restData) => {
+        const count = restData ? (restData.count || 0) : 0;
+        const dates = restData ? (restData.dates || []) : [];
+        const datesStr = dates.length > 0 ? `Fechas: ${dates.join(', ')}` : 'Sin descansos previos';
+        if (count === 0) {
+            return `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-white/5 text-white/50 border border-white/10" title="${datesStr}"><i class="fas fa-bed text-[9px]"></i> descanso x0</span>`;
+        } else {
+            return `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30" title="${datesStr}"><i class="fas fa-bed text-[9px]"></i> descanso x${count}</span>`;
+        }
+    };
+    if (homeRestEl) {
+        homeRestEl.innerHTML = renderMatrixRest(window.teamsRests ? window.teamsRests[cellData.home_id] : null);
+    }
+    if (awayRestEl) {
+        awayRestEl.innerHTML = renderMatrixRest(window.teamsRests ? window.teamsRests[cellData.away_id] : null);
+    }
+
     const homeShieldEl = document.getElementById('matrix_home_shield');
     const awayShieldEl = document.getElementById('matrix_away_shield');
 
